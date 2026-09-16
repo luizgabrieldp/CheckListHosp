@@ -1,0 +1,556 @@
+{
+  "admissoes": [
+    {
+      "id": "adm-1789527862469",
+      "nome": "jose",
+      "enfermaria": "SEM ENFERMARIA",
+      "dataAdmissaoAgendada": "2026-09-16",
+      "status": "Aguardando",
+      "chegou": false,
+      "internou": false,
+      "aih": false,
+      "altaAdm": false,
+      "cancelada": false,
+      "historiaFinalizada": false,
+      "anotacoesHistoria": "HD:\n-\n\nHDA:\n\nANTECEDENTES\n- ALERGIAS\n- COMORBIDADES\n- CX PRÉVIAS\n- HÁBITOS DE VIDA\n- HEMOTX PRÉVIAS\n- MUC\n- PESO ATUAL\n\nEXAME FÍSICO:\n- GERAL: EGB, CONSCIENTE E ORIENTADO, CORADO, HIDRATADO, ACIANÓTICO, ANICTÉRICO, AFEBRIL\n- ACV: RCR EM 2T, BNF, S/S \n- AR: MV+ EM AHT, S/RA \n- ABD: GLOBOSO, FLÁCIDO, DEPRESSIVEL, INDOLOR À PALPAÇÃO SUPERFICIAL E PROFUNDA, SEM SINAIS DE IRRITAÇÃO PERITONEAL. MURPHY NEGATIVO. \n- EXT: PULSOS CHEIOS E SIMÉTRICOS. TEC < 3S.\n\nEXAMES COMPLEMENTARES\n\nCD:\n- INTERNAMENTO PARA",
+      "createdAt": "2026-09-16T03:04:22.469Z",
+      "updatedAt": "2026-09-16T20:56:26.522Z"
+    },
+    {
+      "id": "adm-1789527169384",
+      "nome": "jose",
+      "enfermaria": "SEM ENFERMARIA",
+      "dataAdmissaoAgendada": "2026-09-17",
+      "status": "Aguardando",
+      "chegou": false,
+      "internou": false,
+      "aih": false,
+      "altaAdm": false,
+      "cancelada": false,
+      "historiaFinalizada": false,
+      "anotacoesHistoria": "HD:\n- \n\nHDA: \n\nANTECEDENTES:\n- \n\nCONDUTA:\n- ",
+      "createdAt": "2026-09-16T02:52:49.384Z",
+      "updatedAt": "2026-09-16T02:52:49.384Z"
+    },
+    {
+      "id": "adm-1",
+      "nome": "RENATA CAMILA ROCHA DA SILVA",
+      "enfermaria": "SEM ENFERMARIA",
+      "leito": "Leito 01",
+      "dataAdmissaoAgendada": "2026-09-16",
+      "status": "Chegou",
+      "chegou": true,
+      "internou": false,
+      "aih": false,
+      "altaAdm": false,
+      "cancelada": false,
+      "historiaFinalizada": false,
+      "anotacoesHistoria": "HD:\n- COLELITÍASE SINTOMÁTICA\n\nHDA: PACIENTE COM DIAGNÓSTICO PRÉVIO DE COLECISTOLITÍASE RETORNA A ENFERMARIA PARA REALIZAÇÃO DE COLELAP. REFERE DOR EM HCD COM PIORA PÓS-PRANDIAL. NEGA NOVAS QUEIXAS ATUALMENTE.\n\nANTECEDENTES:\n- Nega alergias ou comorbidades conhecidas.\n\nCONDUTA:\n- Programada colecistectomia videolaparoscópica. Jejum após 00:00.",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:55:38.735Z"
+    },
+    {
+      "id": "adm-2",
+      "nome": "ANTONIO EUGENIO DA SILVA",
+      "enfermaria": "FGH",
+      "leito": "Leito 02",
+      "dataAdmissaoAgendada": "2026-09-16",
+      "status": "Alta/ADM",
+      "chegou": true,
+      "internou": true,
+      "aih": true,
+      "altaAdm": true,
+      "cancelada": false,
+      "historiaFinalizada": true,
+      "anotacoesHistoria": "HD:\n- HÉRNIA INGUINAL DIREITA\n\nHDA: Paciente admitido para herniorrafia inguinal eletiva. Procedimento realizado sem intercorrências.\n\nCONDUTA:\n- Alta hospitalar com orientações e receita.",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "adm-3",
+      "nome": "MARIA LEDA TAVARES DE SOUZA",
+      "enfermaria": "FGH",
+      "leito": "Leito 03",
+      "dataAdmissaoAgendada": "2026-09-16",
+      "status": "Alta/ADM",
+      "chegou": true,
+      "internou": true,
+      "aih": true,
+      "altaAdm": true,
+      "cancelada": false,
+      "historiaFinalizada": true,
+      "anotacoesHistoria": "HD:\n- HÉRNIA UMBILICAL\n\nHDA: PO 1 de herniorrafia umbilical. Dieta aceita, deambulando, diurese e evacuação presentes.",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "adm-4",
+      "nome": "TAMIRES SILVA SAMPAIO SANTOS",
+      "enfermaria": "IMIP",
+      "leito": "Leito 04",
+      "dataAdmissaoAgendada": "2026-09-16",
+      "status": "AIH",
+      "chegou": true,
+      "internou": true,
+      "aih": true,
+      "altaAdm": false,
+      "cancelada": false,
+      "historiaFinalizada": false,
+      "anotacoesHistoria": "HD:\n- APENDICITE AGUDA SUBAGUDA\n\nHDA: Paciente admitida via pronto-socorro. AIH autorizada. Programado procedimento cirúrgico.",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "adm-5",
+      "nome": "CLEIDE CREUZA DA SILVA SANTOS",
+      "enfermaria": "IMIP",
+      "leito": "Leito 05",
+      "dataAdmissaoAgendada": "2026-09-16",
+      "status": "Alta/ADM",
+      "chegou": true,
+      "internou": true,
+      "aih": true,
+      "altaAdm": true,
+      "cancelada": false,
+      "historiaFinalizada": true,
+      "anotacoesHistoria": "HD:\n- COLECISTECTOMIA VLP\n\nHDA: Alta e documentação administrativa (ADM) prontas.",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "adm-6",
+      "nome": "JOSÉ LEONARDO GOMES FILHO",
+      "enfermaria": "IMIP",
+      "leito": "Leito 06",
+      "dataAdmissaoAgendada": "2026-09-16",
+      "status": "Alta/ADM",
+      "chegou": true,
+      "internou": true,
+      "aih": true,
+      "altaAdm": true,
+      "cancelada": false,
+      "historiaFinalizada": true,
+      "anotacoesHistoria": "HD:\n- CISTO SEBÁCEO DORSAL\n\nHDA: Ressecção realizada sob anestesia local. Alta programada.",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "adm-7",
+      "nome": "SILVANIA JOSÉ DA SILVA",
+      "enfermaria": "IMIP",
+      "leito": "Leito 07",
+      "dataAdmissaoAgendada": "2026-09-16",
+      "status": "Alta/ADM",
+      "chegou": true,
+      "internou": true,
+      "aih": true,
+      "altaAdm": true,
+      "cancelada": false,
+      "historiaFinalizada": true,
+      "anotacoesHistoria": "HD:\n- LIPOMA DE ANTEBRAÇO\n\nHDA: Alta e ADM concluídas.",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "adm-8",
+      "nome": "ZULEIDE MIRANDA DE SANTANA",
+      "enfermaria": "FGH",
+      "leito": "Leito 08",
+      "dataAdmissaoAgendada": "2026-09-16",
+      "status": "Alta/ADM",
+      "chegou": true,
+      "internou": true,
+      "aih": true,
+      "altaAdm": true,
+      "cancelada": false,
+      "historiaFinalizada": true,
+      "anotacoesHistoria": "HD:\n- PO HÉRNIA INCISIONAL\n\nHDA: Procedimento e documentação de alta concluídos.",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:48:37.617Z"
+    }
+  ],
+  "altas": [
+    {
+      "id": "alta-1",
+      "leito": "Leito 03",
+      "enfermaria": "Cirurgia Geral 1",
+      "nomePaciente": "Roberto Dias de Matos",
+      "tipoCirurgia": "PO 1 Colecistectomia Videolaparoscópica",
+      "temQueixas": false,
+      "parametros": {
+        "dieta": true,
+        "deambulou": true,
+        "diurese": true,
+        "evacuacao": true
+      },
+      "sinaisVitais": {
+        "frequenciaCardiaca": 74,
+        "saturacaoO2": 98,
+        "pressaoArterial": "120/80 mmHg",
+        "temperatura": 36.4
+      },
+      "dataAlta": "2026-09-16",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "alta-2",
+      "leito": "Leito 04",
+      "enfermaria": "Cirurgia Geral 1",
+      "nomePaciente": "Juliana Mendes Garcia",
+      "tipoCirurgia": "PO 2 Herniorrafia Umbilical",
+      "temQueixas": true,
+      "detalhesQueixas": "Leve dor em queimação na cicatriz cirúrgica, bem controlada após Dipirona venosa.",
+      "parametros": {
+        "dieta": true,
+        "deambulou": true,
+        "diurese": true,
+        "evacuacao": false
+      },
+      "sinaisVitais": {
+        "frequenciaCardiaca": 82,
+        "saturacaoO2": 97,
+        "pressaoArterial": "115/75 mmHg",
+        "temperatura": 36.6
+      },
+      "dataAlta": "2026-09-16",
+      "createdAt": "2026-09-16T02:48:37.617Z",
+      "updatedAt": "2026-09-16T02:48:37.617Z"
+    }
+  ],
+  "permanencia": {
+    "id": "perm-hoje",
+    "data": "2026-09-16",
+    "equipe": {
+      "doutorandos": [
+        "Lucas Pinheiro (Internato)",
+        "Mariana Vasquez (Internato)"
+      ],
+      "residentes": [
+        "Dr. Felipe Prado (R1 Cirurgia)",
+        "Dra. Camila Nogueira (R2 Cirurgia)"
+      ],
+      "preceptores": [
+        "Dr. Alexandre Fontes (Staff Chefe)"
+      ]
+    },
+    "pendencias": [
+      {
+        "id": "pend-1",
+        "titulo": "Checar resultado de TC de Abdome com contraste do Leito 05",
+        "responsavel": "Dr. Felipe Prado (R1)",
+        "status": "Em Realização",
+        "prioridade": "Urgente",
+        "leito": "Leito 05",
+        "createdAt": "2026-09-16T02:48:37.618Z",
+        "updatedAt": "2026-09-16T02:48:37.618Z"
+      },
+      {
+        "id": "pend-2",
+        "titulo": "Coletar hemograma e PCR de controle do Leito 08 (PO 3 Apendicectomia)",
+        "responsavel": "Lucas Pinheiro (Interno)",
+        "status": "Pendente",
+        "prioridade": "Normal",
+        "leito": "Leito 08",
+        "createdAt": "2026-09-16T02:48:37.618Z",
+        "updatedAt": "2026-09-16T02:48:37.618Z"
+      },
+      {
+        "id": "pend-3",
+        "titulo": "Passar prescrição de alta e orientações para Leito 03",
+        "responsavel": "Dra. Camila Nogueira (R2)",
+        "status": "Feito",
+        "prioridade": "Normal",
+        "leito": "Leito 03",
+        "createdAt": "2026-09-16T02:48:37.618Z",
+        "updatedAt": "2026-09-16T02:48:37.618Z"
+      }
+    ],
+    "createdAt": "2026-09-16T02:48:37.618Z",
+    "updatedAt": "2026-09-16T02:48:37.618Z"
+  },
+  "passagem": [
+    {
+      "id": "pass-1",
+      "nome": "Marcos Vinicius de Souza Lima",
+      "leito": "Leito 08",
+      "enfermaria": "Cirurgia Geral 2",
+      "dataNascimento": "1984-06-15",
+      "dataAdmissao": "2026-09-14",
+      "hd": "PO 3 Apendicectomia por Apendicite Aguda Perfurada (Fase IV)",
+      "antibioticos": [
+        {
+          "id": "atb-1",
+          "nome": "Ceftriaxona",
+          "dose": "1g IV",
+          "frequenciaHoras": 12,
+          "horarioPrimeiraDose": "08:00",
+          "dataInicio": "2026-09-14",
+          "duracaoDias": 5,
+          "dosesPerdidas": 0,
+          "observacao": "Cobrir germes entéricos Gram negativos"
+        },
+        {
+          "id": "atb-2",
+          "nome": "Metronidazol",
+          "dose": "500mg IV",
+          "frequenciaHoras": 8,
+          "horarioPrimeiraDose": "08:00",
+          "dataInicio": "2026-09-14",
+          "duracaoDias": 5,
+          "dosesPerdidas": 1,
+          "observacao": "Cobertura de anaeróbios"
+        }
+      ],
+      "pendencias": [
+        "Monitorar débito do dreno tubular de aspiração",
+        "Aguardar leucograma e PCR de 48h"
+      ],
+      "sinaisVitais": {
+        "fc": 78,
+        "satO2": 98,
+        "pa": "120/75 mmHg",
+        "tax": 36.8
+      },
+      "conduta": "Manter ATB venoso combinado, progredir dieta branda se boa aceitação, retirar dreno se débito sero-hemático < 30ml/24h.",
+      "createdAt": "2026-09-16T02:48:37.618Z",
+      "updatedAt": "2026-09-16T02:48:37.618Z"
+    },
+    {
+      "id": "pass-2",
+      "nome": "Geraldo da Conceição Neto",
+      "leito": "Leito 09",
+      "enfermaria": "Cirurgia Geral 2",
+      "dataNascimento": "1960-01-28",
+      "dataAdmissao": "2026-09-08",
+      "hd": "PO 7 Drenagem de Abscesso Hepático Amebiano",
+      "antibioticos": [
+        {
+          "id": "atb-3",
+          "nome": "Ciprofloxacino",
+          "dose": "400mg IV",
+          "frequenciaHoras": 12,
+          "horarioPrimeiraDose": "06:00",
+          "dataInicio": "2026-09-08",
+          "duracaoDias": 7,
+          "dosesPerdidas": 0,
+          "observacao": "Tempo planejado completado"
+        }
+      ],
+      "pendencias": [
+        "Reavaliação ultrassonográfica de controle",
+        "Retirar acesso venoso se afebril por 48h"
+      ],
+      "sinaisVitais": {
+        "fc": 70,
+        "satO2": 99,
+        "pa": "130/80 mmHg",
+        "tax": 36.5
+      },
+      "conduta": "Suspender antibioticoterapia venosa (atingiu meta de 7d com resolução clínica), iniciar transição para alta.",
+      "createdAt": "2026-09-16T02:48:37.618Z",
+      "updatedAt": "2026-09-16T02:48:37.618Z"
+    }
+  ],
+  "ambulantes": [
+    {
+      "id": "med-1",
+      "nome": "Dr. Alexandre Fontes",
+      "especialidade": "Cirurgia Geral & Parede Abdominal",
+      "sala": "Consultório 102",
+      "horarios": [
+        {
+          "dia": "Segunda",
+          "turno": "Manhã"
+        },
+        {
+          "dia": "Quarta",
+          "turno": "Tarde"
+        }
+      ]
+    },
+    {
+      "id": "med-2",
+      "nome": "Dra. Beatriz Albuquerque",
+      "especialidade": "Cirurgia Videolaparoscópica",
+      "sala": "Consultório 105",
+      "horarios": [
+        {
+          "dia": "Segunda",
+          "turno": "Manhã"
+        },
+        {
+          "dia": "Sexta",
+          "turno": "Manhã"
+        }
+      ]
+    },
+    {
+      "id": "med-3",
+      "nome": "Dr. Carlos Eduardo Meireles",
+      "especialidade": "Cirurgia do Aparelho Digestivo",
+      "sala": "Consultório 101",
+      "horarios": [
+        {
+          "dia": "Terça",
+          "turno": "Manhã"
+        },
+        {
+          "dia": "Quinta",
+          "turno": "Tarde"
+        }
+      ]
+    },
+    {
+      "id": "med-4",
+      "nome": "Dra. Daniela Prado",
+      "especialidade": "Coloproctologia",
+      "sala": "Consultório 104",
+      "horarios": [
+        {
+          "dia": "Segunda",
+          "turno": "Tarde"
+        },
+        {
+          "dia": "Quarta",
+          "turno": "Manhã"
+        }
+      ]
+    },
+    {
+      "id": "med-5",
+      "nome": "Dr. Gabriel Zampieri",
+      "especialidade": "Cirurgia Geral & Trauma",
+      "sala": "Consultório 103",
+      "horarios": [
+        {
+          "dia": "Terça",
+          "turno": "Tarde"
+        },
+        {
+          "dia": "Quinta",
+          "turno": "Manhã"
+        }
+      ]
+    },
+    {
+      "id": "med-6",
+      "nome": "Dra. Helena Vasconcelos",
+      "especialidade": "Cirurgia Bariátrica e Metabólica",
+      "sala": "Consultório 106",
+      "horarios": [
+        {
+          "dia": "Sexta",
+          "turno": "Tarde"
+        },
+        {
+          "dia": "Terça",
+          "turno": "Manhã"
+        }
+      ]
+    }
+  ],
+  "modelos": [
+    {
+      "id": "mod-1",
+      "titulo": "Alta Hospitalar - Pós-Operatório Geral",
+      "categoria": "Alta",
+      "conteudo": "HOSPITAL REGIONAL / ENFERMARIA DE CIRURGIA GERAL\nRESUMO DE ALTA HOSPITALAR\n\nPaciente em pós-operatório sem intercorrências no período de internação.\nDieta tolerada com boa aceitação.\nDeambulação ativa, sem queixas álgicas incapacitantes.\nEliminações fisiológicas presentes e espontâneas.\nFerida operatória limpa e seca, sem sinais flogísticos ou secreções patológicas.\n\nORIENTAÇÕES:\n1. Retorno ambulatorial em 7 a 10 dias para revisão cirúrgica e retirada de pontos.\n2. Manter curativo limpo e seco conforme orientações da equipe de enfermagem.\n3. Não realizar esforços físicos intensos ou carregar peso superior a 5kg por 30 dias.\n4. Sinais de alarme: febre (Tax > 37.8°C), dor súbita intensa, hiperemia ou secreção purulenta na incisão cirúrgica -> procurar pronto atendimento imediatamente.",
+      "createdAt": "2026-09-16T02:48:37.616Z"
+    },
+    {
+      "id": "mod-2",
+      "titulo": "Encaminhamento - Especialidades Cirúrgicas",
+      "categoria": "Encaminhamento",
+      "conteudo": "AO SERVIÇO DE CIRURGIA ESPECIALIZADA\n\nEncaminhamos o(a) paciente acima identificado(a) para avaliação complementar especializada.\nHistórico: Paciente acompanhado na enfermaria cirúrgica com hipótese diagnóstica em investigação.\nExames realizados durante o internamento:\n- Hemograma e coagulograma sem alterações graves.\n- TC de abdome com contraste anexada ao relatório.\nConduta prévia e justificativa: Necessita seguimento ambulatorial especializado para definição de programação operatória eletiva definitiva.\n\nAtenciosamente,\nEquipe de Cirurgia Geral",
+      "createdAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "mod-3",
+      "titulo": "Admissão Cirúrgica (ADM) - Padrão",
+      "categoria": "ADM",
+      "conteudo": "CHECKLIST ADMISSÃO CIRÚRGICA\nData: [DATA] | Leito: [LEITO]\n\nHD: [HIPÓTESE DIAGNÓSTICA]\nHDA: Paciente admitido para propedêutica e tratamento cirúrgico.\nAntecedentes:\n- Alergias: [ALERGIAS]\n- Comorbidades: [HAS / DM / OUTRAS]\n- Cirurgias Prévias: [CIRURGIAS]\n- MUC: [MEDICAMENTOS EM USO]\nExame Físico: BEG, LOTE, acianótico, anictérico, afebril. Abdome flácido, indolor à palpação, RHA presentes.\nConduta: Jejum a partir das 00:00, hidratação venosa se indicado, reserva de sangue e consentimento esclarecido assinado.",
+      "createdAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "mod-4",
+      "titulo": "Receituário Padrão de Alta - Analgesia e Profilaxia",
+      "categoria": "Receituário",
+      "conteudo": "RECEITUÁRIO MÉDICO\n\nUSO ORAL:\n1. Dipirona 500mg/mL gotas ou comprimido de 1g ---------- 1 frasco / cx\n   Tomar 1 comprimido ou 40 gotas VO de 6/6h em caso de dor ou febre.\n\n2. Cetoprofeno 100mg ------------------------------------ 1 cx\n   Tomar 1 comprimido VO de 12/12h após as refeições por 3 dias (se dor moderada e sem contraindicações).\n\n3. Cefalexina 500mg (se prescrito) ---------------------- 1 cx\n   Tomar 1 cápsula VO de 6/6h por 7 dias nos horários programados.",
+      "createdAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "mod-5",
+      "titulo": "Evolução Diária de Enfermaria",
+      "categoria": "Evolução",
+      "conteudo": "EVOLUÇÃO CLÍNICA CIRÚRGICA\nD_ PO de [CIRURGIA]\n\nS: Paciente refere noite tranquila, nega náuseas ou dor importante.\nO: BEG, corado, hidratado. Sinais vitais estáveis. Abdome globoso/plano, depressível, indolor. Ferida cirúrgica com bom aspecto, bordas coaptadas.\nA: Boa evolução pós-operatória.\nP: Progredir dieta para branda, manter deambulação, programar alta hospitalar para amanhã.",
+      "createdAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "mod-6",
+      "titulo": "Orientações Gerais Beira-Leito",
+      "categoria": "Orientações Gerais",
+      "conteudo": "ORIENTAÇÕES DE CUIDADOS NO LEITO:\n- Manter cabeceira elevada a 30-45 graus.\n- Estímulo à deambulação precoce assistida pela equipe ou acompanhante.\n- Exercícios respiratórios a cada 2 horas com inspirômetro de incentivo.\n- Comunicar imediatamente a enfermagem em caso de sangramento em curativo ou náuseas.",
+      "createdAt": "2026-09-16T02:48:37.617Z"
+    },
+    {
+      "id": "mod-7",
+      "titulo": "Orientações de Alta e Cuidados Domiciliares",
+      "categoria": "Orientações de Alta",
+      "conteudo": "INSTRUÇÕES PARA O DOMICÍLIO:\n- Lavar a ferida operatória no banho com água corrente e sabão neutro.\n- Secar bem com toalha limpa e manter o local ventilado ou com curativo seco microporado.\n- Não retirar crostas ou mexer nos pontos cirúrgicos.\n- Dieta habitual rica em fibras e boa hidratação (mínimo 2 litros de água ao dia).",
+      "createdAt": "2026-09-16T02:48:37.617Z"
+    }
+  ],
+  "metricas": [
+    {
+      "data": "2026-09-09",
+      "totalAdmissoes": 6,
+      "totalAltas": 5,
+      "totalCancelamentos": 0,
+      "totalCirurgias": 5
+    },
+    {
+      "data": "2026-09-10",
+      "totalAdmissoes": 8,
+      "totalAltas": 7,
+      "totalCancelamentos": 1,
+      "totalCirurgias": 6
+    },
+    {
+      "data": "2026-09-11",
+      "totalAdmissoes": 7,
+      "totalAltas": 6,
+      "totalCancelamentos": 0,
+      "totalCirurgias": 6
+    },
+    {
+      "data": "2026-09-12",
+      "totalAdmissoes": 5,
+      "totalAltas": 4,
+      "totalCancelamentos": 0,
+      "totalCirurgias": 4
+    },
+    {
+      "data": "2026-09-13",
+      "totalAdmissoes": 4,
+      "totalAltas": 4,
+      "totalCancelamentos": 0,
+      "totalCirurgias": 3
+    },
+    {
+      "data": "2026-09-14",
+      "totalAdmissoes": 9,
+      "totalAltas": 8,
+      "totalCancelamentos": 1,
+      "totalCirurgias": 8
+    },
+    {
+      "data": "2026-09-16",
+      "totalAdmissoes": 7,
+      "totalAltas": 6,
+      "totalCancelamentos": 0,
+      "totalCirurgias": 5
+    }
+  ],
+  "lastSync": "2026-09-16T20:56:26.523Z"
+}
