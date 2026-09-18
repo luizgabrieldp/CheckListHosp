@@ -67,8 +67,8 @@ export default function HomePage() {
         <Sidebar />
       </div>
 
-      {/* ÁREA DE CONTEÚDO PRINCIPAL (COM MARGEM PARA A SIDEBAR) */}
-      <div className={`flex-1 flex flex-col lg:ml-60 min-w-0 transition-all duration-300 print:m-0 print:p-0 ${!isAuthenticated ? "filter blur-sm select-none pointer-events-none" : ""}`}>
+      {/* ÁREA DE CONTEÚDO PRINCIPAL (COM MARGEM PARA A SIDEBAR E ESPAÇAMENTO PARA HEADER MOBILE) */}
+      <div className={`flex-1 flex flex-col lg:ml-60 min-w-0 transition-all duration-300 print:m-0 print:p-0 pt-14 lg:pt-0 ${!isAuthenticated ? "filter blur-sm select-none pointer-events-none" : ""}`}>
         {/* CONTAINER DO MÓDULO ATIVO */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 print:p-0 print:m-0">
           {activeTab === "admissoes" && <AdmissoesView />}

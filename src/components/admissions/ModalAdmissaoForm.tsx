@@ -237,10 +237,12 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                   </label>
                   <input
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     disabled={isBloqueado}
                     value={leito}
-                    onChange={(e) => setLeito(e.target.value)}
-                    placeholder="Ex: Leito 03"
+                    onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Ex: 03"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
                   />
                 </div>

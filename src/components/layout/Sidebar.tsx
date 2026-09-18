@@ -42,16 +42,32 @@ export function Sidebar() {
 
   return (
     <>
-      {/* BOTÃO HAMBÚRGUER MOBILE */}
-      <div className="lg:hidden fixed top-3 left-3 z-50 flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-sm no-print">
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-1 rounded-lg text-slate-700 hover:bg-slate-100"
-        >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-        <span className="text-xs font-bold text-slate-800">CheckList</span>
-      </div>
+      {/* HEADER FIXO SUPERIOR PARA MOBILE (NÃO COBRE CONTEÚDO) */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/90 z-30 px-3.5 flex items-center justify-between no-print shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Abrir menu"
+            className="p-1.5 rounded-xl text-slate-700 hover:bg-slate-100 border border-slate-200/80 transition-colors"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-slate-900">CheckList</span>
+            <span className="text-xs font-semibold text-emerald-600">Hospitalar</span>
+          </div>
+        </div>
+
+        {/* Indicador de Conexão no Header Mobile */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] font-medium text-slate-600">
+          <span
+            className={`w-2 h-2 rounded-full ${
+              isConnected ? "bg-emerald-500 animate-pulse" : "bg-rose-400"
+            }`}
+          />
+          <span className="text-[10px]">{isConnected ? "Ao vivo" : "Offline"}</span>
+        </div>
+      </header>
 
       {/* OVERLAY MOBILE */}
       {mobileOpen && (

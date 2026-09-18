@@ -399,11 +399,13 @@ export function AltasView() {
                                 </label>
                                 <input
                                   type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
                                   value={paciente.leito}
                                   onChange={(e) => {
                                     salvarAlta({
                                       ...paciente,
-                                      leito: e.target.value,
+                                      leito: e.target.value.replace(/\D/g, ""),
                                       updatedAt: new Date().toISOString(),
                                     });
                                   }}
@@ -671,6 +673,8 @@ export function AltasView() {
                                 </label>
                                 <input
                                   type="number"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
                                   value={paciente.sinaisVitais.frequenciaCardiaca || ""}
                                   onChange={(e) => {
                                     salvarAlta({
@@ -693,6 +697,8 @@ export function AltasView() {
                                 </label>
                                 <input
                                   type="number"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
                                   value={paciente.sinaisVitais.saturacaoO2 || ""}
                                   onChange={(e) => {
                                     salvarAlta({
@@ -889,8 +895,10 @@ export function AltasView() {
                   <input
                     type="text"
                     required
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={novoLeito}
-                    onChange={(e) => setNovoLeito(e.target.value)}
+                    onChange={(e) => setNovoLeito(e.target.value.replace(/\D/g, ""))}
                     placeholder="Ex: 15"
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                   />

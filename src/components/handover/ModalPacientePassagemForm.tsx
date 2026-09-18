@@ -142,9 +142,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
               <input
                 type="text"
                 required
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={leito}
-                onChange={(e) => setLeito(e.target.value)}
-                placeholder="Ex: Leito 08"
+                onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
+                placeholder="Ex: 08"
                 className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
               />
             </div>
@@ -216,6 +218,8 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 <label className="block text-[11px] text-slate-400 mb-1">FC (bpm)</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={fc}
                   onChange={(e) => setFc(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
@@ -225,6 +229,8 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 <label className="block text-[11px] text-slate-400 mb-1">SatO2 (%)</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={satO2}
                   onChange={(e) => setSatO2(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
@@ -356,6 +362,8 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                         </label>
                         <input
                           type="number"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           min={1}
                           max={30}
                           value={atb.duracaoDias}
@@ -371,6 +379,8 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                         </label>
                         <input
                           type="number"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           min={0}
                           value={atb.dosesPerdidas}
                           onChange={(e) =>

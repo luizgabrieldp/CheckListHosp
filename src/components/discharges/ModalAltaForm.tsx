@@ -145,9 +145,11 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
               <input
                 type="text"
                 required
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={leito}
-                onChange={(e) => setLeito(e.target.value)}
-                placeholder="Ex: Leito 04"
+                onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
+                placeholder="Ex: 04"
                 className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
               />
             </div>
@@ -241,6 +243,8 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
               </label>
               <input
                 type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={fc}
                 onChange={(e) => setFc(e.target.value)}
                 placeholder="Ex: 78"
@@ -255,6 +259,8 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
               </label>
               <input
                 type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={satO2}
                 onChange={(e) => setSatO2(e.target.value)}
                 placeholder="Ex: 98"

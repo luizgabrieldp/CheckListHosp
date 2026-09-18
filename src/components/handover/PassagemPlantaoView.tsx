@@ -915,9 +915,15 @@ export function PassagemPlantaoView() {
                                   </label>
                                   <input
                                     type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     value={paciente.leito}
                                     onChange={(e) =>
-                                      handleSalvarCampo(paciente, "leito", e.target.value)
+                                      handleSalvarCampo(
+                                        paciente,
+                                        "leito",
+                                        e.target.value.replace(/\D/g, "")
+                                      )
                                     }
                                     placeholder="Ex: 25"
                                     className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
@@ -1142,6 +1148,8 @@ export function PassagemPlantaoView() {
                                           </div>
                                           <input
                                             type="number"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
                                             min={0}
                                             value={cx.dpoManual !== undefined ? cx.dpoManual : ""}
                                             onChange={(e) => {
@@ -1262,13 +1270,15 @@ export function PassagemPlantaoView() {
                                       FC (bpm)
                                     </label>
                                     <input
-                                      type="number"
+                                      type="text"
+                                      inputMode="numeric"
+                                      pattern="[0-9]*"
                                       value={paciente.sinaisVitais?.fc || ""}
                                       onChange={(e) =>
                                         handleSalvarSinaisVitais(
                                           paciente,
                                           "fc",
-                                          parseInt(e.target.value, 10) || 0
+                                          parseInt(e.target.value.replace(/\D/g, ""), 10) || 0
                                         )
                                       }
                                       placeholder="Ex: 78"
@@ -1280,13 +1290,15 @@ export function PassagemPlantaoView() {
                                       SatO2 (%)
                                     </label>
                                     <input
-                                      type="number"
+                                      type="text"
+                                      inputMode="numeric"
+                                      pattern="[0-9]*"
                                       value={paciente.sinaisVitais?.satO2 || ""}
                                       onChange={(e) =>
                                         handleSalvarSinaisVitais(
                                           paciente,
                                           "satO2",
-                                          parseInt(e.target.value, 10) || 0
+                                          parseInt(e.target.value.replace(/\D/g, ""), 10) || 0
                                         )
                                       }
                                       placeholder="Ex: 98"
@@ -1299,9 +1311,14 @@ export function PassagemPlantaoView() {
                                     </label>
                                     <input
                                       type="text"
+                                      inputMode="numeric"
                                       value={paciente.sinaisVitais?.pa || ""}
                                       onChange={(e) =>
-                                        handleSalvarSinaisVitais(paciente, "pa", e.target.value)
+                                        handleSalvarSinaisVitais(
+                                          paciente,
+                                          "pa",
+                                          e.target.value.replace(/[^0-9xX/]/g, "")
+                                        )
                                       }
                                       placeholder="Ex: 120/80"
                                       className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
@@ -1312,17 +1329,23 @@ export function PassagemPlantaoView() {
                                       Tax (ºC)
                                     </label>
                                     <input
-                                      type="number"
-                                      step="0.1"
-                                      value={paciente.sinaisVitais?.tax || ""}
-                                      onChange={(e) =>
+                                      type="text"
+                                      inputMode="decimal"
+                                      value={
+                                        paciente.sinaisVitais?.tax !== undefined && paciente.sinaisVitais?.tax !== 0
+                                          ? String(paciente.sinaisVitais.tax).replace(".", ",")
+                                          : ""
+                                      }
+                                      onChange={(e) => {
+                                        const limpo = e.target.value.replace(/[^0-9,.]/g, "");
+                                        const num = parseFloat(limpo.replace(",", "."));
                                         handleSalvarSinaisVitais(
                                           paciente,
                                           "tax",
-                                          parseFloat(e.target.value) || 0
-                                        )
-                                      }
-                                      placeholder="Ex: 36.5"
+                                          isNaN(num) ? 0 : num
+                                        );
+                                      }}
+                                      placeholder="Ex: 36,5"
                                       className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
                                     />
                                   </div>
@@ -1459,6 +1482,8 @@ export function PassagemPlantaoView() {
                                         </label>
                                         <input
                                           type="number"
+                                          inputMode="numeric"
+                                          pattern="[0-9]*"
                                           min={1}
                                           value={medFreqHoras}
                                           onChange={(e) =>
@@ -1511,6 +1536,8 @@ export function PassagemPlantaoView() {
                                         </label>
                                         <input
                                           type="number"
+                                          inputMode="numeric"
+                                          pattern="[0-9]*"
                                           min={1}
                                           value={medDuracaoDias}
                                           onChange={(e) =>
@@ -1545,6 +1572,8 @@ export function PassagemPlantaoView() {
                                       </label>
                                       <input
                                         type="number"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         min={0}
                                         value={medDosesPerdidas}
                                         onChange={(e) =>
