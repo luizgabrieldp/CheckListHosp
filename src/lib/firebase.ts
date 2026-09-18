@@ -9,15 +9,15 @@ import {
 } from "firebase/firestore";
 import { DatabaseState } from "@/types/hospital";
 
-// Configurações do Firebase
-// Podem vir de variáveis de ambiente (NEXT_PUBLIC_FIREBASE_*)
+// Configurações do Firebase fornecidas para o Checklist Hospitalar
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyCHiqrR2MZQGVJw8SxEXA2tu2OINzk4X4M",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "checklist-hospitalar-bce7b.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "checklist-hospitalar-bce7b",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "checklist-hospitalar-bce7b.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "985661538519",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:985661538519:web:c04b625957f6f6bf1c3092",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-2JB7DK3H88",
 };
 
 let app: FirebaseApp | null = null;
@@ -51,7 +51,8 @@ export function getFirebaseDb(): Firestore | null {
 const DOC_ID = "hospital_state_v1";
 
 /**
- * Salva atualizações parciais do estado no Firestore em tempo real
+ * Salva atualizações parciais do estado no Firestore em tempo real.
+ * Sanitiza campos undefined para evitar erros nativos do Firestore SDK.
  */
 export async function sincronizarComFirestore(
   dados: Partial<DatabaseState>
@@ -61,14 +62,15 @@ export async function sincronizarComFirestore(
 
   try {
     const docRef = doc(db, "hospital_data", DOC_ID);
-    await setDoc(
-      docRef,
-      {
+    // Remove qualquer chave com valor undefined que possa quebrar o Firestore
+    const payloadSanitizado = JSON.parse(
+      JSON.stringify({
         ...dados,
         updatedAt: new Date().toISOString(),
-      },
-      { merge: true }
+      })
     );
+
+    await setDoc(docRef, payloadSanitizado, { merge: true });
     return true;
   } catch (err) {
     console.warn("[Firebase] Falha ao sincronizar com Firestore:", err);
@@ -77,10 +79,12 @@ export async function sincronizarComFirestore(
 }
 
 /**
- * Escuta alterações no Firestore em tempo real e atualiza a store
+ * Escuta alterações no Firestore em tempo real e atualiza a store.
+ * Se o documento for novo e ainda não existir, chama onDocumentoInexistente para semeadura inicial.
  */
 export function escutarAlteracoesFirestore(
-  onAtualizacao: (dados: Partial<DatabaseState>) => void
+  onAtualizacao: (dados: Partial<DatabaseState>) => void,
+  onDocumentoInexistente?: () => void
 ): () => void {
   const db = getFirebaseDb();
   if (!db) {
@@ -95,6 +99,8 @@ export function escutarAlteracoesFirestore(
         if (snapshot.exists()) {
           const data = snapshot.data() as Partial<DatabaseState>;
           onAtualizacao(data);
+        } else if (onDocumentoInexistente) {
+          onDocumentoInexistente();
         }
       },
       (error) => {

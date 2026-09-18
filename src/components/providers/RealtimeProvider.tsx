@@ -3,7 +3,11 @@
 import React, { useEffect, useRef } from "react";
 import { registerSocket, useAppStore } from "@/store/useAppStore";
 import { WebSocketMessage } from "@/types/hospital";
-import { escutarAlteracoesFirestore, isFirebaseConfigured } from "@/lib/firebase";
+import {
+  escutarAlteracoesFirestore,
+  isFirebaseConfigured,
+  sincronizarComFirestore,
+} from "@/lib/firebase";
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const syncFullState = useAppStore((s) => s.syncFullState);
@@ -31,11 +35,29 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     // 1. Conexão em tempo real via Firebase Firestore (se configurado)
     if (isFirebaseConfigured()) {
-      unsubscribeFirestore = escutarAlteracoesFirestore((dados) => {
-        if (!isMounted) return;
-        syncFullState(dados as any);
-        setConnected(true, 18);
-      });
+      unsubscribeFirestore = escutarAlteracoesFirestore(
+        (dados) => {
+          if (!isMounted) return;
+          syncFullState(dados as any);
+          setConnected(true, 18);
+        },
+        () => {
+          // Se for o primeiro acesso e a coleção ainda estiver vazia no Firestore,
+          // inicializa o documento com os dados locais ou padrão da aplicação
+          if (!isMounted) return;
+          const current = useAppStore.getState();
+          sincronizarComFirestore({
+            admissoes: current.admissoes,
+            altas: current.altas,
+            permanencia: current.permanencia,
+            passagem: current.passagem,
+            ambulantes: current.ambulantes,
+            modelos: current.modelos,
+            metricas: current.metricas,
+          });
+          setConnected(true, 25);
+        }
+      );
     }
 
     // 2. Conexão em tempo real via WebSocket (servidor local / VPS)
