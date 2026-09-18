@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { registerSocket, useAppStore } from "@/store/useAppStore";
 import { WebSocketMessage } from "@/types/hospital";
+import { escutarAlteracoesFirestore, isFirebaseConfigured } from "@/lib/firebase";
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const syncFullState = useAppStore((s) => s.syncFullState);
@@ -26,86 +27,111 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     let isMounted = true;
     let reconnectTimeout: NodeJS.Timeout | null = null;
+    let unsubscribeFirestore: (() => void) | null = null;
 
-    function connect() {
+    // 1. Conexão em tempo real via Firebase Firestore (se configurado)
+    if (isFirebaseConfigured()) {
+      unsubscribeFirestore = escutarAlteracoesFirestore((dados) => {
+        if (!isMounted) return;
+        syncFullState(dados as any);
+        setConnected(true, 18);
+      });
+    }
+
+    // 2. Conexão em tempo real via WebSocket (servidor local / VPS)
+    function connectWs() {
       if (!isMounted) return;
+      // Não tenta WebSocket se estiver explicitamente no GitHub Pages
+      if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+        // No GitHub Pages, se o Firebase não estiver configurado, marca como pronto em modo offline local
+        if (!isFirebaseConfigured()) {
+          setConnected(true, 1);
+        }
+        return;
+      }
+
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const host = window.location.host;
       const wsUrl = `${protocol}//${host}/ws`;
 
-      const socket = new WebSocket(wsUrl);
-      wsRef.current = socket;
-      registerSocket(socket);
+      try {
+        const socket = new WebSocket(wsUrl);
+        wsRef.current = socket;
+        registerSocket(socket);
 
-      socket.onopen = () => {
-        if (!isMounted) return;
-        setConnected(true, 12);
+        socket.onopen = () => {
+          if (!isMounted) return;
+          setConnected(true, 12);
 
-        // Iniciar Heartbeat para medir latência com precisão
-        if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
-        pingIntervalRef.current = setInterval(() => {
-          if (socket.readyState === WebSocket.OPEN) {
-            socket.send(
-              JSON.stringify({
-                type: "PING",
-                timestamp: Date.now(),
-              })
-            );
-          }
-        }, 8000);
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const msg: WebSocketMessage = JSON.parse(event.data);
-
-          if (msg.type === "PONG") {
-            const rtt = Date.now() - (msg.payload?.clientSent || msg.timestamp);
-            setConnected(true, Math.max(2, Math.min(rtt, 300)));
-            return;
-          }
-
-          if (msg.type === "INIT" || msg.type === "SYNC_STATE") {
-            if (msg.payload) {
-              syncFullState(msg.payload);
+          if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
+          pingIntervalRef.current = setInterval(() => {
+            if (socket.readyState === WebSocket.OPEN) {
+              socket.send(
+                JSON.stringify({
+                  type: "PING",
+                  timestamp: Date.now(),
+                })
+              );
             }
-          } else if (msg.type === "UPDATE_ADMISSOES") {
-            useAppStore.setState({ admissoes: msg.payload, lastSyncTime: Date.now() });
-          } else if (msg.type === "UPDATE_ALTAS") {
-            useAppStore.setState({ altas: msg.payload, lastSyncTime: Date.now() });
-          } else if (msg.type === "UPDATE_PERMANENCIA") {
-            useAppStore.setState({ permanencia: msg.payload, lastSyncTime: Date.now() });
-          } else if (msg.type === "UPDATE_PASSAGEM") {
-            useAppStore.setState({ passagem: msg.payload, lastSyncTime: Date.now() });
-          } else if (msg.type === "UPDATE_AMBULATORIO") {
-            useAppStore.setState({ ambulantes: msg.payload, lastSyncTime: Date.now() });
-          } else if (msg.type === "UPDATE_MODELOS") {
-            useAppStore.setState({ modelos: msg.payload, lastSyncTime: Date.now() });
+          }, 8000);
+        };
+
+        socket.onmessage = (event) => {
+          try {
+            const msg: WebSocketMessage = JSON.parse(event.data);
+
+            if (msg.type === "PONG") {
+              const rtt = Date.now() - (msg.payload?.clientSent || msg.timestamp);
+              setConnected(true, Math.max(2, Math.min(rtt, 300)));
+              return;
+            }
+
+            if (msg.type === "INIT" || msg.type === "SYNC_STATE") {
+              if (msg.payload) {
+                syncFullState(msg.payload);
+              }
+            } else if (msg.type === "UPDATE_ADMISSOES") {
+              useAppStore.setState({ admissoes: msg.payload, lastSyncTime: Date.now() });
+            } else if (msg.type === "UPDATE_ALTAS") {
+              useAppStore.setState({ altas: msg.payload, lastSyncTime: Date.now() });
+            } else if (msg.type === "UPDATE_PERMANENCIA") {
+              useAppStore.setState({ permanencia: msg.payload, lastSyncTime: Date.now() });
+            } else if (msg.type === "UPDATE_PASSAGEM") {
+              useAppStore.setState({ passagem: msg.payload, lastSyncTime: Date.now() });
+            } else if (msg.type === "UPDATE_AMBULATORIO") {
+              useAppStore.setState({ ambulantes: msg.payload, lastSyncTime: Date.now() });
+            } else if (msg.type === "UPDATE_MODELOS") {
+              useAppStore.setState({ modelos: msg.payload, lastSyncTime: Date.now() });
+            }
+          } catch (err) {
+            console.error("Erro ao processar mensagem do servidor:", err);
           }
-        } catch (err) {
-          console.error("Erro ao processar mensagem do servidor:", err);
-        }
-      };
+        };
 
-      socket.onclose = () => {
-        if (!isMounted) return;
-        setConnected(false, 0);
-        registerSocket(null);
-        if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
-        // Tentar reconectar em 2 segundos
-        reconnectTimeout = setTimeout(connect, 2000);
-      };
+        socket.onclose = () => {
+          if (!isMounted) return;
+          if (!isFirebaseConfigured()) {
+            setConnected(false, 0);
+          }
+          registerSocket(null);
+          if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
+          reconnectTimeout = setTimeout(connectWs, 3000);
+        };
 
-      socket.onerror = (err) => {
-        console.warn("WebSocket status:", err);
-        socket.close();
-      };
+        socket.onerror = (err) => {
+          console.warn("WebSocket status:", err);
+          socket.close();
+        };
+      } catch (err) {
+        console.warn("Não foi possível iniciar WebSocket:", err);
+      }
     }
 
-    connect();
+    connectWs();
 
     return () => {
       isMounted = false;
+      if (unsubscribeFirestore) unsubscribeFirestore();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
       if (wsRef.current) {

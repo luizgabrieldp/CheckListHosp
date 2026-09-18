@@ -12,6 +12,7 @@ import {
   Pendencia,
   WebSocketMessage,
 } from "@/types/hospital";
+import { sincronizarComFirestore } from "@/lib/firebase";
 
 let socketInstance: WebSocket | null = null;
 
@@ -22,6 +23,25 @@ export function registerSocket(socket: WebSocket | null) {
 export function sendSocketMessage(msg: WebSocketMessage) {
   if (socketInstance && socketInstance.readyState === WebSocket.OPEN) {
     socketInstance.send(JSON.stringify(msg));
+  }
+}
+
+function sincronizarMutation(chave: keyof DatabaseState, payload: any, wsType: string) {
+  // 1. Enviar para WebSocket local (se conectado)
+  sendSocketMessage({
+    type: wsType as any,
+    payload,
+    timestamp: Date.now(),
+  });
+
+  // 2. Enviar para Firebase Firestore (se configurado)
+  sincronizarComFirestore({ [chave]: payload });
+
+  // 3. Cache offline local
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(`checklist_${chave}`, JSON.stringify(payload));
+    } catch {}
   }
 }
 
@@ -53,6 +73,16 @@ function carregarListaLocalStorage(chave: string, padrao: string[]): string[] {
         const parsed = JSON.parse(salvo);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
+    } catch {}
+  }
+  return padrao;
+}
+
+function carregarItemLocalStorage<T>(chave: string, padrao: T): T {
+  if (typeof window !== "undefined") {
+    try {
+      const salvo = localStorage.getItem(chave);
+      if (salvo) return JSON.parse(salvo);
     } catch {}
   }
   return padrao;
@@ -129,20 +159,20 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   latencyMs: 0,
   lastSyncTime: Date.now(),
 
-  admissoes: [],
-  altas: [],
-  permanencia: {
+  admissoes: carregarItemLocalStorage<AdmissaoPaciente[]>("checklist_admissoes", []),
+  altas: carregarItemLocalStorage<AltaPaciente[]>("checklist_altas", []),
+  permanencia: carregarItemLocalStorage<DadosPermanencia>("checklist_permanencia", {
     id: "perm-init",
     data: new Date().toISOString().split("T")[0],
     equipe: { doutorandos: [], residentes: [], preceptores: [] },
     pendencias: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  },
-  passagem: [],
-  ambulantes: [],
-  modelos: [],
-  metricas: [],
+  }),
+  passagem: carregarItemLocalStorage<PacientePassagem[]>("checklist_passagem", []),
+  ambulantes: carregarItemLocalStorage<MedicoAmbulatorio[]>("checklist_ambulantes", []),
+  modelos: carregarItemLocalStorage<ModeloTexto[]>("checklist_modelos", []),
+  metricas: carregarItemLocalStorage<MetricasHistoricasDiarias[]>("checklist_metricas", []),
 
   enfermarias: carregarListaLocalStorage("checklist_enfermarias", ENFERMARIAS_PADRAO),
   categoriasModelos: carregarListaLocalStorage("checklist_categorias_modelos", CATEGORIAS_MODELOS_PADRAO),
@@ -191,6 +221,18 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
       metricas: state.metricas || prev.metricas,
       lastSyncTime: Date.now(),
     }));
+
+    if (typeof window !== "undefined") {
+      try {
+        if (state.admissoes) localStorage.setItem("checklist_admissoes", JSON.stringify(state.admissoes));
+        if (state.altas) localStorage.setItem("checklist_altas", JSON.stringify(state.altas));
+        if (state.permanencia) localStorage.setItem("checklist_permanencia", JSON.stringify(state.permanencia));
+        if (state.passagem) localStorage.setItem("checklist_passagem", JSON.stringify(state.passagem));
+        if (state.ambulantes) localStorage.setItem("checklist_ambulantes", JSON.stringify(state.ambulantes));
+        if (state.modelos) localStorage.setItem("checklist_modelos", JSON.stringify(state.modelos));
+        if (state.metricas) localStorage.setItem("checklist_metricas", JSON.stringify(state.metricas));
+      } catch {}
+    }
   },
 
   // MUTAÇÕES ADMISSÕES
@@ -200,21 +242,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     const updated = exists ? prev.map((a) => (a.id === adm.id ? adm : a)) : [adm, ...prev];
 
     set({ admissoes: updated });
-    sendSocketMessage({
-      type: "UPDATE_ADMISSOES",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("admissoes", updated, "UPDATE_ADMISSOES");
   },
 
   removerAdmissao: (id) => {
     const updated = get().admissoes.filter((a) => a.id !== id);
     set({ admissoes: updated });
-    sendSocketMessage({
-      type: "UPDATE_ADMISSOES",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("admissoes", updated, "UPDATE_ADMISSOES");
   },
 
   alternarCanceladaAdmissao: (id) => {
@@ -222,11 +256,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
       a.id === id ? { ...a, cancelada: !a.cancelada, updatedAt: new Date().toISOString() } : a
     );
     set({ admissoes: updated });
-    sendSocketMessage({
-      type: "UPDATE_ADMISSOES",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("admissoes", updated, "UPDATE_ADMISSOES");
   },
 
   alternarHistoriaFinalizada: (id) => {
@@ -236,20 +266,12 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
         : a
     );
     set({ admissoes: updated });
-    sendSocketMessage({
-      type: "UPDATE_ADMISSOES",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("admissoes", updated, "UPDATE_ADMISSOES");
   },
 
   reordenarAdmissoes: (novasAdmissoes) => {
     set({ admissoes: novasAdmissoes });
-    sendSocketMessage({
-      type: "UPDATE_ADMISSOES",
-      payload: novasAdmissoes,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("admissoes", novasAdmissoes, "UPDATE_ADMISSOES");
   },
 
   // MUTAÇÕES ALTAS
@@ -259,21 +281,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     const updated = exists ? prev.map((a) => (a.id === alta.id ? alta : a)) : [alta, ...prev];
 
     set({ altas: updated });
-    sendSocketMessage({
-      type: "UPDATE_ALTAS",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("altas", updated, "UPDATE_ALTAS");
   },
 
   removerAlta: (id) => {
     const updated = get().altas.filter((a) => a.id !== id);
     set({ altas: updated });
-    sendSocketMessage({
-      type: "UPDATE_ALTAS",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("altas", updated, "UPDATE_ALTAS");
   },
 
   // MUTAÇÕES PERMANÊNCIA
@@ -291,11 +305,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     };
 
     set({ permanencia: updatedPerm });
-    sendSocketMessage({
-      type: "UPDATE_PERMANENCIA",
-      payload: updatedPerm,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("permanencia", updatedPerm, "UPDATE_PERMANENCIA");
   },
 
   removerPendencia: (id) => {
@@ -307,11 +317,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     };
 
     set({ permanencia: updatedPerm });
-    sendSocketMessage({
-      type: "UPDATE_PERMANENCIA",
-      payload: updatedPerm,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("permanencia", updatedPerm, "UPDATE_PERMANENCIA");
   },
 
   atualizarEquipe: (equipe) => {
@@ -323,11 +329,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     };
 
     set({ permanencia: updatedPerm });
-    sendSocketMessage({
-      type: "UPDATE_PERMANENCIA",
-      payload: updatedPerm,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("permanencia", updatedPerm, "UPDATE_PERMANENCIA");
   },
 
   // MUTAÇÕES PASSAGEM
@@ -337,21 +339,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     const updated = exists ? prev.map((p) => (p.id === paciente.id ? paciente : p)) : [paciente, ...prev];
 
     set({ passagem: updated });
-    sendSocketMessage({
-      type: "UPDATE_PASSAGEM",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("passagem", updated, "UPDATE_PASSAGEM");
   },
 
   removerPacientePassagem: (id) => {
     const updated = get().passagem.filter((p) => p.id !== id);
     set({ passagem: updated });
-    sendSocketMessage({
-      type: "UPDATE_PASSAGEM",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("passagem", updated, "UPDATE_PASSAGEM");
   },
 
   // MUTAÇÕES AMBULATÓRIO
@@ -361,21 +355,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     const updated = exists ? prev.map((m) => (m.id === medico.id ? medico : m)) : [...prev, medico];
 
     set({ ambulantes: updated });
-    sendSocketMessage({
-      type: "UPDATE_AMBULATORIO",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("ambulantes", updated, "UPDATE_AMBULATORIO");
   },
 
   removerMedicoAmbulatorio: (id) => {
     const updated = get().ambulantes.filter((m) => m.id !== id);
     set({ ambulantes: updated });
-    sendSocketMessage({
-      type: "UPDATE_AMBULATORIO",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("ambulantes", updated, "UPDATE_AMBULATORIO");
   },
 
   // MUTAÇÕES MODELOS
@@ -385,21 +371,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     const updated = exists ? prev.map((m) => (m.id === modelo.id ? modelo : m)) : [modelo, ...prev];
 
     set({ modelos: updated });
-    sendSocketMessage({
-      type: "UPDATE_MODELOS",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("modelos", updated, "UPDATE_MODELOS");
   },
 
   removerModelo: (id) => {
     const updated = get().modelos.filter((m) => m.id !== id);
     set({ modelos: updated });
-    sendSocketMessage({
-      type: "UPDATE_MODELOS",
-      payload: updated,
-      timestamp: Date.now(),
-    });
+    sincronizarMutation("modelos", updated, "UPDATE_MODELOS");
   },
 
   // MUTAÇÕES ENFERMARIAS & CONFIGURAÇÕES

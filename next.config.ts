@@ -1,10 +1,15 @@
 import type { NextConfig } from "next";
 
+const isGitHubPages =
+  process.env.GITHUB_ACTIONS === "true" ||
+  process.env.NEXT_PUBLIC_IS_GH_PAGES === "true";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Enable modern features
-  experimental: {
-    // serverActions is enabled by default in Next 15
+  output: "export",
+  basePath: isGitHubPages ? "/CheckListHosp" : "",
+  images: {
+    unoptimized: true,
   },
 };
 
