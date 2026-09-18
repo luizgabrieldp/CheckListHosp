@@ -95,40 +95,36 @@ export function gerarMensagemAdmissao(paciente: AdmissaoPaciente): string {
 }
 
 /**
- * Monta mensagem formatada em Markdown do WhatsApp para Alta Cirúrgica
+ * Monta mensagem formatada do WhatsApp para Alta / Evolução Cirúrgica PO
  */
 export function gerarMensagemAlta(alta: AltaPaciente): string {
-  let msg = `🏥 *CHECKLIST HOSPITALAR - ALTA / EVOLUÇÃO PO* 🏥\n\n`;
-  msg += `🛏️ *Leito:* ${alta.leito} | *Enfermaria:* ${alta.enfermaria}\n`;
-  msg += `👤 *Paciente:* ${alta.nomePaciente}\n`;
-  msg += `✂️ *Procedimento:* ${alta.tipoCirurgia || "Pós-Operatório"}\n\n`;
+  const cirurgia = alta.tipoCirurgia?.trim();
+  const linhaPO = cirurgia ? `PO: ${cirurgia}` : "PO";
 
-  msg += `📊 *Parâmetros de Recuperação:*\n`;
-  msg += `• Dieta: ${alta.parametros.dieta ? "✅ Aceitou/Tolerou" : "❌ Em jejum / Não tolerou"}\n`;
-  msg += `• Deambulação: ${alta.parametros.deambulou ? "✅ Deambulou" : "❌ Acamado"}\n`;
-  msg += `• Diurese: ${alta.parametros.diurese ? "✅ Presente" : "⚠️ Ausente / Retenção"}\n`;
-  msg += `• Evacuação: ${alta.parametros.evacuacao ? "✅ Presente" : "⚠️ Ausente"}\n\n`;
-
-  msg += `💓 *Sinais Vitais:*\n`;
-  msg += `• Frequência Cardíaca (FC): *${alta.sinaisVitais.frequenciaCardiaca || "-"} bpm*\n`;
-  msg += `• Saturação de O2: *${alta.sinaisVitais.saturacaoO2 || "-"}%*\n\n`;
-
+  let queixaStr = "sem queixas";
   if (alta.temQueixas) {
-    msg += `⚠️ *Queixas Atuais:*\n${alta.detalhesQueixas || "Sem detalhes informados"}\n\n`;
-  } else {
-    msg += `✨ *Queixas:* Nega queixas álgicas ou intercorrências.\n\n`;
+    queixaStr = alta.detalhesQueixas?.trim() || "queixa relatada";
   }
 
-  if (alta.fotoFeridaUrl) {
-    msg += `📸 *Ferida Operatória:* Foto anexada para avaliação da equipe.\n\n`;
+  let msg = `LT ${alta.leito || "--"} - ${alta.nomePaciente || "Paciente"}\n`;
+  msg += `${linhaPO}\n`;
+  msg += `QUEIXAS: ${queixaStr}\n`;
+  msg += `DIETA: ${alta.parametros.dieta ? "✅" : "❌"}\n`;
+  msg += `DEAMBULANDO ${alta.parametros.deambulou ? "✅" : "❌"}\n`;
+  msg += `DIURESE ${alta.parametros.diurese ? "✅" : "❌"}\n`;
+  msg += `EVACUAÇÃO ${alta.parametros.evacuacao ? "✅" : "❌"}`;
+
+  const fc = alta.sinaisVitais.frequenciaCardiaca;
+  const sat = alta.sinaisVitais.saturacaoO2;
+  if (fc || sat) {
+    msg += `\nFC: ${fc || "--"} / Sat: ${sat ? `${sat}%` : "--%"}`;
   }
 
-  msg += `🔒 _Registro de fluxo da enfermaria cirúrgica._`;
   return msg.trim();
 }
 
 /**
- * Compartilha via Web Share API com fallback para Área de Transferência.
+ * Compartilha via Web Share API com fallback para Área de Transferência e WhatsApp Web.
  */
 export async function compartilharOuCopiar(
   texto: string,
@@ -150,26 +146,40 @@ export async function compartilharOuCopiar(
       return { compartilhado: true, copiado: false, mensagem: "Compartilhado com sucesso!" };
     } catch (err: any) {
       if (err.name === "AbortError") {
-        return { compartilhado: false, copiado: false, mensagem: "Compartilhamento cancelado" };
+        return { compartilhado: false, copiado: false, mensagem: "Compartilhamento cancelado." };
       }
     }
   }
 
-  if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+  // Fallback para Clipboard e WhatsApp Web
+  if (typeof navigator !== "undefined" && navigator.clipboard) {
     try {
       await navigator.clipboard.writeText(texto);
+
+      if (arquivoFoto && typeof window !== "undefined") {
+        const url = URL.createObjectURL(arquivoFoto);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = arquivoFoto.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      const encoded = encodeURIComponent(texto);
+      if (typeof window !== "undefined") {
+        window.open(`https://web.whatsapp.com/send?text=${encoded}`, "_blank");
+      }
+
       return {
         compartilhado: false,
         copiado: true,
-        mensagem: "Mensagem copiada para a Área de Transferência!",
+        mensagem: arquivoFoto
+          ? "Mensagem copiada e foto baixada para anexar no WhatsApp Web!"
+          : "Mensagem copiada para a área de transferência!",
       };
-    } catch {
-      return {
-        compartilhado: false,
-        copiado: false,
-        mensagem: "Não foi possível copiar automaticamente.",
-      };
-    }
+    } catch {}
   }
 
   return {

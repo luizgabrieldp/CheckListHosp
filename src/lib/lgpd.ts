@@ -46,6 +46,33 @@ export function deveExpurgarAdmissao(dataAgendadaStr: string, agora: Date = new 
 }
 
 /**
+ * Expurgo de Alta: 48 horas após a data da alta do paciente.
+ * Exclui prontuário, desfechos clínicos e apaga definitivamente fotos de feridas operatórias
+ * (fotoFeridaUrl) para cumprir a LGPD e liberar armazenamento do dispositivo.
+ * Retorna true se a alta já expirou (dataAlta + 48h < agora).
+ */
+export function deveExpurgarAlta(dataAltaStr: string, agora: Date = new Date()): boolean {
+  if (!dataAltaStr) return false;
+  try {
+    const partes = dataAltaStr.split("T")[0].split("-");
+    if (partes.length !== 3) return false;
+    const ano = parseInt(partes[0], 10);
+    const mes = parseInt(partes[1], 10) - 1;
+    const dia = parseInt(partes[2], 10);
+
+    // Fim do dia da alta (23:59:59)
+    const dataAltaFim = new Date(ano, mes, dia, 23, 59, 59);
+
+    // 48 horas após a data da alta
+    const limiteExpurgo = new Date(dataAltaFim.getTime() + 48 * 60 * 60 * 1000);
+
+    return agora.getTime() > limiteExpurgo.getTime();
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Expurgo de Permanência: 24 horas após a data do round
  */
 export function deveExpurgarPermanencia(dataRoundStr: string, agora: Date = new Date()): boolean {

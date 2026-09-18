@@ -936,23 +936,41 @@ export function AdmissoesView() {
         </div>
       )}
 
-      {/* FOLHA A4 DE IMPRESSÃO LIMPA E ESTRITAMENTE NUMERADA (EXATAMENTE COMO REQUISITADO) */}
-      <div className="hidden print:block print-container">
-        <div className="text-center pb-4 mb-4 border-b-2 border-slate-900">
-          <h1 className="text-xl font-bold uppercase tracking-wide text-slate-900">
-            INTERNAMENTOS DO DIA - {dataFormatadaBR}
+      {/* FOLHA A4 DE IMPRESSÃO LIMPA E ESTRITAMENTE NUMERADA */}
+      <div className="hidden print:block print-container w-full">
+        <div className="text-center pb-3 mb-4 border-b-2 border-black">
+          <h1 className="text-lg font-bold uppercase tracking-wider text-black">
+            INTERNAMENTOS DO DIA — {dataFormatadaBR}
           </h1>
-          <p className="text-xs text-slate-600 mt-1">
+          <p className="text-xs text-gray-700 mt-1 font-medium">
             Enfermaria Cirúrgica • Total: {ordemImpressaoPacientes.length} paciente(s)
           </p>
         </div>
 
-        <ol className="space-y-3 pt-2 text-base text-slate-950">
+        <ol className="space-y-2 pt-1 text-sm text-black">
           {ordemImpressaoPacientes.map((p, idx) => (
-            <li key={p.id} className="font-bold py-1 border-b border-slate-300 flex items-center justify-between">
-              <span>
-                {idx + 1}. {p.nome.toUpperCase()}
-              </span>
+            <li
+              key={p.id}
+              className="py-1.5 border-b border-gray-300 flex items-center justify-between text-sm page-break-avoid"
+            >
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold w-7 text-gray-900">
+                  {idx + 1}.
+                </span>
+                <span className="font-bold text-black uppercase">
+                  {p.nome}
+                </span>
+              </div>
+              <div className="text-xs font-semibold text-gray-800 flex items-center gap-2 shrink-0">
+                <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-300">
+                  {p.enfermaria}
+                </span>
+                {p.leito && (
+                  <span className="font-bold">
+                    LT {p.leito}
+                  </span>
+                )}
+              </div>
             </li>
           ))}
         </ol>

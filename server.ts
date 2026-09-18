@@ -5,10 +5,16 @@ import { WebSocketServer, WebSocket } from "ws";
 import { db } from "./src/lib/db";
 import { WebSocketMessage } from "./src/types/hospital";
 
-const dev = process.env.NODE_ENV !== "production";
+import fs from "fs";
+import path from "path";
+
+const isExplicitDev = process.env.NODE_ENV === "development";
+const hasBuild = fs.existsSync(path.join(process.cwd(), ".next", "BUILD_ID"));
+const dev = isExplicitDev || !hasBuild;
 const hostname = "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
 
+console.log(`[Server] Inicializando... (dev: ${dev}, hasBuild: ${hasBuild}, NODE_ENV: ${process.env.NODE_ENV || "undefined"})`);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
@@ -134,7 +140,7 @@ app.prepare().then(() => {
   // Agendador de Expurgo LGPD periódico em segundo plano (a cada 30 minutos)
   setInterval(() => {
     const res = db.executarExpurgoLGPD();
-    if (res.expurgadasAdmissoes > 0 || res.expurgadasPermanencia) {
+    if (res.expurgadasAdmissoes > 0 || res.expurgadasAltas > 0 || res.expurgadasPermanencia) {
       broadcast({
         type: "SYNC_STATE",
         payload: db.getState(),

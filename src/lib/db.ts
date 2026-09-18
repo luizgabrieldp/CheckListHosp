@@ -10,7 +10,7 @@ import {
   ModeloTexto,
   PacientePassagem,
 } from "@/types/hospital";
-import { deveExpurgarAdmissao, deveExpurgarPermanencia, agregarMetricasDiarias } from "./lgpd";
+import { deveExpurgarAdmissao, deveExpurgarAlta, deveExpurgarPermanencia, agregarMetricasDiarias } from "./lgpd";
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_FILE = path.join(DB_DIR, "hospital-db.json");
@@ -658,13 +658,15 @@ class DatabaseManager {
 
   /**
    * Rotina de Expurgo LGPD e Agregação Quantitativa:
-   * - Admissões/Altas com data agendada superior a 48h são expurgadas do detalhamento clínico
-   * - Admissões futuras permanecem intactas
+   * - Admissões/Altas com data superior a 48h são expurgadas do detalhamento clínico
+   * - Fotos de feridas operatórias (fotoFeridaUrl) e dados sensíveis são excluídos definitivamente
+   * - Admissões e altas recentes permanecem intactas
    * - Métricas quantitativas diárias agregadas são consolidadas para alimentar gráficos de 7, 14 e 30 dias
    */
-  public executarExpurgoLGPD(): { expurgadasAdmissoes: number; expurgadasPermanencia: boolean } {
+  public executarExpurgoLGPD(): { expurgadasAdmissoes: number; expurgadasAltas: number; expurgadasPermanencia: boolean } {
     const agora = new Date();
     let expurgadasAdmissoes = 0;
+    let expurgadasAltas = 0;
     let expurgadasPermanencia = false;
 
     // Encontrar admissões a expurgar
@@ -680,10 +682,26 @@ class DatabaseManager {
       }
     }
 
-    // Se houve admissões a expurgar, consolidar suas métricas anônimas
-    if (admissoesParaExpurgo.length > 0) {
+    // Encontrar altas a expurgar (> 48h da data da alta)
+    const altasParaExpurgo: AltaPaciente[] = [];
+    const altasAtivas: AltaPaciente[] = [];
+
+    for (const alta of this.state.altas) {
+      if (deveExpurgarAlta(alta.dataAlta, agora)) {
+        altasParaExpurgo.push(alta);
+        expurgadasAltas++;
+      } else {
+        altasAtivas.push(alta);
+      }
+    }
+
+    // Se houve admissões ou altas a expurgar, consolidar suas métricas anônimas
+    if (admissoesParaExpurgo.length > 0 || altasParaExpurgo.length > 0) {
       const datasAgrupadas = Array.from(
-        new Set(admissoesParaExpurgo.map((a) => a.dataAdmissaoAgendada))
+        new Set([
+          ...admissoesParaExpurgo.map((a) => a.dataAdmissaoAgendada),
+          ...altasParaExpurgo.map((al) => al.dataAlta.split("T")[0]),
+        ])
       );
 
       for (const d of datasAgrupadas) {
@@ -696,6 +714,7 @@ class DatabaseManager {
         }
       }
       this.state.admissoes = admissoesAtivas;
+      this.state.altas = altasAtivas;
     }
 
     // Expurgo da permanência após 24h
@@ -714,14 +733,14 @@ class DatabaseManager {
     // Ordenar métricas por data
     this.state.metricas.sort((a, b) => a.data.localeCompare(b.data));
 
-    if (expurgadasAdmissoes > 0 || expurgadasPermanencia) {
+    if (expurgadasAdmissoes > 0 || expurgadasAltas > 0 || expurgadasPermanencia) {
       this.save(this.state);
       console.log(
-        `[LGPD Expurgo] Concluído: ${expurgadasAdmissoes} admissões antigas arquivadas em métricas anônimas.`
+        `[LGPD Expurgo] Concluído: ${expurgadasAdmissoes} admissão(ões) e ${expurgadasAltas} alta(s) arquivadas em métricas anônimas.`
       );
     }
 
-    return { expurgadasAdmissoes, expurgadasPermanencia };
+    return { expurgadasAdmissoes, expurgadasAltas, expurgadasPermanencia };
   }
 }
 

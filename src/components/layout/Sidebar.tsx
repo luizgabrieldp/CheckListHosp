@@ -10,7 +10,6 @@ import {
   Stethoscope,
   FileCode,
   Calendar,
-  Calculator,
   Settings,
   KeyRound,
   LogOut,
@@ -38,7 +37,6 @@ export function Sidebar() {
     { id: "passagem", label: "Passagem", icon: Stethoscope },
     { id: "modelos", label: "Modelos", icon: FileCode },
     { id: "ambulantes", label: "Agenda", icon: Calendar },
-    { id: "scores", label: "Scores", icon: Calculator },
     { id: "config", label: "Config", icon: Settings },
   ] as const;
 
@@ -112,11 +110,7 @@ export function Sidebar() {
                 <button
                   key={item.id}
                   onClick={() => {
-                    if (item.id === "scores") {
-                      setActiveTab("metricas");
-                    } else {
-                      setActiveTab(item.id as any);
-                    }
+                    setActiveTab(item.id as any);
                     setMobileOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${

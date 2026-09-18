@@ -76,10 +76,13 @@ export type PrioridadePendencia = 'Normal' | 'Urgente';
 export interface Pendencia {
   id: string;
   titulo: string;
-  responsavel: string;
+  responsavel?: string; // Mantido para retrocompatibilidade
+  responsaveis?: string[]; // Múltiplos responsáveis pela tarefa
   status: StatusPendencia;
   prioridade: PrioridadePendencia;
-  leito?: string;
+  leito?: string; // Apenas número
+  enfermaria?: string; // Enfermaria vinculada às configurações
+  notaInterna?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -111,6 +114,13 @@ export interface PrescricaoAntibiotico {
   observacao?: string;
 }
 
+export interface CirurgiaProcedimento {
+  id: string;
+  tipoCirurgia: string; // ex: Colecistectomia VLP, Laparotomia exploradora
+  dataCirurgia: string; // YYYY-MM-DD
+  dpoManual?: number; // Ajuste manual opcional de DPO
+}
+
 export interface PacientePassagem {
   id: string;
   nome: string;
@@ -118,7 +128,20 @@ export interface PacientePassagem {
   enfermaria: string;
   dataNascimento?: string;
   dataAdmissao: string;
+  motivoInternamento?: string; // Motivo do internamento em destaque
+  isCirurgico?: boolean;
+  cirurgias?: CirurgiaProcedimento[]; // Múltiplas cirurgias / reoperações
+  dataCirurgia?: string; // YYYY-MM-DD (legado)
+  tipoCirurgia?: string; // ex: Colecistectomia (legado)
+  dpoManual?: number; // Ajuste manual opcional de DPO (legado)
+  temAlergia?: boolean;
+  descricaoAlergia?: string;
+  precaucaoContato?: boolean;
   hd: string;
+  hda?: string;
+  evolucao?: string;
+  examesRealizados?: string;
+  medicacoesUsoGeral?: string; // Texto livre para anotação geral de medicações
   antibioticos: PrescricaoAntibiotico[];
   pendencias: string[];
   sinaisVitais?: {
@@ -155,7 +178,8 @@ export type CategoriaModelo =
   | 'Evolução'
   | 'Orientações Gerais'
   | 'Orientações de Alta'
-  | 'Receituário';
+  | 'Receituário'
+  | (string & {});
 
 export interface ModeloTexto {
   id: string;

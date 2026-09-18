@@ -124,7 +124,7 @@ interface AppStoreState {
 export const useAppStore = create<AppStoreState>((set, get) => ({
   isAuthenticated: false,
   lgpdAcceptedDate: null,
-  activeTab: "admissoes",
+  activeTab: "metricas",
   isConnected: false,
   latencyMs: 0,
   lastSyncTime: Date.now(),
@@ -150,7 +150,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   login: (senha: string) => {
     // Senha Mestre "cgimip" sem distinção de maiúsculas ou minúsculas
     if (senha && senha.trim().toLowerCase() === "cgimip") {
-      set({ isAuthenticated: true });
+      set({ isAuthenticated: true, activeTab: "metricas" });
       if (typeof window !== "undefined") {
         sessionStorage.setItem("checklist_auth", "true");
       }
@@ -168,7 +168,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   },
 
   logout: () => {
-    set({ isAuthenticated: false });
+    set({ isAuthenticated: false, activeTab: "metricas" });
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("checklist_auth");
     }

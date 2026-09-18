@@ -1,4 +1,4 @@
-import { PrescricaoAntibiotico } from "@/types/hospital";
+import { PrescricaoAntibiotico, CirurgiaProcedimento, PacientePassagem } from "@/types/hospital";
 import { differenceInYears, differenceInMonths, differenceInDays } from "date-fns";
 
 export interface ResultadoCalculoAntibiotico {
@@ -131,4 +131,79 @@ export function calcularTempoInternacao(dataAdmissaoStr?: string, agora: Date = 
   } catch {
     return "D1";
   }
+}
+
+/**
+ * Cálculo automático de Dias de Pós-Operatório (DPO)
+ */
+export function calcularDPO(
+  dataCirurgiaStr?: string,
+  dpoManual?: number,
+  agora: Date = new Date()
+): string | null {
+  if (dpoManual !== undefined && dpoManual !== null && !isNaN(dpoManual)) {
+    return `${Math.max(0, dpoManual)}º DPO`;
+  }
+  if (!dataCirurgiaStr) return null;
+
+  try {
+    const [ano, mes, dia] = dataCirurgiaStr.split("-").map((v) => parseInt(v, 10));
+    const dtCx = new Date(ano, mes - 1, dia, 0, 0, 0);
+    if (isNaN(dtCx.getTime())) return null;
+
+    const agoraZero = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 0, 0, 0);
+    const dias = differenceInDays(agoraZero, dtCx);
+    const dpo = Math.max(0, dias);
+    return `${dpo}º DPO`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Formatação do resumo cirúrgico para a linha superior da passagem
+ */
+export function formatarCirurgiaDPO(
+  isCirurgico?: boolean,
+  tipoCirurgia?: string,
+  dataCirurgia?: string,
+  dpoManual?: number,
+  agora: Date = new Date()
+): string {
+  if (isCirurgico === false) {
+    return "Tratamento Clínico";
+  }
+  const dpo = calcularDPO(dataCirurgia, dpoManual, agora);
+  const cirurgia = tipoCirurgia?.trim();
+
+  if (dpo && cirurgia) {
+    return `${dpo} · ${cirurgia}`;
+  }
+  if (dpo) {
+    return dpo;
+  }
+  if (cirurgia) {
+    return `Cirúrgico · ${cirurgia}`;
+  }
+  return isCirurgico ? "Pós-Operatório" : "Tratamento Clínico";
+}
+
+/**
+ * Retorna a lista de procedimentos cirúrgicos do paciente com retrocompatibilidade
+ */
+export function obterCirurgiasPaciente(paciente: PacientePassagem): CirurgiaProcedimento[] {
+  if (paciente.cirurgias && paciente.cirurgias.length > 0) {
+    return paciente.cirurgias;
+  }
+  if (paciente.isCirurgico && (paciente.tipoCirurgia || paciente.dataCirurgia)) {
+    return [
+      {
+        id: "cx-legada",
+        tipoCirurgia: paciente.tipoCirurgia || "Cirurgia Geral",
+        dataCirurgia: paciente.dataCirurgia || "",
+        dpoManual: paciente.dpoManual,
+      },
+    ];
+  }
+  return [];
 }

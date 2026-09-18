@@ -1,43 +1,92 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAppStore } from "@/store/useAppStore";
-import { PacientePassagem, PrescricaoAntibiotico } from "@/types/hospital";
+import {
+  PacientePassagem,
+  PrescricaoAntibiotico,
+  CirurgiaProcedimento,
+} from "@/types/hospital";
 import { anonimizarNome } from "@/lib/lgpd";
 import {
   calcularDDayAntibiotico,
   calcularIdade,
   calcularTempoInternacao,
+  calcularDPO,
+  formatarCirurgiaDPO,
+  obterCirurgiasPaciente,
 } from "@/lib/antibiotic-engine";
-import { ModalPacientePassagemForm } from "./ModalPacientePassagemForm";
 import { ModalImpressaoSeletiva } from "./ModalImpressaoSeletiva";
 import {
   Stethoscope,
   Pill,
   Printer,
   Plus,
-  Edit3,
   Trash2,
   AlertTriangle,
   Flame,
-  CheckCircle2,
-  Clock,
-  Activity,
   Heart,
+  Activity,
   Calendar,
-  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Building2,
+  Bed,
+  Thermometer,
+  ShieldAlert,
+  Scissors,
+  CheckCircle2,
+  X,
+  Edit3,
+  ClipboardList,
+  Check,
 } from "lucide-react";
 
 export function PassagemPlantaoView() {
   const passagem = useAppStore((s) => s.passagem);
+  const enfermarias = useAppStore((s) => s.enfermarias);
+  const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
   const salvarPaciente = useAppStore((s) => s.salvarPacientePassagem);
   const removerPaciente = useAppStore((s) => s.removerPacientePassagem);
 
-  const [modalFormAberto, setModalFormAberto] = useState(false);
-  const [pacienteEmEdicao, setPacienteEmEdicao] = useState<PacientePassagem | null>(null);
-  const [modalImpressaoAberto, setModalImpressaoAberto] = useState(false);
+  // Estados de navegação e filtros
+  const [termoBusca, setTermoBusca] = useState("");
+  const [enfermariaFiltro, setEnfermariaFiltro] = useState("TODAS");
 
-  // Estatísticas rápidas
+  // Sanfonas expandidas (múltiplas permitidas)
+  const [expandidos, setExpandidos] = useState<Record<string, boolean>>({});
+
+  // Sub-painel para adicionar/editar medicação de controle
+  const [pacienteAdicionandoMed, setPacienteAdicionandoMed] = useState<string | null>(null);
+  const [medEmEdicaoId, setMedEmEdicaoId] = useState<string | null>(null);
+  const [medNome, setMedNome] = useState("");
+  const [medDose, setMedDose] = useState("");
+  const [medFreqHoras, setMedFreqHoras] = useState<number | "">(6);
+  const [medHorario1aDose, setMedHorario1aDose] = useState("20:00");
+  const [medDataInicio, setMedDataInicio] = useState(new Date().toISOString().split("T")[0]);
+  const [medDuracaoDias, setMedDuracaoDias] = useState<number>(7);
+  const [medDataTermino, setMedDataTermino] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString().split("T")[0];
+  });
+  const [medDosesPerdidas, setMedDosesPerdidas] = useState<number>(0);
+
+  // Modais de impressão e nova enfermaria inline
+  const [modalImpressaoAberto, setModalImpressaoAberto] = useState(false);
+  const [modalNovaEnfAberto, setModalNovaEnfAberto] = useState(false);
+  const [novaEnfNome, setNovaEnfNome] = useState("");
+
+  // Alternar abertura de sanfona
+  function toggleExpandido(id: string) {
+    setExpandidos((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  }
+
+  // 1. Estatísticas rápidas do plantão
   const totalPacientes = passagem.length;
   let totalAtbAtivos = 0;
   let totalDesescalonar = 0;
@@ -52,58 +101,427 @@ export function PassagemPlantaoView() {
     });
   });
 
-  // Ajustar dose perdida rápida (+1 / -1)
+  // 2. Criação inline direta de novo paciente (abre expandido no topo)
+  function handleCriarNovoPaciente() {
+    const defaultEnf =
+      enfermariaFiltro !== "TODAS" && enfermariaFiltro !== "SEM_ENFERMARIA"
+        ? enfermariaFiltro
+        : enfermarias[0] || "Cirurgia Geral";
+
+    const novoId = `pass-${Date.now()}`;
+    const novo: PacientePassagem = {
+      id: novoId,
+      nome: "",
+      leito: "",
+      enfermaria: defaultEnf,
+      dataAdmissao: new Date().toISOString().split("T")[0],
+      dataNascimento: "",
+      motivoInternamento: "",
+      isCirurgico: false,
+      cirurgias: [],
+      dataCirurgia: "",
+      tipoCirurgia: "",
+      dpoManual: undefined,
+      temAlergia: false,
+      descricaoAlergia: "",
+      precaucaoContato: false,
+      hd: "",
+      hda: "",
+      evolucao: "",
+      examesRealizados: "",
+      medicacoesUsoGeral: "",
+      antibioticos: [],
+      pendencias: [],
+      sinaisVitais: {
+        fc: 75,
+        satO2: 98,
+        pa: "120/80",
+        tax: 36.5,
+      },
+      conduta: "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    salvarPaciente(novo);
+    setExpandidos((prev) => ({ ...prev, [novoId]: true }));
+  }
+
+  // 3. Atualização reativa de campos do paciente
+  function handleSalvarCampo(
+    paciente: PacientePassagem,
+    campo: keyof PacientePassagem,
+    valor: any
+  ) {
+    salvarPaciente({
+      ...paciente,
+      [campo]: valor,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  // Atualização dos sinais vitais
+  function handleSalvarSinaisVitais(
+    paciente: PacientePassagem,
+    campo: "fc" | "satO2" | "pa" | "tax",
+    valor: any
+  ) {
+    const sinaisVitais = {
+      ...(paciente.sinaisVitais || { fc: 75, satO2: 98, pa: "120/80" }),
+      [campo]: valor,
+    };
+    handleSalvarCampo(paciente, "sinaisVitais", sinaisVitais);
+  }
+
+  // 4. Gestão de Múltiplas Cirurgias / Reoperações
+  function handleAdicionarCirurgia(paciente: PacientePassagem) {
+    const listaAtual = obterCirurgiasPaciente(paciente);
+    const novaCirurgia: CirurgiaProcedimento = {
+      id: `cx-${Date.now()}`,
+      tipoCirurgia: "",
+      dataCirurgia: new Date().toISOString().split("T")[0],
+      dpoManual: undefined,
+    };
+    const novasCirurgias = [...listaAtual, novaCirurgia];
+    salvarPaciente({
+      ...paciente,
+      isCirurgico: true,
+      cirurgias: novasCirurgias,
+      // manter compatibilidade com primeiro procedimento
+      tipoCirurgia: novasCirurgias[0]?.tipoCirurgia || "",
+      dataCirurgia: novasCirurgias[0]?.dataCirurgia || "",
+      dpoManual: novasCirurgias[0]?.dpoManual,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  function handleAtualizarCirurgia(
+    paciente: PacientePassagem,
+    cxId: string,
+    campo: keyof CirurgiaProcedimento,
+    valor: any
+  ) {
+    const listaAtual = obterCirurgiasPaciente(paciente);
+    const novasCirurgias = listaAtual.map((cx) => {
+      if (cx.id === cxId) {
+        return { ...cx, [campo]: valor };
+      }
+      return cx;
+    });
+
+    salvarPaciente({
+      ...paciente,
+      cirurgias: novasCirurgias,
+      tipoCirurgia: novasCirurgias[0]?.tipoCirurgia || "",
+      dataCirurgia: novasCirurgias[0]?.dataCirurgia || "",
+      dpoManual: novasCirurgias[0]?.dpoManual,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  function handleRemoverCirurgia(paciente: PacientePassagem, cxId: string) {
+    const listaAtual = obterCirurgiasPaciente(paciente);
+    const novasCirurgias = listaAtual.filter((cx) => cx.id !== cxId);
+    salvarPaciente({
+      ...paciente,
+      cirurgias: novasCirurgias,
+      isCirurgico: novasCirurgias.length > 0,
+      tipoCirurgia: novasCirurgias[0]?.tipoCirurgia || "",
+      dataCirurgia: novasCirurgias[0]?.dataCirurgia || "",
+      dpoManual: novasCirurgias[0]?.dpoManual,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  // 5. Sub-painel: Adição e Edição de Medicações de Controle
+  function abrirNovoSubPainelMed(pacienteId: string) {
+    setPacienteAdicionandoMed(pacienteId);
+    setMedEmEdicaoId(null);
+    setMedNome("");
+    setMedDose("");
+    setMedFreqHoras(6);
+    setMedHorario1aDose("20:00");
+    const hoje = new Date().toISOString().split("T")[0];
+    setMedDataInicio(hoje);
+    setMedDuracaoDias(7);
+
+    try {
+      const [ano, mes, dia] = hoje.split("-").map(Number);
+      const d = new Date(ano, mes - 1, dia);
+      d.setDate(d.getDate() + 7);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dt = String(d.getDate()).padStart(2, "0");
+      setMedDataTermino(`${y}-${m}-${dt}`);
+    } catch {
+      setMedDataTermino(hoje);
+    }
+    setMedDosesPerdidas(0);
+  }
+
+  function abrirEdicaoSubPainelMed(pacienteId: string, atb: PrescricaoAntibiotico) {
+    setPacienteAdicionandoMed(pacienteId);
+    setMedEmEdicaoId(atb.id);
+    setMedNome(atb.nome);
+    setMedDose(atb.dose);
+    setMedFreqHoras(atb.frequenciaHoras || 6);
+    setMedHorario1aDose(atb.horarioPrimeiraDose || "20:00");
+    setMedDataInicio(atb.dataInicio || new Date().toISOString().split("T")[0]);
+    setMedDuracaoDias(atb.duracaoDias || 7);
+
+    try {
+      const [ano, mes, dia] = (atb.dataInicio || new Date().toISOString().split("T")[0])
+        .split("-")
+        .map(Number);
+      const d = new Date(ano, mes - 1, dia);
+      d.setDate(d.getDate() + (atb.duracaoDias || 7));
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dt = String(d.getDate()).padStart(2, "0");
+      setMedDataTermino(`${y}-${m}-${dt}`);
+    } catch {
+      setMedDataTermino(atb.dataInicio || "");
+    }
+    setMedDosesPerdidas(atb.dosesPerdidas || 0);
+  }
+
+  // Sincronização bidirecional de datas
+  function handleMudarDataInicio(novaDataInicio: string) {
+    setMedDataInicio(novaDataInicio);
+    if (novaDataInicio && medDuracaoDias > 0) {
+      try {
+        const [ano, mes, dia] = novaDataInicio.split("-").map(Number);
+        const d = new Date(ano, mes - 1, dia);
+        d.setDate(d.getDate() + medDuracaoDias);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const dt = String(d.getDate()).padStart(2, "0");
+        setMedDataTermino(`${y}-${m}-${dt}`);
+      } catch {}
+    }
+  }
+
+  function handleMudarDuracaoDias(dias: number) {
+    setMedDuracaoDias(dias);
+    if (medDataInicio && dias > 0) {
+      try {
+        const [ano, mes, dia] = medDataInicio.split("-").map(Number);
+        const d = new Date(ano, mes - 1, dia);
+        d.setDate(d.getDate() + dias);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const dt = String(d.getDate()).padStart(2, "0");
+        setMedDataTermino(`${y}-${m}-${dt}`);
+      } catch {}
+    }
+  }
+
+  function handleMudarDataTermino(novaDataTermino: string) {
+    setMedDataTermino(novaDataTermino);
+    if (medDataInicio && novaDataTermino) {
+      try {
+        const [a1, m1, d1] = medDataInicio.split("-").map(Number);
+        const [a2, m2, d2] = novaDataTermino.split("-").map(Number);
+        const dt1 = new Date(a1, m1 - 1, d1);
+        const dt2 = new Date(a2, m2 - 1, d2);
+        const diff = Math.round((dt2.getTime() - dt1.getTime()) / (1000 * 60 * 60 * 24));
+        if (diff > 0) {
+          setMedDuracaoDias(diff);
+        }
+      } catch {}
+    }
+  }
+
+  // Salvar nova medicação ou salvar edição existente
+  function handleSalvarMedicacao(paciente: PacientePassagem) {
+    if (!medNome.trim()) return;
+
+    const freq = typeof medFreqHoras === "number" && medFreqHoras > 0 ? medFreqHoras : 6;
+
+    if (medEmEdicaoId) {
+      // Atualizar existente
+      const listaAtualizada = (paciente.antibioticos || []).map((atb) => {
+        if (atb.id === medEmEdicaoId) {
+          return {
+            ...atb,
+            nome: medNome.trim(),
+            dose: medDose.trim() || "Dose padrão",
+            frequenciaHoras: freq,
+            horarioPrimeiraDose: medHorario1aDose.trim() || "20:00",
+            dataInicio: medDataInicio,
+            duracaoDias: Math.max(1, medDuracaoDias),
+            dosesPerdidas: Math.max(0, medDosesPerdidas),
+          };
+        }
+        return atb;
+      });
+      handleSalvarCampo(paciente, "antibioticos", listaAtualizada);
+    } else {
+      // Inserir nova
+      const novaMed: PrescricaoAntibiotico = {
+        id: `atb-${Date.now()}`,
+        nome: medNome.trim(),
+        dose: medDose.trim() || "Dose padrão",
+        frequenciaHoras: freq,
+        horarioPrimeiraDose: medHorario1aDose.trim() || "20:00",
+        dataInicio: medDataInicio,
+        duracaoDias: Math.max(1, medDuracaoDias),
+        dosesPerdidas: Math.max(0, medDosesPerdidas),
+        observacao: "",
+      };
+      const lista = [...(paciente.antibioticos || []), novaMed];
+      handleSalvarCampo(paciente, "antibioticos", lista);
+    }
+
+    setPacienteAdicionandoMed(null);
+    setMedEmEdicaoId(null);
+  }
+
+  function handleRemoverAtb(paciente: PacientePassagem, atbId: string) {
+    const lista = (paciente.antibioticos || []).filter((atb) => atb.id !== atbId);
+    handleSalvarCampo(paciente, "antibioticos", lista);
+  }
+
   function handleAjustarDosePerdida(
     paciente: PacientePassagem,
     atbId: string,
     delta: number
   ) {
-    const novosAtb = paciente.antibioticos.map((atb) => {
+    const lista = (paciente.antibioticos || []).map((atb) => {
       if (atb.id === atbId) {
-        const novoVal = Math.max(0, atb.dosesPerdidas + delta);
+        const novoVal = Math.max(0, (atb.dosesPerdidas || 0) + delta);
         return { ...atb, dosesPerdidas: novoVal };
       }
       return atb;
     });
-
-    salvarPaciente({
-      ...paciente,
-      antibioticos: novosAtb,
-      updatedAt: new Date().toISOString(),
-    });
+    handleSalvarCampo(paciente, "antibioticos", lista);
   }
+
+  // 6. Gestão de Pendências do Leito
+  function handleAdicionarPendencia(paciente: PacientePassagem, texto: string) {
+    if (!texto.trim()) return;
+    const lista = [...(paciente.pendencias || []), texto.trim()];
+    handleSalvarCampo(paciente, "pendencias", lista);
+  }
+
+  function handleRemoverPendencia(paciente: PacientePassagem, index: number) {
+    const lista = [...(paciente.pendencias || [])];
+    lista.splice(index, 1);
+    handleSalvarCampo(paciente, "pendencias", lista);
+  }
+
+  // Estado de edição inline de pendência
+  const [pendenciaEmEdicao, setPendenciaEmEdicao] = useState<{
+    pacienteId: string;
+    index: number;
+    texto: string;
+  } | null>(null);
+
+  function handleIniciarEdicaoPendencia(
+    pacienteId: string,
+    index: number,
+    textoAtual: string
+  ) {
+    setPendenciaEmEdicao({ pacienteId, index, texto: textoAtual });
+  }
+
+  function handleSalvarEdicaoPendencia(paciente: PacientePassagem) {
+    if (!pendenciaEmEdicao || pendenciaEmEdicao.pacienteId !== paciente.id) return;
+    const novoTexto = pendenciaEmEdicao.texto.trim();
+    if (!novoTexto) return;
+    const lista = [...(paciente.pendencias || [])];
+    lista[pendenciaEmEdicao.index] = novoTexto;
+    handleSalvarCampo(paciente, "pendencias", lista);
+    setPendenciaEmEdicao(null);
+  }
+
+  function handleCancelarEdicaoPendencia() {
+    setPendenciaEmEdicao(null);
+  }
+
+  // Adicionar nova enfermaria inline
+  function handleSalvarNovaEnfermaria(e: React.FormEvent) {
+    e.preventDefault();
+    if (!novaEnfNome.trim()) return;
+    adicionarEnfermaria(novaEnfNome.trim());
+    setNovaEnfNome("");
+    setModalNovaEnfAberto(false);
+  }
+
+  // 7. Filtragem e Agrupamento
+  const pacientesFiltrados = useMemo(() => {
+    return passagem.filter((p) => {
+      if (enfermariaFiltro === "SEM_ENFERMARIA") {
+        if (p.enfermaria && p.enfermaria.trim() !== "") return false;
+      } else if (enfermariaFiltro !== "TODAS") {
+        if (p.enfermaria?.toLowerCase() !== enfermariaFiltro.toLowerCase()) return false;
+      }
+
+      if (termoBusca.trim()) {
+        const q = termoBusca.toLowerCase();
+        const nomeMatch = p.nome?.toLowerCase().includes(q);
+        const leitoMatch = p.leito?.toLowerCase().includes(q);
+        const hdMatch = p.hd?.toLowerCase().includes(q);
+        const motivoMatch = p.motivoInternamento?.toLowerCase().includes(q);
+        const cirurgias = obterCirurgiasPaciente(p);
+        const cirurgiaMatch = cirurgias.some((cx) =>
+          cx.tipoCirurgia.toLowerCase().includes(q)
+        );
+        if (!nomeMatch && !leitoMatch && !hdMatch && !motivoMatch && !cirurgiaMatch) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [passagem, enfermariaFiltro, termoBusca]);
+
+  const gruposEnfermarias = useMemo(() => {
+    const setEnfs = new Set<string>();
+    pacientesFiltrados.forEach((p) => {
+      const nomeEnf = p.enfermaria?.trim();
+      setEnfs.add(nomeEnf || "Sem Enfermaria");
+    });
+
+    const ordenadas = Array.from(setEnfs).sort((a, b) => {
+      if (a === "Sem Enfermaria") return 1;
+      if (b === "Sem Enfermaria") return -1;
+      return a.localeCompare(b, "pt-BR");
+    });
+
+    return ordenadas;
+  }, [pacientesFiltrados]);
 
   return (
     <div className="space-y-6">
-      {/* TOPO: TÍTULO E AÇÕES */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {/* ─────────────────────────────────────────────────────────────
+          1. TOPO DA PASSAGEM DE PLANTÃO
+      ────────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            Passagem de Plantão & Motor de Antibioticoterapia
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-medium">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            Passagem de Plantão
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-semibold">
               {totalPacientes} leitos ativos
             </span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Anonimização LGPD, cálculo automático de D-Day por 24h equivalentes e alerta de desescalonamento
+          <p className="text-xs text-slate-500 mt-0.5">
+            Round clínico colaborativo, múltiplos pós-operatórios e motor de antibioticoterapia
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setModalImpressaoAberto(true)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all active:scale-95 shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 transition-all shadow-xs cursor-pointer"
           >
-            <Printer className="w-4 h-4 text-cyan-400" />
+            <Printer className="w-4 h-4 text-sky-600" />
             <span>Impressão Seletiva A4</span>
           </button>
 
           <button
-            onClick={() => {
-              setPacienteEmEdicao(null);
-              setModalFormAberto(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 text-xs font-bold shadow-lg shadow-cyan-500/25 active:scale-95 transition-all"
+            onClick={handleCriarNovoPaciente}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Novo Paciente</span>
@@ -111,266 +529,1348 @@ export function PassagemPlantaoView() {
         </div>
       </div>
 
-      {/* PAINEL DE ESTATÍSTICAS DO MOTOR ATB */}
+      {/* ─────────────────────────────────────────────────────────────
+          2. PAINEL DE ESTATÍSTICAS COMPACTO
+      ────────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="glass-card rounded-2xl p-4 border border-slate-800 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
-            <Stethoscope className="w-5 h-5" />
+        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 shrink-0">
+            <Stethoscope className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xl font-bold text-white leading-none">{totalPacientes}</div>
-            <div className="text-xs text-slate-400 mt-1">Pacientes em Passagem</div>
+            <div className="text-lg font-bold text-slate-900 leading-none">{totalPacientes}</div>
+            <div className="text-xs text-slate-500 mt-0.5">Pacientes em Passagem</div>
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-4 border border-slate-800 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400">
-            <Pill className="w-5 h-5" />
+        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 shrink-0">
+            <Pill className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xl font-bold text-teal-300 leading-none">{totalAtbAtivos}</div>
-            <div className="text-xs text-slate-400 mt-1">Antibióticos em Curso</div>
+            <div className="text-lg font-bold text-teal-700 leading-none">{totalAtbAtivos}</div>
+            <div className="text-xs text-slate-500 mt-0.5">Antibióticos em Curso</div>
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-4 border border-slate-800 flex items-center gap-3">
+        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3">
           <div
-            className={`w-10 h-10 rounded-xl border flex items-center justify-center ${
+            className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${
               totalDesescalonar > 0
-                ? "bg-rose-500/20 border-rose-500/40 text-rose-400 animate-pulse"
-                : "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
+                ? "bg-rose-50 border-rose-200 text-rose-600 animate-pulse"
+                : "bg-emerald-50 border-emerald-100 text-emerald-600"
             }`}
           >
-            <Flame className="w-5 h-5" />
+            <Flame className="w-4 h-4" />
           </div>
           <div>
             <div
-              className={`text-xl font-bold leading-none ${
-                totalDesescalonar > 0 ? "text-rose-400" : "text-emerald-400"
+              className={`text-lg font-bold leading-none ${
+                totalDesescalonar > 0 ? "text-rose-600" : "text-emerald-700"
               }`}
             >
               {totalDesescalonar}
             </div>
-            <div className="text-xs text-slate-400 mt-1">Reavaliações / Desescalonamentos</div>
+            <div className="text-xs text-slate-500 mt-0.5">Reavaliações / Desescalonamentos</div>
           </div>
         </div>
       </div>
 
-      {/* LISTA DE PACIENTES */}
-      {passagem.length === 0 ? (
-        <div className="text-center py-16 glass-card rounded-2xl border border-slate-800 p-8">
-          <Stethoscope className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-slate-300">Nenhum paciente na passagem</h3>
-          <p className="text-xs text-slate-500 mt-1">Adicione pacientes internados para iniciar o round.</p>
+      {/* ─────────────────────────────────────────────────────────────
+          3. BARRA DE BUSCA E FILTROS DE ENFERMARIAS
+      ────────────────────────────────────────────────────────────── */}
+      <div className="space-y-3">
+        {/* BUSCA */}
+        <div className="relative">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            placeholder="Buscar paciente por nome, leito, enfermaria, HD ou motivo..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium placeholder-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 focus:outline-none transition-all shadow-xs"
+          />
+        </div>
+
+        {/* FILTROS DE ENFERMARIA */}
+        <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              onClick={() => setEnfermariaFiltro("TODAS")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                enfermariaFiltro === "TODAS"
+                  ? "bg-slate-900 text-white font-bold shadow-xs"
+                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              Todas
+            </button>
+
+            {enfermarias.map((enf) => {
+              const isAtiva = enfermariaFiltro === enf;
+              return (
+                <button
+                  key={enf}
+                  onClick={() => setEnfermariaFiltro(enf)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    isAtiva
+                      ? "bg-slate-900 text-white font-bold shadow-xs"
+                      : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  {enf}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setEnfermariaFiltro("SEM_ENFERMARIA")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                enfermariaFiltro === "SEM_ENFERMARIA"
+                  ? "bg-slate-900 text-white font-bold shadow-xs"
+                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              Sem Enfermaria
+            </button>
+          </div>
+
+          {/* BOTÃO NOVA ENFERMARIA */}
+          <button
+            onClick={() => setModalNovaEnfAberto(true)}
+            className="text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 shrink-0 px-2 py-1 rounded-lg hover:bg-sky-50 transition-colors cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nova Enfermaria</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          4. LISTA DE PACIENTES EM SANFONA (CABEÇALHO EM 4 LINHAS)
+      ────────────────────────────────────────────────────────────── */}
+      {pacientesFiltrados.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 shadow-xs">
+          <Stethoscope className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+          <h3 className="text-sm font-semibold text-slate-800">Nenhum paciente encontrado</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            {termoBusca
+              ? "Tente refinar sua busca por nome ou leito."
+              : "Clique em '+ Novo Paciente' para adicionar um paciente na passagem."}
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {passagem.map((paciente) => {
-            const idade = calcularIdade(paciente.dataNascimento);
-            const tempoInternacao = calcularTempoInternacao(paciente.dataAdmissao);
-            const nomeAnonimizado = anonimizarNome(paciente.nome);
+        <div className="space-y-6">
+          {gruposEnfermarias.map((grupoNome) => {
+            const pacientesDoGrupo = pacientesFiltrados.filter((p) => {
+              const enf = p.enfermaria?.trim() || "Sem Enfermaria";
+              return enf.toLowerCase() === grupoNome.toLowerCase();
+            });
+
+            if (pacientesDoGrupo.length === 0) return null;
 
             return (
-              <div
-                key={paciente.id}
-                className="rounded-2xl glass-card border border-slate-800/90 hover:border-cyan-500/40 p-5 flex flex-col justify-between transition-all"
-              >
-                <div>
-                  {/* CABEÇALHO DO CARTÃO COM LGPD */}
-                  <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-800">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-xs px-2.5 py-1 rounded-lg bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 shadow-sm">
-                          {paciente.leito}
-                        </span>
-                        <h3 className="text-base font-bold text-white tracking-tight">
-                          {nomeAnonimizado}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-                        <span>{paciente.enfermaria}</span>
-                        <span>•</span>
-                        <span className="text-cyan-300 font-medium">Idade: {idade}</span>
-                        <span>•</span>
-                        <span className="text-emerald-300 font-medium">
-                          Internação: {tempoInternacao}
-                        </span>
-                      </div>
-                    </div>
+              <div key={grupoNome} className="space-y-2.5">
+                {/* CABEÇALHO DO GRUPO / ENFERMARIA */}
+                <div className="flex items-center gap-2 px-1">
+                  <span className="w-2 h-2 rounded-full bg-sky-500 inline-block" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    {grupoNome} ({pacientesDoGrupo.length})
+                  </h4>
+                </div>
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => {
-                          setPacienteEmEdicao(paciente);
-                          setModalFormAberto(true);
-                        }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                {/* CARDS EM SANFONA */}
+                <div className="space-y-2.5">
+                  {pacientesDoGrupo.map((paciente) => {
+                    const isExpandido = !!expandidos[paciente.id];
+                    const idade = calcularIdade(paciente.dataNascimento);
+                    const tempoInternacao = calcularTempoInternacao(paciente.dataAdmissao);
+                    const nomeExibicao = anonimizarNome(paciente.nome) || "Paciente não identificado";
+                    const cirurgiasDoPaciente = obterCirurgiasPaciente(paciente);
+
+                    return (
+                      <div
+                        key={paciente.id}
+                        className="bg-white rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all overflow-hidden"
                       >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`Remover ${nomeAnonimizado} da passagem?`)) {
-                            removerPaciente(paciente.id);
-                          }
-                        }}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* HIPÓTESE DIAGNÓSTICA */}
-                  <div className="mt-3 p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                      HD / Procedimento Cirúrgico
-                    </span>
-                    <span className="text-xs text-slate-200 font-semibold mt-0.5 block">
-                      {paciente.hd}
-                    </span>
-                  </div>
-
-                  {/* SINAIS VITAIS */}
-                  {paciente.sinaisVitais && (
-                    <div className="flex items-center gap-2 my-2.5 text-xs">
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                        <Heart className="w-3.5 h-3.5 text-rose-400" />
-                        <span>FC: {paciente.sinaisVitais.fc || "-"} bpm</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                        <Activity className="w-3.5 h-3.5 text-cyan-400" />
-                        <span>SatO2: {paciente.sinaisVitais.satO2 || "-"}%</span>
-                      </div>
-                      {paciente.sinaisVitais.pa && (
-                        <div className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                          PA: {paciente.sinaisVitais.pa}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* MOTOR DE ANTIBIOTICOTERAPIA */}
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-                        <Pill className="w-3.5 h-3.5" />
-                        Antibioticoterapia ({paciente.antibioticos?.length || 0})
-                      </span>
-                    </div>
-
-                    {(!paciente.antibioticos || paciente.antibioticos.length === 0) && (
-                      <p className="text-xs text-slate-500 italic py-1">
-                        Sem antibioticoterapia em curso.
-                      </p>
-                    )}
-
-                    {paciente.antibioticos?.map((atb) => {
-                      const res = calcularDDayAntibiotico(atb);
-                      const isDesescalonar = res.statusAlerta === "DESESCALONAR";
-
-                      return (
+                        {/* ──────────────────────────────────────────
+                            CABEÇALHO RESUMIDO EM 4 LINHAS (CLICÁVEL)
+                        ─────────────────────────────────────────── */}
                         <div
-                          key={atb.id}
-                          className={`p-3 rounded-xl border transition-all ${
-                            isDesescalonar
-                              ? "bg-rose-950/25 border-rose-500/60 shadow-sm shadow-rose-500/10"
-                              : "bg-slate-900/90 border-slate-800"
-                          }`}
+                          onClick={() => toggleExpandido(paciente.id)}
+                          className="p-3.5 sm:p-4 cursor-pointer hover:bg-slate-50/50 transition-colors space-y-2 select-none"
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm text-white">{atb.nome}</span>
-                                <span className="text-xs text-slate-300 bg-slate-800 px-2 py-0.5 rounded">
-                                  {atb.dose} ({atb.frequenciaHoras}/{atb.frequenciaHoras}h)
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-slate-400 mt-0.5">
-                                Início: {atb.dataInicio} às {atb.horarioPrimeiraDose} • {res.dosesPorDia}{" "}
-                                doses/dia
-                              </p>
-                            </div>
+                          {/* LINHA 1: IDENTIFICAÇÃO DO PACIENTE & CIRURGIAS/DPO INDIVIDUAIS */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {/* LEITO */}
+                              <span className="font-extrabold text-xs px-2.5 py-0.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200">
+                                {paciente.leito ? `LT ${paciente.leito}` : "Sem Leito"}
+                              </span>
 
-                            {/* BADGE D-DAY & STATUS */}
-                            <div className="text-right">
-                              {isDesescalonar ? (
-                                <div className="inline-flex items-center gap-1 font-black text-[11px] px-2.5 py-1 rounded-lg bg-rose-500 text-white shadow-md shadow-rose-500/30 animate-pulse">
-                                  <Flame className="w-3.5 h-3.5" />
-                                  <span>Desescalonar / Reavaliar</span>
-                                </div>
-                              ) : (
-                                <div className="inline-flex items-center gap-1 font-bold text-xs px-2.5 py-1 rounded-lg bg-cyan-950/80 text-cyan-300 border border-cyan-700/50">
-                                  <span>{res.rotuloDDay}</span>
-                                  <span className="text-[10px] text-slate-400">
-                                    /{atb.duracaoDias}d
-                                  </span>
-                                </div>
+                              {/* ENFERMARIA */}
+                              <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                                {paciente.enfermaria || "Sem Enf."}
+                              </span>
+
+                              {/* NOME ANONIMIZADO */}
+                              <span className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+                                {nomeExibicao}
+                              </span>
+
+                              {/* IDADE CALCULADA */}
+                              {idade !== "-" && (
+                                <span className="text-xs text-slate-500 font-medium">
+                                  • {idade}
+                                </span>
                               )}
-                            </div>
-                          </div>
 
-                          {/* BARRA DE PROGRESSO DO CICLO DIÁRIO E DOSES PERDIDAS */}
-                          <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-slate-300">
-                            <div>
-                              <span className="text-slate-400">Término previsto:</span>{" "}
-                              <strong className="text-slate-200">{res.dataTerminoFormatada}</strong>
+                              {/* TEMPO DE INTERNAÇÃO */}
+                              <span className="text-xs text-slate-500 font-medium">
+                                • {tempoInternacao}
+                              </span>
                             </div>
 
-                            {/* CONTROLE DE DOSES PERDIDAS */}
-                            <div className="flex items-center gap-2">
-                              <span className="text-slate-400 text-[11px]">Doses Perdidas:</span>
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={() => handleAjustarDosePerdida(paciente, atb.id, -1)}
-                                  disabled={atb.dosesPerdidas <= 0}
-                                  className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs flex items-center justify-center font-bold"
-                                >
-                                  -
-                                </button>
-                                <span className="font-bold text-rose-300 px-1 text-xs">
-                                  {atb.dosesPerdidas}
+                            {/* PÍLULAS INDIVIDUAIS PARA CADA PÓS-OPERATÓRIO & BOTÃO SANFONA */}
+                            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
+                              {cirurgiasDoPaciente.length > 0 ? (
+                                cirurgiasDoPaciente.map((cx) => {
+                                  const dpoStr = formatarCirurgiaDPO(
+                                    true,
+                                    cx.tipoCirurgia,
+                                    cx.dataCirurgia,
+                                    cx.dpoManual
+                                  );
+                                  return (
+                                    <span
+                                      key={cx.id}
+                                      className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200"
+                                    >
+                                      <Scissors className="w-3 h-3 text-amber-600" />
+                                      <span>{dpoStr}</span>
+                                    </span>
+                                  );
+                                })
+                              ) : (
+                                <span className="text-xs text-slate-500 px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 hidden sm:inline-block">
+                                  Tratamento Clínico
                                 </span>
-                                <button
-                                  onClick={() => handleAjustarDosePerdida(paciente, atb.id, 1)}
-                                  className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center font-bold text-rose-300"
-                                >
-                                  +
-                                </button>
+                              )}
+
+                              <div className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                                {isExpandido ? (
+                                  <ChevronUp className="w-4 h-4 text-sky-600" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4" />
+                                )}
                               </div>
                             </div>
                           </div>
+
+                          {/* LINHA 2: POR QUE INTERNOU (MOTIVO PRINCIPAL) */}
+                          <div className="pt-1 flex items-start gap-1.5 text-xs text-slate-700">
+                            <span className="font-bold text-slate-900 shrink-0">Internou por:</span>
+                            <span className="line-clamp-1 font-medium text-slate-700">
+                              {paciente.motivoInternamento || paciente.hd || "Sem motivo cadastrado"}
+                            </span>
+                          </div>
+
+                          {/* LINHA 3: MEDICAÇÕES QUE ESTÁ FAZENDO & ALERTAS */}
+                          <div className="flex items-center gap-2 flex-wrap text-xs pt-0.5">
+                            {/* ALERTA DE ALERGIA */}
+                            {paciente.temAlergia && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[11px]">
+                                <AlertTriangle className="w-3 h-3 text-amber-700" />
+                                <span>
+                                  Alergia{paciente.descricaoAlergia ? `: ${paciente.descricaoAlergia}` : ""}
+                                </span>
+                              </span>
+                            )}
+
+                            {/* PRECAUÇÃO DE CONTATO */}
+                            {paciente.precaucaoContato && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-900 border border-rose-300 font-bold text-[11px]">
+                                <ShieldAlert className="w-3 h-3 text-rose-700" />
+                                <span>Precaução de Contato</span>
+                              </span>
+                            )}
+
+                            {/* MINI-TAGS DE MEDICAÇÕES / ANTIBIÓTICOS ATIVOS */}
+                            {paciente.antibioticos?.map((atb) => {
+                              const res = calcularDDayAntibiotico(atb);
+                              const isDesescalonar = res.statusAlerta === "DESESCALONAR";
+                              return (
+                                <span
+                                  key={atb.id}
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                                    isDesescalonar
+                                      ? "bg-rose-50 text-rose-700 border-rose-300 animate-pulse font-bold"
+                                      : "bg-teal-50 text-teal-800 border-teal-200"
+                                  }`}
+                                >
+                                  <Pill className="w-3 h-3 text-teal-600" />
+                                  <span>
+                                    {atb.nome} {res.rotuloDDay}/{atb.duracaoDias}d
+                                  </span>
+                                  {isDesescalonar && <span>(Desescalonar)</span>}
+                                </span>
+                              );
+                            })}
+
+                            {!paciente.temAlergia &&
+                              !paciente.precaucaoContato &&
+                              (!paciente.antibioticos || paciente.antibioticos.length === 0) && (
+                                <span className="text-[11px] text-slate-400 italic">
+                                  Sem alertas ou medicações de controle cadastradas
+                                </span>
+                              )}
+                          </div>
+
+                          {/* LINHA 4: EXAME CLÍNICO / SINAIS VITAIS (FAIXA SUAVE) */}
+                          <div className="bg-slate-50/80 border border-slate-200/70 px-2.5 py-1.5 rounded-xl flex items-center gap-2.5 flex-wrap text-xs text-slate-700">
+                            <span className="font-bold text-slate-500 text-[10px] uppercase tracking-wider shrink-0">
+                              Exame Clínico:
+                            </span>
+
+                            <span className="inline-flex items-center gap-1 font-semibold text-[11px] text-rose-700">
+                              <Heart className="w-3 h-3 text-rose-500" />
+                              <span>FC: {paciente.sinaisVitais?.fc || "-"} bpm</span>
+                            </span>
+
+                            <span className="text-slate-300">•</span>
+
+                            <span className="inline-flex items-center gap-1 font-semibold text-[11px] text-sky-700">
+                              <Activity className="w-3 h-3 text-sky-500" />
+                              <span>SatO2: {paciente.sinaisVitais?.satO2 || "-"}%</span>
+                            </span>
+
+                            <span className="text-slate-300">•</span>
+
+                            <span className="font-semibold text-[11px] text-slate-700">
+                              PA: {paciente.sinaisVitais?.pa || "-"}
+                            </span>
+
+                            {paciente.sinaisVitais?.tax && (
+                              <>
+                                <span className="text-slate-300">•</span>
+                                <span className="inline-flex items-center gap-1 font-semibold text-[11px] text-amber-700">
+                                  <Thermometer className="w-3 h-3 text-amber-500" />
+                                  <span>{paciente.sinaisVitais.tax}ºC</span>
+                                </span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* LINHA 5: PENDÊNCIAS DO LEITO (VISÍVEL SOMENTE SE HOUVER PENDÊNCIAS) */}
+                          {paciente.pendencias && paciente.pendencias.length > 0 && (
+                            <div className="pt-1 space-y-1.5">
+                              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                <ClipboardList className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                                <span>Pendências do Leito ({paciente.pendencias.length}):</span>
+                              </div>
+                              <div className="space-y-1">
+                                {paciente.pendencias.map((pend, pIdx) => (
+                                  <div
+                                    key={pIdx}
+                                    className="flex items-start gap-2 text-xs text-slate-700 bg-slate-50/80 border border-slate-200/70 px-2.5 py-1.5 rounded-lg"
+                                  >
+                                    <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-1.5 shrink-0" />
+                                    <span className="leading-snug font-medium">{pend}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      );
-                    })}
-                  </div>
 
-                  {/* PENDÊNCIAS */}
-                  {paciente.pendencias && paciente.pendencias.length > 0 && (
-                    <div className="mt-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                        Pendências do Leito
-                      </span>
-                      <ul className="space-y-1">
-                        {paciente.pendencias.map((pend, idx) => (
-                          <li
-                            key={idx}
-                            className="text-xs text-slate-300 flex items-start gap-1.5"
-                          >
-                            <span className="text-cyan-400 font-bold">•</span>
-                            <span>{pend}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                        {/* ──────────────────────────────────────────
+                            PAINEL EXPANDIDO DA SANFONA (PILHA VERTICAL)
+                        ─────────────────────────────────────────── */}
+                        {isExpandido && (
+                          <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/50 space-y-4 animate-in fade-in">
+                            {/* BLOCO 1: DADOS GERAIS */}
+                            <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                                {/* NOME DO PACIENTE */}
+                                <div className="sm:col-span-6">
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                    Nome do Paciente (Anonimizado na tela)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={paciente.nome}
+                                    onChange={(e) =>
+                                      handleSalvarCampo(paciente, "nome", e.target.value)
+                                    }
+                                    placeholder="Nome completo do paciente..."
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
+                                  />
+                                </div>
 
-                  {/* CONDUTA */}
-                  {paciente.conduta && (
-                    <div className="mt-3 text-xs text-slate-300">
-                      <strong className="text-cyan-300">Conduta:</strong> {paciente.conduta}
-                    </div>
-                  )}
+                                {/* LEITO */}
+                                <div className="sm:col-span-3">
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+                                    <Bed className="w-3 h-3 text-slate-400" />
+                                    <span>Leito</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={paciente.leito}
+                                    onChange={(e) =>
+                                      handleSalvarCampo(paciente, "leito", e.target.value)
+                                    }
+                                    placeholder="Ex: 25"
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
+                                  />
+                                </div>
+
+                                {/* ENFERMARIA */}
+                                <div className="sm:col-span-3">
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+                                    <Building2 className="w-3 h-3 text-slate-400" />
+                                    <span>Enfermaria</span>
+                                  </label>
+                                  <select
+                                    value={paciente.enfermaria}
+                                    onChange={(e) =>
+                                      handleSalvarCampo(paciente, "enfermaria", e.target.value)
+                                    }
+                                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                  >
+                                    <option value="">Sem enfermaria</option>
+                                    {enfermarias.map((enf) => (
+                                      <option key={enf} value={enf}>
+                                        {enf}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+
+                              {/* DATAS & CÁLCULO DE IDADE */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                                {/* DATA DE ADMISSÃO */}
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+                                    <Calendar className="w-3 h-3 text-slate-400" />
+                                    <span>Data de Admissão</span>
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={paciente.dataAdmissao}
+                                    onChange={(e) =>
+                                      handleSalvarCampo(paciente, "dataAdmissao", e.target.value)
+                                    }
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                  />
+                                </div>
+
+                                {/* DATA DE NASCIMENTO */}
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                                      <Calendar className="w-3 h-3 text-slate-400" />
+                                      <span>Data de Nascimento</span>
+                                    </label>
+                                    {idade !== "-" && (
+                                      <span className="text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                                        Idade: {idade}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <input
+                                    type="date"
+                                    value={paciente.dataNascimento || ""}
+                                    onChange={(e) =>
+                                      handleSalvarCampo(paciente, "dataNascimento", e.target.value)
+                                    }
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* BLOCO 2: ALERTAS MÉDICOS E MÚLTIPLAS CIRURGIAS / REOPERAÇÕES */}
+                            <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-3">
+                              {/* TOGGLES DE ALERGIA E PRECAUÇÃO */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {/* ALERGIA */}
+                                <div className="p-2.5 rounded-lg bg-amber-50/50 border border-amber-200 space-y-2">
+                                  <label className="flex items-center justify-between cursor-pointer">
+                                    <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                                      <span>Paciente com Alergia</span>
+                                    </span>
+                                    <input
+                                      type="checkbox"
+                                      checked={!!paciente.temAlergia}
+                                      onChange={(e) =>
+                                        handleSalvarCampo(paciente, "temAlergia", e.target.checked)
+                                      }
+                                      className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+                                    />
+                                  </label>
+                                  {paciente.temAlergia && (
+                                    <input
+                                      type="text"
+                                      value={paciente.descricaoAlergia || ""}
+                                      onChange={(e) =>
+                                        handleSalvarCampo(
+                                          paciente,
+                                          "descricaoAlergia",
+                                          e.target.value
+                                        )
+                                      }
+                                      placeholder="Ex: Dipirona, Penicilina, Iodo..."
+                                      className="w-full px-2.5 py-1 rounded bg-white border border-amber-300 text-slate-800 text-xs focus:outline-none"
+                                    />
+                                  )}
+                                </div>
+
+                                {/* PRECAUÇÃO DE CONTATO */}
+                                <div className="p-2.5 rounded-lg bg-rose-50/50 border border-rose-200 flex items-center justify-between">
+                                  <span className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
+                                    <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                                    <span>Precaução de Contato</span>
+                                  </span>
+                                  <input
+                                    type="checkbox"
+                                    checked={!!paciente.precaucaoContato}
+                                    onChange={(e) =>
+                                      handleSalvarCampo(
+                                        paciente,
+                                        "precaucaoContato",
+                                        e.target.checked
+                                      )
+                                    }
+                                    className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* SEÇÃO CIRÚRGICA COM SUPORTE A MÚLTIPLAS REOPERAÇÕES */}
+                              <div className="pt-2 border-t border-slate-100 space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                  <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={!!paciente.isCirurgico || cirurgiasDoPaciente.length > 0}
+                                      onChange={(e) => {
+                                        const check = e.target.checked;
+                                        if (check && cirurgiasDoPaciente.length === 0) {
+                                          handleAdicionarCirurgia(paciente);
+                                        } else {
+                                          handleSalvarCampo(paciente, "isCirurgico", check);
+                                        }
+                                      }}
+                                      className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
+                                    />
+                                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                      <Scissors className="w-3.5 h-3.5 text-sky-600" />
+                                      <span>
+                                        Paciente Cirúrgico (Pós-Operatórios: {cirurgiasDoPaciente.length})
+                                      </span>
+                                    </span>
+                                  </label>
+
+                                  {(paciente.isCirurgico || cirurgiasDoPaciente.length > 0) && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAdicionarCirurgia(paciente)}
+                                      className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                    >
+                                      <Plus className="w-3.5 h-3.5" />
+                                      <span>Adicionar Cirurgia / Reoperação</span>
+                                    </button>
+                                  )}
+                                </div>
+
+                                {(paciente.isCirurgico || cirurgiasDoPaciente.length > 0) && (
+                                  <div className="space-y-2">
+                                    {cirurgiasDoPaciente.map((cx, idx) => (
+                                      <div
+                                        key={cx.id || idx}
+                                        className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-2.5 rounded-xl bg-slate-50 border border-slate-200"
+                                      >
+                                        <div className="sm:col-span-5">
+                                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
+                                            Procedimento #{idx + 1}
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={cx.tipoCirurgia}
+                                            onChange={(e) =>
+                                              handleAtualizarCirurgia(
+                                                paciente,
+                                                cx.id,
+                                                "tipoCirurgia",
+                                                e.target.value
+                                              )
+                                            }
+                                            placeholder="Ex: Colecistectomia VLP..."
+                                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                          />
+                                        </div>
+
+                                        <div className="sm:col-span-4">
+                                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
+                                            Data da Cirurgia
+                                          </label>
+                                          <input
+                                            type="date"
+                                            value={cx.dataCirurgia}
+                                            onChange={(e) =>
+                                              handleAtualizarCirurgia(
+                                                paciente,
+                                                cx.id,
+                                                "dataCirurgia",
+                                                e.target.value
+                                              )
+                                            }
+                                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                          />
+                                        </div>
+
+                                        <div className="sm:col-span-2">
+                                          <div className="flex items-center justify-between mb-0.5">
+                                            <label className="text-[10px] font-bold text-slate-600">
+                                              DPO
+                                            </label>
+                                            <span className="text-[10px] font-bold text-amber-700">
+                                              {calcularDPO(cx.dataCirurgia, cx.dpoManual) || "D0"}
+                                            </span>
+                                          </div>
+                                          <input
+                                            type="number"
+                                            min={0}
+                                            value={cx.dpoManual !== undefined ? cx.dpoManual : ""}
+                                            onChange={(e) => {
+                                              const val =
+                                                e.target.value === ""
+                                                  ? undefined
+                                                  : parseInt(e.target.value, 10);
+                                              handleAtualizarCirurgia(
+                                                paciente,
+                                                cx.id,
+                                                "dpoManual",
+                                                val
+                                              );
+                                            }}
+                                            placeholder="Ajuste..."
+                                            className="w-full px-2 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                          />
+                                        </div>
+
+                                        <div className="sm:col-span-1 text-right">
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemoverCirurgia(paciente, cx.id)}
+                                            className="p-1.5 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                                            title="Remover este procedimento"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* ──────────────────────────────────────────
+                                BLOCO 3: PILHA VERTICAL DE TEXTOS CLÍNICOS E SINAIS VITAIS
+                            ─────────────────────────────────────────── */}
+                            <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-3.5">
+                              {/* 1. MOTIVO DO INTERNAMENTO */}
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                  Motivo do Internamento
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={paciente.motivoInternamento || ""}
+                                  onChange={(e) =>
+                                    handleSalvarCampo(
+                                      paciente,
+                                      "motivoInternamento",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="PO colecistectomia, abdome agudo obstrutivo..."
+                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
+                                />
+                              </div>
+
+                              {/* 2. HIPÓTESE DIAGNÓSTICA (HD) */}
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                  Hipótese Diagnóstica (HD)
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={paciente.hd}
+                                  onChange={(e) =>
+                                    handleSalvarCampo(paciente, "hd", e.target.value)
+                                  }
+                                  placeholder="colelitíase, apendicite aguda perfurada..."
+                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                />
+                              </div>
+
+                              {/* 3. HISTÓRIA DA DOENÇA ATUAL (HDA) */}
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                  História da Doença Atual (HDA)
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={paciente.hda || ""}
+                                  onChange={(e) =>
+                                    handleSalvarCampo(paciente, "hda", e.target.value)
+                                  }
+                                  placeholder="dor abdominal de forte intensidade associada a vômitos..."
+                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                />
+                              </div>
+
+                              {/* 4. EVOLUÇÃO */}
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                  Evolução
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={paciente.evolucao || ""}
+                                  onChange={(e) =>
+                                    handleSalvarCampo(paciente, "evolucao", e.target.value)
+                                  }
+                                  placeholder="Descreva a evolução..."
+                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                />
+                              </div>
+
+                              {/* 5. SINAIS VITAIS (EXAME FÍSICO) - POSICIONADO LOGO ABAIXO DA EVOLUÇÃO */}
+                              <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                                <h5 className="text-[11px] font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                                  <Activity className="w-3.5 h-3.5 text-sky-600" />
+                                  <span>Sinais Vitais (Exame Físico)</span>
+                                </h5>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                  <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                      FC (bpm)
+                                    </label>
+                                    <input
+                                      type="number"
+                                      value={paciente.sinaisVitais?.fc || ""}
+                                      onChange={(e) =>
+                                        handleSalvarSinaisVitais(
+                                          paciente,
+                                          "fc",
+                                          parseInt(e.target.value, 10) || 0
+                                        )
+                                      }
+                                      placeholder="Ex: 78"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                      SatO2 (%)
+                                    </label>
+                                    <input
+                                      type="number"
+                                      value={paciente.sinaisVitais?.satO2 || ""}
+                                      onChange={(e) =>
+                                        handleSalvarSinaisVitais(
+                                          paciente,
+                                          "satO2",
+                                          parseInt(e.target.value, 10) || 0
+                                        )
+                                      }
+                                      placeholder="Ex: 98"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                      PA (mmHg)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={paciente.sinaisVitais?.pa || ""}
+                                      onChange={(e) =>
+                                        handleSalvarSinaisVitais(paciente, "pa", e.target.value)
+                                      }
+                                      placeholder="Ex: 120/80"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                      Tax (ºC)
+                                    </label>
+                                    <input
+                                      type="number"
+                                      step="0.1"
+                                      value={paciente.sinaisVitais?.tax || ""}
+                                      onChange={(e) =>
+                                        handleSalvarSinaisVitais(
+                                          paciente,
+                                          "tax",
+                                          parseFloat(e.target.value) || 0
+                                        )
+                                      }
+                                      placeholder="Ex: 36.5"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 6. PRINCIPAIS EXAMES REALIZADOS */}
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                  Principais Exames Realizados
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={paciente.examesRealizados || ""}
+                                  onChange={(e) =>
+                                    handleSalvarCampo(
+                                      paciente,
+                                      "examesRealizados",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Ex: TC abdome, hemograma, PCR..."
+                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                />
+                              </div>
+
+                              {/* 7. MEDICAÇÕES EM USO (GERAL) */}
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                  Medicações em Uso
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={paciente.medicacoesUsoGeral || ""}
+                                  onChange={(e) =>
+                                    handleSalvarCampo(
+                                      paciente,
+                                      "medicacoesUsoGeral",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Anotação geral de medicações..."
+                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                />
+                              </div>
+
+                              {/* ──────────────────────────────────────────
+                                  8. SUB-PAINEL: ADICIONAR/EDITAR MEDICAÇÃO DE CONTROLE
+                              ─────────────────────────────────────────── */}
+                              <div className="pt-2 border-t border-slate-100 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <Pill className="w-3.5 h-3.5 text-teal-600" />
+                                    <span>
+                                      Medicações de Controle (
+                                      {paciente.antibioticos?.length || 0})
+                                    </span>
+                                  </span>
+
+                                  {pacienteAdicionandoMed !== paciente.id && (
+                                    <button
+                                      type="button"
+                                      onClick={() => abrirNovoSubPainelMed(paciente.id)}
+                                      className="px-3 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                    >
+                                      <Plus className="w-3.5 h-3.5" />
+                                      <span>Adicionar medicação</span>
+                                    </button>
+                                  )}
+                                </div>
+
+                                {/* FORMULÁRIO DO SUB-PAINEL (NOVA OU EDIÇÃO) */}
+                                {pacienteAdicionandoMed === paciente.id && (
+                                  <div className="p-3.5 rounded-xl border border-teal-300 bg-teal-50/20 space-y-3 animate-in fade-in">
+                                    <div className="flex items-center justify-between">
+                                      <h6 className="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+                                        {medEmEdicaoId ? (
+                                          <>
+                                            <Edit3 className="w-3.5 h-3.5 text-teal-600" />
+                                            <span>Editar Medicação de Controle</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Plus className="w-3.5 h-3.5 text-teal-600" />
+                                            <span>Nova Medicação de Controle</span>
+                                          </>
+                                        )}
+                                      </h6>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setPacienteAdicionandoMed(null);
+                                          setMedEmEdicaoId(null);
+                                        }}
+                                        className="p-1 rounded text-slate-400 hover:text-slate-600"
+                                      >
+                                        <X className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+
+                                    {/* NOME DO MEDICAMENTO */}
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        Nome do medicamento
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={medNome}
+                                        onChange={(e) => setMedNome(e.target.value)}
+                                        placeholder="Ex: Dipirona"
+                                        autoFocus
+                                        className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:border-teal-500 focus:outline-none"
+                                      />
+                                    </div>
+
+                                    {/* DOSE E FREQUÊNCIA (HORAS) */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                          Dose
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={medDose}
+                                          onChange={(e) => setMedDose(e.target.value)}
+                                          placeholder="Ex: 500mg"
+                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                          Frequência (horas)
+                                        </label>
+                                        <input
+                                          type="number"
+                                          min={1}
+                                          value={medFreqHoras}
+                                          onChange={(e) =>
+                                            setMedFreqHoras(
+                                              parseInt(e.target.value, 10) || ""
+                                            )
+                                          }
+                                          placeholder="Ex: 6"
+                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {/* 1ª DOSE (HORÁRIO) E DATA DE INÍCIO */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                          1ª dose (horário)
+                                        </label>
+                                        <input
+                                          type="time"
+                                          value={medHorario1aDose}
+                                          onChange={(e) =>
+                                            setMedHorario1aDose(e.target.value)
+                                          }
+                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                          Data de início
+                                        </label>
+                                        <input
+                                          type="date"
+                                          value={medDataInicio}
+                                          onChange={(e) =>
+                                            handleMudarDataInicio(e.target.value)
+                                          }
+                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {/* DURAÇÃO (DIAS) E DATA DE TÉRMINO (SINCRONIZAÇÃO BIDIRECIONAL) */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                          Duração (dias)
+                                        </label>
+                                        <input
+                                          type="number"
+                                          min={1}
+                                          value={medDuracaoDias}
+                                          onChange={(e) =>
+                                            handleMudarDuracaoDias(
+                                              parseInt(e.target.value, 10) || 1
+                                            )
+                                          }
+                                          placeholder="Ex: 7"
+                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                          Data de término
+                                        </label>
+                                        <input
+                                          type="date"
+                                          value={medDataTermino}
+                                          onChange={(e) =>
+                                            handleMudarDataTermino(e.target.value)
+                                          }
+                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {/* DOSES PERDIDAS (QTD) */}
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        Doses perdidas (qtd)
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        value={medDosesPerdidas}
+                                        onChange={(e) =>
+                                          setMedDosesPerdidas(
+                                            parseInt(e.target.value, 10) || 0
+                                          )
+                                        }
+                                        placeholder="0"
+                                        className="w-full sm:w-1/2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                      />
+                                    </div>
+
+                                    {/* BOTÕES CANCELAR E SALVAR */}
+                                    <div className="flex items-center justify-end gap-2 pt-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setPacienteAdicionandoMed(null);
+                                          setMedEmEdicaoId(null);
+                                        }}
+                                        className="px-4 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
+                                      >
+                                        Cancelar
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleSalvarMedicacao(paciente)}
+                                        disabled={!medNome.trim()}
+                                        className="px-5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                                      >
+                                        {medEmEdicaoId ? "Salvar Alterações" : "Salvar"}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* LISTA DE MEDICAÇÕES DE CONTROLE CADASTRADAS */}
+                                {(!paciente.antibioticos ||
+                                  paciente.antibioticos.length === 0) &&
+                                  pacienteAdicionandoMed !== paciente.id && (
+                                    <p className="text-xs text-slate-400 italic py-1">
+                                      Nenhuma medicação cadastrada.
+                                    </p>
+                                  )}
+
+                                <div className="space-y-2">
+                                  {paciente.antibioticos?.map((atb) => {
+                                    const res = calcularDDayAntibiotico(atb);
+                                    const isDesescalonar = res.statusAlerta === "DESESCALONAR";
+
+                                    return (
+                                      <div
+                                        key={atb.id}
+                                        className={`p-3 rounded-xl border transition-all ${
+                                          isDesescalonar
+                                            ? "bg-rose-50/60 border-rose-300 shadow-xs"
+                                            : "bg-slate-50 border-slate-200"
+                                        }`}
+                                      >
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                          <div>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                              <span className="font-bold text-xs text-slate-900 flex items-center gap-1">
+                                                <Pill className="w-3.5 h-3.5 text-teal-600" />
+                                                <span>{atb.nome}</span>
+                                              </span>
+                                              <span className="text-[11px] text-slate-600">
+                                                {atb.dose} ({atb.frequenciaHoras}/{atb.frequenciaHoras}h)
+                                              </span>
+                                              <span
+                                                className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                                                  isDesescalonar
+                                                    ? "bg-rose-600 text-white"
+                                                    : "bg-teal-100 text-teal-900 border border-teal-300"
+                                                }`}
+                                              >
+                                                {res.rotuloDDay}/{atb.duracaoDias}d
+                                              </span>
+                                            </div>
+
+                                            <div className="text-[11px] text-slate-500 mt-0.5">
+                                              Início: {atb.dataInicio} às {atb.horarioPrimeiraDose || "20:00"} → Término:{" "}
+                                              <strong className="text-slate-700">{res.dataTerminoFormatada}</strong>
+                                            </div>
+                                          </div>
+
+                                          {/* DOSES PERDIDAS, BOTÃO EDITAR & BOTÃO REMOVER */}
+                                          <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                                            <div className="flex items-center gap-1.5 text-xs">
+                                              <span className="text-[11px] text-slate-500">Perdidas:</span>
+                                              <div className="flex items-center gap-1">
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    handleAjustarDosePerdida(paciente, atb.id, -1)
+                                                  }
+                                                  disabled={(atb.dosesPerdidas || 0) <= 0}
+                                                  className="w-5 h-5 rounded bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-30 text-xs font-bold flex items-center justify-center cursor-pointer"
+                                                >
+                                                  -
+                                                </button>
+                                                <span className="font-bold text-slate-800 text-xs px-1">
+                                                  {atb.dosesPerdidas || 0}
+                                                </span>
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    handleAjustarDosePerdida(paciente, atb.id, 1)
+                                                  }
+                                                  className="w-5 h-5 rounded bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-rose-600 flex items-center justify-center cursor-pointer"
+                                                >
+                                                  +
+                                                </button>
+                                              </div>
+                                            </div>
+
+                                            {/* BOTÃO EDITAR MEDICAÇÃO */}
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                abrirEdicaoSubPainelMed(paciente.id, atb)
+                                              }
+                                              className="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
+                                              title="Editar medicação"
+                                            >
+                                              <Edit3 className="w-3.5 h-3.5" />
+                                            </button>
+
+                                            {/* BOTÃO EXCLUIR MEDICAÇÃO */}
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoverAtb(paciente, atb.id)}
+                                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                              title="Remover medicação"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+                                        </div>
+
+                                        {/* ALERTA DE DESESCALONAR */}
+                                        {isDesescalonar && (
+                                          <div className="mt-2 pt-1.5 border-t border-rose-200/80 flex items-center gap-1 text-[11px] font-bold text-rose-700">
+                                            <Flame className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
+                                            <span>⚠ Lembrar de desescalonar / reavaliar prescrição</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* ──────────────────────────────────────────
+                                  9. CONDUTAS / PENDÊNCIAS
+                              ─────────────────────────────────────────── */}
+                              <div className="pt-2 border-t border-slate-100 space-y-3">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                    Condutas / Decisões do Round
+                                  </label>
+                                  <textarea
+                                    rows={2}
+                                    value={paciente.conduta}
+                                    onChange={(e) =>
+                                      handleSalvarCampo(paciente, "conduta", e.target.value)
+                                    }
+                                    placeholder="O que foi decidido na passagem de plantão..."
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                  />
+                                </div>
+
+                                {/* PENDÊNCIAS DO LEITO */}
+                                <div className="space-y-2">
+                                  <label className="block text-[11px] font-bold text-slate-700">
+                                    Pendências do Leito
+                                  </label>
+                                  <div className="space-y-1.5">
+                                    {paciente.pendencias?.map((pend, idx) => {
+                                      const isEditando =
+                                        pendenciaEmEdicao?.pacienteId === paciente.id &&
+                                        pendenciaEmEdicao?.index === idx;
+
+                                      if (isEditando) {
+                                        return (
+                                          <div
+                                            key={idx}
+                                            className="flex items-center gap-2 p-1.5 rounded-lg bg-sky-50 border border-sky-300"
+                                          >
+                                            <input
+                                              type="text"
+                                              autoFocus
+                                              value={pendenciaEmEdicao.texto}
+                                              onChange={(e) =>
+                                                setPendenciaEmEdicao({
+                                                  ...pendenciaEmEdicao,
+                                                  texto: e.target.value,
+                                                })
+                                              }
+                                              onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                  e.preventDefault();
+                                                  handleSalvarEdicaoPendencia(paciente);
+                                                } else if (e.key === "Escape") {
+                                                  handleCancelarEdicaoPendencia();
+                                                }
+                                              }}
+                                              className="flex-1 px-2.5 py-1 text-xs rounded-md border border-slate-300 bg-white text-slate-900 focus:outline-none focus:border-sky-500 font-medium"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => handleSalvarEdicaoPendencia(paciente)}
+                                              className="p-1 rounded hover:bg-sky-200 text-sky-700 transition-colors"
+                                              title="Salvar alteração"
+                                            >
+                                              <Check className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={handleCancelarEdicaoPendencia}
+                                              className="p-1 rounded hover:bg-slate-200 text-slate-500 transition-colors"
+                                              title="Cancelar edição"
+                                            >
+                                              <X className="w-4 h-4" />
+                                            </button>
+                                          </div>
+                                        );
+                                      }
+
+                                      return (
+                                        <div
+                                          key={idx}
+                                          className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700 hover:border-slate-300 transition-colors group"
+                                        >
+                                          <span
+                                            onClick={() =>
+                                              handleIniciarEdicaoPendencia(paciente.id, idx, pend)
+                                            }
+                                            className="flex items-center gap-1.5 cursor-pointer flex-1"
+                                            title="Clique para editar esta pendência"
+                                          >
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                                            <span className="group-hover:text-slate-900 font-medium">
+                                              {pend}
+                                            </span>
+                                          </span>
+                                          <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                handleIniciarEdicaoPendencia(paciente.id, idx, pend)
+                                              }
+                                              className="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-sky-600 transition-colors"
+                                              title="Editar pendência"
+                                            >
+                                              <Edit3 className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoverPendencia(paciente, idx)}
+                                              className="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-rose-600 transition-colors"
+                                              title="Remover pendência"
+                                            >
+                                              <X className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+
+                                    {/* ADICIONAR NOVA PENDÊNCIA */}
+                                    <input
+                                      type="text"
+                                      placeholder="+ Digite uma pendência do leito e tecle Enter..."
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          e.preventDefault();
+                                          handleAdicionarPendencia(
+                                            paciente,
+                                            (e.target as HTMLInputElement).value
+                                          );
+                                          (e.target as HTMLInputElement).value = "";
+                                        }
+                                      }}
+                                      className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-dashed border-slate-300 text-slate-800 text-xs placeholder-slate-400 focus:bg-white focus:border-sky-500 focus:outline-none"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* RODAPÉ DO CARD EXPANDIDO */}
+                            <div className="flex items-center justify-between pt-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      `Excluir o paciente ${
+                                        paciente.nome || "sem nome"
+                                      } da passagem?`
+                                    )
+                                  ) {
+                                    removerPaciente(paciente.id);
+                                  }
+                                }}
+                                className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Excluir Paciente</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => toggleExpandido(paciente.id)}
+                                className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                              >
+                                <ChevronUp className="w-3.5 h-3.5" />
+                                <span>Recolher Detalhes</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -378,19 +1878,60 @@ export function PassagemPlantaoView() {
         </div>
       )}
 
-      {/* MODAL DE CADASTRO/EDIÇÃO */}
-      {modalFormAberto && (
-        <ModalPacientePassagemForm
-          pacienteExistente={pacienteEmEdicao}
-          onSalvar={(p) => salvarPaciente(p)}
-          onClose={() => {
-            setModalFormAberto(false);
-            setPacienteEmEdicao(null);
-          }}
-        />
+      {/* ─────────────────────────────────────────────────────────────
+          5. MODAL PARA ADICIONAR NOVA ENFERMARIA INLINE
+      ────────────────────────────────────────────────────────────── */}
+      {modalNovaEnfAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 w-full max-w-sm shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-sky-600" />
+                <span>Nova Enfermaria</span>
+              </h4>
+              <button
+                type="button"
+                onClick={() => setModalNovaEnfAberto(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSalvarNovaEnfermaria} className="space-y-3">
+              <input
+                type="text"
+                value={novaEnfNome}
+                onChange={(e) => setNovaEnfNome(e.target.value)}
+                placeholder="Ex: NEFRO, UTI, 5º ANDAR..."
+                autoFocus
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
+              />
+
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setModalNovaEnfAberto(false)}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={!novaEnfNome.trim()}
+                  className="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs cursor-pointer"
+                >
+                  Salvar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
-      {/* MODAL DE IMPRESSÃO SELETIVA */}
+      {/* ─────────────────────────────────────────────────────────────
+          6. MODAL DE IMPRESSÃO SELETIVA
+      ────────────────────────────────────────────────────────────── */}
       {modalImpressaoAberto && (
         <ModalImpressaoSeletiva
           pacientes={passagem}

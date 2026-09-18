@@ -1,60 +1,122 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { AltaPaciente } from "@/types/hospital";
-import { ModalAltaForm } from "./ModalAltaForm";
 import { gerarMensagemAlta, compartilharOuCopiar } from "@/lib/whatsapp";
-import { formatarDataBR } from "@/lib/utils";
+import { comprimirImagemParaWebP } from "@/lib/image-compressor";
 import {
-  Plus,
-  Share2,
-  Activity,
-  Heart,
+  Calendar as CalendarIcon,
   Search,
-  CheckCircle2,
+  Plus,
+  Hospital,
+  ChevronDown,
+  ChevronUp,
+  Share2,
   Trash2,
-  Edit3,
   Camera,
-  AlertTriangle,
-  Sparkles,
-  Maximize2,
+  Upload,
+  CheckCircle2,
   X,
+  Maximize2,
+  ArrowUpDown,
+  AlertCircle,
+  FileImage,
 } from "lucide-react";
 
 export function AltasView() {
   const altas = useAppStore((s) => s.altas);
   const salvarAlta = useAppStore((s) => s.salvarAlta);
   const removerAlta = useAppStore((s) => s.removerAlta);
+  const enfermarias = useAppStore((s) => s.enfermarias);
+  const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
+
+  // Data selecionada no topo (padrão: hoje)
+  const [dataSelecionada, setDataSelecionada] = useState(() => {
+    return new Date().toISOString().split("T")[0];
+  });
 
   const [busca, setBusca] = useState("");
-  const [modalFormAberto, setModalFormAberto] = useState(false);
-  const [altaEmEdicao, setAltaEmEdicao] = useState<AltaPaciente | null>(null);
+  const [filtroEnfermaria, setFiltroEnfermaria] = useState<string>("TODAS");
+  const [ordenacao, setOrdenacao] = useState<"leito" | "nome">("leito");
+  const [pacienteExpandidoId, setPacienteExpandidoId] = useState<string | null>(null);
+  const [modalNovoPaciente, setModalNovoPaciente] = useState(false);
   const [fotoModalUrl, setFotoModalUrl] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Estados para adição rápida de nova enfermaria in-place
+  const [adicionandoEnfModal, setAdicionandoEnfModal] = useState(false);
+  const [nomeNovaEnfModal, setNomeNovaEnfModal] = useState("");
+  const [adicionandoEnfPacienteId, setAdicionandoEnfPacienteId] = useState<string | null>(null);
+  const [nomeNovaEnfPaciente, setNomeNovaEnfPaciente] = useState("");
+
+  // Estado do form para novo paciente de alta
+  const [novoLeito, setNovoLeito] = useState("");
+  const [novoNome, setNovoNome] = useState("");
+  const [novaEnfermaria, setNovaEnfermaria] = useState("FGH");
+  const [novoPO, setNovoPO] = useState("");
+
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const cameraInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   function exibirToast(msg: string) {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3500);
   }
 
-  // Filtragem
-  const altasFiltradas = altas.filter((a) => {
-    const termo = busca.toLowerCase();
-    return (
-      a.nomePaciente.toLowerCase().includes(termo) ||
-      a.leito.toLowerCase().includes(termo) ||
-      a.tipoCirurgia.toLowerCase().includes(termo)
-    );
-  });
+  // Filtrar pacientes da data selecionada
+  const altasDaData = useMemo(() => {
+    return altas.filter((a) => a.dataAlta === dataSelecionada);
+  }, [altas, dataSelecionada]);
 
-  // Converter dataUrl para File se necessário para Web Share API
+  // Filtragem e busca
+  const altasFiltradas = useMemo(() => {
+    return altasDaData.filter((a) => {
+      const termo = busca.toLowerCase();
+      const bateTexto =
+        a.nomePaciente.toLowerCase().includes(termo) ||
+        a.leito.toLowerCase().includes(termo) ||
+        (a.tipoCirurgia && a.tipoCirurgia.toLowerCase().includes(termo));
+      if (!bateTexto) return false;
+
+      if (filtroEnfermaria === "TODAS") return true;
+      return a.enfermaria.trim().toLowerCase() === filtroEnfermaria.trim().toLowerCase();
+    });
+  }, [altasDaData, busca, filtroEnfermaria]);
+
+  // Agrupamento por enfermaria com ordenação (Leito ou Nome)
+  const altasAgrupadas = useMemo(() => {
+    const grupos: Record<string, AltaPaciente[]> = {};
+
+    altasFiltradas.forEach((p) => {
+      const enf = p.enfermaria?.trim() || "SEM ENFERMARIA";
+      if (!grupos[enf]) grupos[enf] = [];
+      grupos[enf].push(p);
+    });
+
+    Object.keys(grupos).forEach((enf) => {
+      grupos[enf].sort((a, b) => {
+        if (ordenacao === "leito") {
+          const numA = parseInt(a.leito.replace(/\D/g, ""), 10) || 0;
+          const numB = parseInt(b.leito.replace(/\D/g, ""), 10) || 0;
+          if (numA !== numB) return numA - numB;
+          return a.leito.localeCompare(b.leito);
+        }
+        return a.nomePaciente.localeCompare(b.nomePaciente);
+      });
+    });
+
+    return grupos;
+  }, [altasFiltradas, ordenacao]);
+
+  // Converter dataUrl para File para Web Share API
   async function dataUrlToFile(dataUrl: string, fileName: string): Promise<File> {
     const res = await fetch(dataUrl);
     const blob = await res.blob();
     return new File([blob], fileName, { type: blob.type || "image/webp" });
   }
 
+  // Compartilhar WhatsApp com suporte nativo a foto no mobile e download/cópia no desktop
   async function handleCompartilhar(alta: AltaPaciente) {
     const texto = gerarMensagemAlta(alta);
     let fotoFile: File | null = null;
@@ -63,7 +125,7 @@ export function AltasView() {
       try {
         fotoFile = await dataUrlToFile(
           alta.fotoFeridaUrl,
-          `ferida_${alta.leito.replace(/\s+/g, "_")}.webp`
+          `foto_${alta.leito.replace(/\s+/g, "_")}_${alta.nomePaciente.replace(/\s+/g, "_")}.webp`
         );
       } catch (err) {
         console.warn("Erro ao preparar arquivo de imagem para share:", err);
@@ -73,255 +135,878 @@ export function AltasView() {
     const res = await compartilharOuCopiar(
       texto,
       fotoFile,
-      `Alta / PO - ${alta.leito} (${alta.nomePaciente})`
+      `Alta PO - LT ${alta.leito} (${alta.nomePaciente})`
     );
     exibirToast(res.mensagem);
   }
 
+  // Upload e compressão de foto para WebP
+  async function handleUploadFoto(paciente: AltaPaciente, file: File) {
+    if (!file) return;
+    try {
+      exibirToast("Comprimindo foto para WebP...");
+      const resultado = await comprimirImagemParaWebP(file);
+      salvarAlta({
+        ...paciente,
+        fotoFeridaUrl: resultado.dataUrl,
+        updatedAt: new Date().toISOString(),
+      });
+      exibirToast(`Foto anexada (${resultado.tamanhoFormatado})!`);
+    } catch (err) {
+      exibirToast("Erro ao processar imagem.");
+    }
+  }
+
+  // Criação de novo paciente de alta
+  function handleCriarPaciente(e: React.FormEvent) {
+    e.preventDefault();
+    if (!novoNome.trim()) return;
+
+    const nova: AltaPaciente = {
+      id: `alta-${Date.now()}`,
+      leito: novoLeito.trim() || "--",
+      nomePaciente: novoNome.trim(),
+      enfermaria: novaEnfermaria.trim() || "FGH",
+      tipoCirurgia: novoPO.trim() || "",
+      temQueixas: false,
+      detalhesQueixas: "",
+      parametros: {
+        dieta: true,
+        deambulou: true,
+        diurese: true,
+        evacuacao: false,
+      },
+      sinaisVitais: {
+        frequenciaCardiaca: 75,
+        saturacaoO2: 98,
+      },
+      dataAlta: dataSelecionada,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    salvarAlta(nova);
+    setNovoNome("");
+    setNovoLeito("");
+    setNovoPO("");
+    setModalNovoPaciente(false);
+    setPacienteExpandidoId(nova.id);
+    exibirToast("Paciente de alta adicionado com sucesso!");
+  }
+
+  function handleSalvarNovaEnfermariaModal(e: React.FormEvent) {
+    e.preventDefault();
+    const limpo = nomeNovaEnfModal.trim();
+    if (!limpo) return;
+    adicionarEnfermaria(limpo);
+    setNovaEnfermaria(limpo);
+    setNomeNovaEnfModal("");
+    setAdicionandoEnfModal(false);
+    exibirToast(`Enfermaria "${limpo}" adicionada e selecionada!`);
+  }
+
+  function handleSalvarNovaEnfermariaPaciente(e: React.FormEvent, paciente: AltaPaciente) {
+    e.preventDefault();
+    const limpo = nomeNovaEnfPaciente.trim();
+    if (!limpo) return;
+    adicionarEnfermaria(limpo);
+    salvarAlta({
+      ...paciente,
+      enfermaria: limpo,
+      updatedAt: new Date().toISOString(),
+    });
+    setNomeNovaEnfPaciente("");
+    setAdicionandoEnfPacienteId(null);
+    exibirToast(`Enfermaria "${limpo}" atribuída ao paciente!`);
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 max-w-6xl mx-auto">
       {/* TOAST FLUTUANTE */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-slate-900 border border-teal-500/50 text-teal-300 text-xs font-semibold shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-teal-400" />
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMsg}</span>
         </div>
       )}
 
-      {/* TOPO: AÇÕES E TÍTULO */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            Módulo de Altas & Feridas Cirúrgicas
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 font-medium">
-              {altasFiltradas.length} pacientes
-            </span>
-          </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Critérios de alta cirúrgica, sinais vitais e envio de fotos para WhatsApp com compressão WebP
-          </p>
+      {/* SELETOR DE DATA NO TOPO (ESTILO BASE44) */}
+      <div className="clean-card rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-slate-700 text-xs font-semibold">
+            <CalendarIcon className="w-4 h-4 text-slate-500" />
+            <span>Data de Trabalho:</span>
+          </div>
+          <input
+            type="date"
+            value={dataSelecionada}
+            onChange={(e) => setDataSelecionada(e.target.value)}
+            className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+          />
         </div>
 
         <button
-          onClick={() => {
-            setAltaEmEdicao(null);
-            setModalFormAberto(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-slate-950 text-xs font-bold shadow-lg shadow-teal-500/25 active:scale-95 transition-all self-start md:self-auto"
+          onClick={() => setModalNovoPaciente(true)}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors"
         >
           <Plus className="w-4 h-4" />
-          <span>Nova Alta / Evolução</span>
+          <span>Adicionar Paciente</span>
         </button>
       </div>
 
-      {/* BARRA DE BUSCA */}
-      <div className="glass-card rounded-2xl p-3 flex items-center">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por paciente, leito, procedimento cirúrgico..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900/90 border border-slate-700/80 text-white text-xs focus:border-teal-500 focus:outline-none placeholder-slate-500"
-          />
+      {/* BARRA DE BUSCA, ORDENAÇÃO E PÍLULAS DE ENFERMARIA */}
+      <div className="clean-card rounded-2xl p-3 space-y-3">
+        <div className="flex flex-col sm:flex-row items-center gap-2.5">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar paciente por nome, leito ou cirurgia..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+
+          {/* SELETOR DE ORDENAÇÃO */}
+          <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
+            <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+            <select
+              value={ordenacao}
+              onChange={(e) => setOrdenacao(e.target.value as "leito" | "nome")}
+              className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-700 bg-white focus:outline-none"
+            >
+              <option value="leito">Ordenar por Leito</option>
+              <option value="nome">Ordenar por Nome</option>
+            </select>
+          </div>
+        </div>
+
+        {/* PÍLULAS DE FILTRO DINÂMICAS POR ENFERMARIA (DE CONFIGURAÇÕES) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <button
+            onClick={() => setFiltroEnfermaria("TODAS")}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
+              filtroEnfermaria === "TODAS"
+                ? "bg-emerald-700 text-white shadow-xs"
+                : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/60"
+            }`}
+          >
+            Todas
+          </button>
+          {enfermarias.map((enf) => (
+            <button
+              key={enf}
+              onClick={() => setFiltroEnfermaria(enf)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
+                filtroEnfermaria.toLowerCase() === enf.toLowerCase()
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/60"
+              }`}
+            >
+              {enf}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* GRID DE ALTAS */}
-      {altasFiltradas.length === 0 ? (
-        <div className="text-center py-16 glass-card rounded-2xl border border-slate-800 p-8">
-          <Activity className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-slate-300">Nenhum registro de alta encontrado</h3>
-          <p className="text-xs text-slate-500 mt-1">
-            Cadastre uma nova avaliação pós-operatória com parâmetros rápidos e fotos.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {altasFiltradas.map((alta) => {
-            const hasQueixas = alta.temQueixas;
-            const satBaixa = alta.sinaisVitais.saturacaoO2 < 94;
-            const fcAlterada =
-              alta.sinaisVitais.frequenciaCardiaca < 50 || alta.sinaisVitais.frequenciaCardiaca > 100;
-
-            return (
-              <div
-                key={alta.id}
-                className="rounded-2xl glass-card border border-slate-800/80 hover:border-teal-500/40 p-4 flex flex-col justify-between transition-all hover:shadow-lg hover:shadow-teal-500/5"
-              >
-                <div>
-                  {/* CABEÇALHO DO CARD */}
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="font-bold text-xs px-2.5 py-1 rounded-lg bg-teal-950/70 text-teal-300 border border-teal-700/50 shadow-sm">
-                      {alta.leito}
-                    </span>
-                    <span className="text-[11px] text-slate-400">
-                      {formatarDataBR(alta.dataAlta)}
-                    </span>
-                  </div>
-
-                  <h3 className="text-sm font-bold text-white line-clamp-1">{alta.nomePaciente}</h3>
-                  <p className="text-xs text-cyan-400 font-semibold mt-0.5 line-clamp-1">
-                    {alta.tipoCirurgia}
-                  </p>
-                  <p className="text-[11px] text-slate-400">{alta.enfermaria}</p>
-
-                  {/* PARÂMETROS RÁPIDOS */}
-                  <div className="grid grid-cols-4 gap-1.5 my-3 text-center">
-                    {[
-                      { l: "Dieta", v: alta.parametros.dieta },
-                      { l: "Deamb.", v: alta.parametros.deambulou },
-                      { l: "Diurese", v: alta.parametros.diurese },
-                      { l: "Evac.", v: alta.parametros.evacuacao },
-                    ].map((p) => (
-                      <div
-                        key={p.l}
-                        className={`p-1.5 rounded-lg border text-[10px] font-bold ${
-                          p.v
-                            ? "bg-emerald-950/40 text-emerald-300 border-emerald-500/30"
-                            : "bg-slate-900/60 text-slate-400 border-slate-800"
-                        }`}
-                      >
-                        <div>{p.l}</div>
-                        <div className="text-[9px] font-normal">{p.v ? "Sim" : "Não"}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* SINAIS VITAIS */}
-                  <div className="flex items-center gap-2 text-xs">
-                    <div
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border ${
-                        fcAlterada
-                          ? "bg-amber-950/40 text-amber-300 border-amber-500/40 font-bold"
-                          : "bg-slate-900/80 text-slate-300 border-slate-800"
-                      }`}
-                    >
-                      <Heart className="w-3.5 h-3.5 text-rose-400" />
-                      <span>{alta.sinaisVitais.frequenciaCardiaca} bpm</span>
-                    </div>
-
-                    <div
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border ${
-                        satBaixa
-                          ? "bg-rose-950/40 text-rose-300 border-rose-500/40 font-bold animate-pulse"
-                          : "bg-slate-900/80 text-slate-300 border-slate-800"
-                      }`}
-                    >
-                      <Activity className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>{alta.sinaisVitais.saturacaoO2}% SatO2</span>
-                    </div>
-                  </div>
-
-                  {/* QUEIXAS SE HOUVER */}
-                  {hasQueixas ? (
-                    <div className="mt-3 p-2 rounded-xl bg-rose-950/20 border border-rose-500/40 text-[11px] text-rose-300">
-                      <div className="font-bold flex items-center gap-1 text-rose-400 mb-0.5">
-                        <AlertTriangle className="w-3.5 h-3.5" />
-                        <span>Queixas Atuais:</span>
-                      </div>
-                      <p className="line-clamp-2">{alta.detalhesQueixas || "Relatou dor/desconforto."}</p>
-                    </div>
-                  ) : (
-                    <div className="mt-2.5 text-[11px] text-emerald-400/90 flex items-center gap-1 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Sem queixas ou intercorrências.</span>
-                    </div>
-                  )}
-
-                  {/* THUMBNAIL DA FOTO SE HOUVER */}
-                  {alta.fotoFeridaUrl && (
-                    <div className="mt-3">
-                      <div
-                        onClick={() => setFotoModalUrl(alta.fotoFeridaUrl || null)}
-                        className="relative rounded-xl overflow-hidden border border-cyan-500/30 bg-slate-950 h-28 cursor-pointer group"
-                      >
-                        <img
-                          src={alta.fotoFeridaUrl}
-                          alt="Foto da ferida"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs gap-1 transition-opacity">
-                          <Maximize2 className="w-4 h-4" />
-                          <span>Ampliar</span>
-                        </div>
-                        <span className="absolute bottom-1 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/70 text-cyan-300">
-                          WebP Comprimido
-                        </span>
-                      </div>
-                    </div>
-                  )}
+      {/* LISTAGEM AGRUPADA POR ENFERMARIA (ESTILO BASE44) */}
+      <div>
+        {Object.keys(altasAgrupadas).length === 0 ? (
+          <div className="clean-card rounded-2xl p-12 text-center text-slate-400 text-xs">
+            Nenhum paciente de alta encontrado para esta data ou filtro.
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(altasAgrupadas).map(([enfermariaNome, pacientes]) => (
+              <div key={enfermariaNome} className="space-y-2">
+                {/* CABEÇALHO DA ENFERMARIA */}
+                <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-800 px-1">
+                  <Hospital className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>{enfermariaNome}</span>
+                  <span className="text-[10px] text-slate-500 font-normal">
+                    ({pacientes.length} paciente{pacientes.length !== 1 ? "s" : ""})
+                  </span>
                 </div>
 
-                {/* BOTÕES DE AÇÃO */}
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => handleCompartilhar(alta)}
-                    className="flex-1 py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span>WhatsApp {alta.fotoFeridaUrl ? "+ Foto" : ""}</span>
-                  </button>
+                {/* LISTA DE PACIENTES EM ACORDEÃO DESLIZANTE */}
+                <div className="space-y-2">
+                  {pacientes.map((paciente) => {
+                    const isExpandido = pacienteExpandidoId === paciente.id;
 
-                  <button
-                    onClick={() => {
-                      setAltaEmEdicao(alta);
-                      setModalFormAberto(true);
-                    }}
-                    title="Editar alta"
-                    className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition-colors"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
+                    return (
+                      <div
+                        key={paciente.id}
+                        className={`clean-card rounded-xl transition-all overflow-hidden ${
+                          isExpandido
+                            ? "border-emerald-500 ring-2 ring-emerald-500/10 shadow-sm"
+                            : "hover:border-slate-300"
+                        } bg-white`}
+                      >
+                        {/* CABEÇALHO DO ACORDEÃO COM NOME DO PACIENTE EM EVIDÊNCIA MÁXIMA */}
+                        <div
+                          onClick={() =>
+                            setPacienteExpandidoId(isExpandido ? null : paciente.id)
+                          }
+                          className="p-3.5 flex items-center justify-between cursor-pointer select-none"
+                        >
+                          <div className="flex items-center gap-3">
+                            {isExpandido ? (
+                              <ChevronUp className="w-4 h-4 text-emerald-600 shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                            )}
+                            <div>
+                              <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                                {paciente.nomePaciente}
+                              </h3>
+                              <span className="text-xs text-slate-500 font-medium">
+                                LT {paciente.leito || "--"} · {paciente.enfermaria}
+                                {paciente.tipoCirurgia ? ` · ${paciente.tipoCirurgia}` : ""}
+                              </span>
+                            </div>
+                          </div>
 
-                  <button
-                    onClick={() => {
-                      if (confirm(`Excluir alta do leito ${alta.leito}?`)) {
-                        removerAlta(alta.id);
-                        exibirToast("Alta removida com sucesso.");
-                      }
-                    }}
-                    title="Excluir"
-                    className="p-2 rounded-xl bg-slate-900/60 hover:bg-rose-900/30 text-slate-500 hover:text-rose-400 border border-slate-800 hover:border-rose-500/30 text-xs transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                          <div className="flex items-center gap-2">
+                            {paciente.fotoFeridaUrl && (
+                              <span
+                                className="p-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-bold flex items-center gap-1 border border-emerald-200/60"
+                                title="Foto da ferida anexada"
+                              >
+                                <Camera className="w-3 h-3" /> Foto
+                              </span>
+                            )}
+                            {paciente.temQueixas ? (
+                              <span className="text-[11px] font-semibold text-amber-600 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
+                                Com queixa
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-semibold text-slate-400 px-2 py-0.5 rounded-full bg-slate-50">
+                                Sem queixas
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* CONTEÚDO EXPANDIDO (ANIMAÇÃO RÁPIDA E FLUIDA) */}
+                        {isExpandido && (
+                          <div className="px-4 pb-4 pt-1 border-t border-slate-100 space-y-4 animate-in fade-in duration-200">
+                            {/* LINHA 1: LEITO E ENFERMARIA */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                              <div>
+                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                  Leito
+                                </label>
+                                <input
+                                  type="text"
+                                  value={paciente.leito}
+                                  onChange={(e) => {
+                                    salvarAlta({
+                                      ...paciente,
+                                      leito: e.target.value,
+                                      updatedAt: new Date().toISOString(),
+                                    });
+                                  }}
+                                  placeholder="Ex: 15"
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                />
+                              </div>
+
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <label className="block text-[11px] font-semibold text-slate-600">
+                                    Enfermaria
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setAdicionandoEnfPacienteId(
+                                        adicionandoEnfPacienteId === paciente.id ? null : paciente.id
+                                      );
+                                      setNomeNovaEnfPaciente("");
+                                    }}
+                                    className="text-[10px] text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-0.5"
+                                    title="Cadastrar nova enfermaria na hora"
+                                  >
+                                    <Plus className="w-3 h-3" /> Nova
+                                  </button>
+                                </div>
+
+                                {adicionandoEnfPacienteId === paciente.id ? (
+                                  <div className="flex gap-1.5 pt-0.5">
+                                    <input
+                                      type="text"
+                                      autoFocus
+                                      value={nomeNovaEnfPaciente}
+                                      onChange={(e) => setNomeNovaEnfPaciente(e.target.value)}
+                                      placeholder="Nova enfermaria..."
+                                      className="flex-1 px-2.5 py-1 rounded-lg border border-emerald-500 text-xs text-slate-900 bg-white focus:outline-none"
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          handleSalvarNovaEnfermariaPaciente(e, paciente);
+                                        }
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={(e) => handleSalvarNovaEnfermariaPaciente(e, paciente)}
+                                      className="px-2.5 py-1 rounded-lg bg-emerald-700 text-white text-[11px] font-bold hover:bg-emerald-800"
+                                    >
+                                      OK
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setAdicionandoEnfPacienteId(null)}
+                                      className="px-2 py-1 rounded-lg bg-slate-100 text-slate-500 text-[11px] hover:bg-slate-200"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <select
+                                    value={paciente.enfermaria}
+                                    onChange={(e) => {
+                                      salvarAlta({
+                                        ...paciente,
+                                        enfermaria: e.target.value,
+                                        updatedAt: new Date().toISOString(),
+                                      });
+                                    }}
+                                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                  >
+                                    {enfermarias.map((enf) => (
+                                      <option key={enf} value={enf}>
+                                        {enf}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* LINHA 2: TIPO DE CIRURGIA (PO) */}
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                Tipo de Cirurgia (PO)
+                              </label>
+                              <input
+                                type="text"
+                                value={paciente.tipoCirurgia}
+                                onChange={(e) => {
+                                  salvarAlta({
+                                    ...paciente,
+                                    tipoCirurgia: e.target.value,
+                                    updatedAt: new Date().toISOString(),
+                                  });
+                                }}
+                                placeholder="Ex: HIB+Hu"
+                                className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                              />
+                            </div>
+
+                            {/* LINHA 3: QUEIXAS (COM CHECKBOX INTERATIVO CONFORME PEDIDO) */}
+                            <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                              <div className="flex items-center justify-between">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                  <input
+                                    type="checkbox"
+                                    checked={paciente.temQueixas}
+                                    onChange={(e) => {
+                                      const checked = e.target.checked;
+                                      salvarAlta({
+                                        ...paciente,
+                                        temQueixas: checked,
+                                        detalhesQueixas: checked ? paciente.detalhesQueixas || "" : "",
+                                        updatedAt: new Date().toISOString(),
+                                      });
+                                    }}
+                                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                                  />
+                                  <span className="text-xs font-bold text-slate-800">
+                                    Paciente tem queixas?
+                                  </span>
+                                </label>
+
+                                <span
+                                  className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                                    paciente.temQueixas
+                                      ? "bg-amber-100 text-amber-800"
+                                      : "bg-emerald-100 text-emerald-800"
+                                  }`}
+                                >
+                                  {paciente.temQueixas ? "Com queixa" : "Sem queixas"}
+                                </span>
+                              </div>
+
+                              {paciente.temQueixas && (
+                                <input
+                                  type="text"
+                                  autoFocus
+                                  value={paciente.detalhesQueixas || ""}
+                                  onChange={(e) => {
+                                    salvarAlta({
+                                      ...paciente,
+                                      detalhesQueixas: e.target.value,
+                                      updatedAt: new Date().toISOString(),
+                                    });
+                                  }}
+                                  placeholder="Descreva a queixa (ex: Dor leve em sítio cirúrgico)..."
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 animate-in fade-in duration-150"
+                                />
+                              )}
+                            </div>
+
+                            {/* LINHA 4: 4 TOGGLES FISIOLÓGICOS (DIETA, DEAMBULOU, DIURESE, EVACUAÇÃO) */}
+                            <div className="space-y-1.5">
+                              {/* DIETA */}
+                              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/70 border border-slate-100">
+                                <span className="text-xs font-semibold text-slate-700">Dieta</span>
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                  <span className="text-[11px] font-bold text-emerald-700">
+                                    {paciente.parametros.dieta ? "Sim" : "Não"}
+                                  </span>
+                                  <input
+                                    type="checkbox"
+                                    checked={paciente.parametros.dieta}
+                                    onChange={(e) => {
+                                      salvarAlta({
+                                        ...paciente,
+                                        parametros: {
+                                          ...paciente.parametros,
+                                          dieta: e.target.checked,
+                                        },
+                                        updatedAt: new Date().toISOString(),
+                                      });
+                                    }}
+                                    className="sr-only peer"
+                                  />
+                                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                                </label>
+                              </div>
+
+                              {/* DEAMBULOU */}
+                              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/70 border border-slate-100">
+                                <span className="text-xs font-semibold text-slate-700">Deambulou</span>
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                  <span className="text-[11px] font-bold text-emerald-700">
+                                    {paciente.parametros.deambulou ? "Sim" : "Não"}
+                                  </span>
+                                  <input
+                                    type="checkbox"
+                                    checked={paciente.parametros.deambulou}
+                                    onChange={(e) => {
+                                      salvarAlta({
+                                        ...paciente,
+                                        parametros: {
+                                          ...paciente.parametros,
+                                          deambulou: e.target.checked,
+                                        },
+                                        updatedAt: new Date().toISOString(),
+                                      });
+                                    }}
+                                    className="sr-only peer"
+                                  />
+                                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                                </label>
+                              </div>
+
+                              {/* DIURESE */}
+                              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/70 border border-slate-100">
+                                <span className="text-xs font-semibold text-slate-700">Diurese</span>
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                  <span className="text-[11px] font-bold text-emerald-700">
+                                    {paciente.parametros.diurese ? "Sim" : "Não"}
+                                  </span>
+                                  <input
+                                    type="checkbox"
+                                    checked={paciente.parametros.diurese}
+                                    onChange={(e) => {
+                                      salvarAlta({
+                                        ...paciente,
+                                        parametros: {
+                                          ...paciente.parametros,
+                                          diurese: e.target.checked,
+                                        },
+                                        updatedAt: new Date().toISOString(),
+                                      });
+                                    }}
+                                    className="sr-only peer"
+                                  />
+                                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                                </label>
+                              </div>
+
+                              {/* EVACUAÇÃO */}
+                              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/70 border border-slate-100">
+                                <span className="text-xs font-semibold text-slate-700">Evacuação</span>
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                  <span className="text-[11px] font-bold text-emerald-700">
+                                    {paciente.parametros.evacuacao ? "Sim" : "Não"}
+                                  </span>
+                                  <input
+                                    type="checkbox"
+                                    checked={paciente.parametros.evacuacao}
+                                    onChange={(e) => {
+                                      salvarAlta({
+                                        ...paciente,
+                                        parametros: {
+                                          ...paciente.parametros,
+                                          evacuacao: e.target.checked,
+                                        },
+                                        updatedAt: new Date().toISOString(),
+                                      });
+                                    }}
+                                    className="sr-only peer"
+                                  />
+                                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* LINHA 5: SINAIS VITAIS (FC E SAT) */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                  FC (bpm)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={paciente.sinaisVitais.frequenciaCardiaca || ""}
+                                  onChange={(e) => {
+                                    salvarAlta({
+                                      ...paciente,
+                                      sinaisVitais: {
+                                        ...paciente.sinaisVitais,
+                                        frequenciaCardiaca: parseInt(e.target.value, 10) || 0,
+                                      },
+                                      updatedAt: new Date().toISOString(),
+                                    });
+                                  }}
+                                  placeholder="75"
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                  Sat (%)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={paciente.sinaisVitais.saturacaoO2 || ""}
+                                  onChange={(e) => {
+                                    salvarAlta({
+                                      ...paciente,
+                                      sinaisVitais: {
+                                        ...paciente.sinaisVitais,
+                                        saturacaoO2: parseInt(e.target.value, 10) || 0,
+                                      },
+                                      updatedAt: new Date().toISOString(),
+                                    });
+                                  }}
+                                  placeholder="98"
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                />
+                              </div>
+                            </div>
+
+                            {/* LINHA 6: FOTO DA FERIDA OPERATÓRIA / PACIENTE */}
+                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                                  <Camera className="w-3.5 h-3.5 text-emerald-700" />
+                                  Foto da Ferida / Paciente
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => cameraInputRefs.current[paciente.id]?.click()}
+                                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-semibold text-slate-700 flex items-center gap-1"
+                                    title="Tirar foto com a câmera"
+                                  >
+                                    <Camera className="w-3 h-3" /> Câmera
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => fileInputRefs.current[paciente.id]?.click()}
+                                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-semibold text-slate-700 flex items-center gap-1"
+                                    title="Carregar foto da galeria ou arquivo"
+                                  >
+                                    <Upload className="w-3 h-3" /> Galeria
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* INPUTS OCULTOS DE CÂMERA E ARQUIVO */}
+                              <input
+                                ref={(el) => {
+                                  cameraInputRefs.current[paciente.id] = el;
+                                }}
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) handleUploadFoto(paciente, f);
+                                }}
+                              />
+                              <input
+                                ref={(el) => {
+                                  fileInputRefs.current[paciente.id] = el;
+                                }}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) handleUploadFoto(paciente, f);
+                                }}
+                              />
+
+                              {/* PRÉVIA DA FOTO ANEXADA */}
+                              {paciente.fotoFeridaUrl ? (
+                                <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-white p-1.5 flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-2">
+                                    <img
+                                      src={paciente.fotoFeridaUrl}
+                                      alt="Ferida"
+                                      className="w-14 h-14 object-cover rounded-lg border border-slate-200 cursor-pointer"
+                                      onClick={() => setFotoModalUrl(paciente.fotoFeridaUrl || null)}
+                                    />
+                                    <div>
+                                      <span className="text-xs font-bold text-slate-800 block">
+                                        Foto anexada (WebP)
+                                      </span>
+                                      <span className="text-[11px] text-slate-500">
+                                        Pronta para envio no WhatsApp
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => setFotoModalUrl(paciente.fotoFeridaUrl || null)}
+                                      className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                                      title="Visualizar em tamanho real"
+                                    >
+                                      <Maximize2 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        salvarAlta({
+                                          ...paciente,
+                                          fotoFeridaUrl: undefined,
+                                          updatedAt: new Date().toISOString(),
+                                        });
+                                        exibirToast("Foto removida.");
+                                      }}
+                                      className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50"
+                                      title="Remover foto"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-slate-400 italic">
+                                  Nenhuma foto anexada. Tire uma foto ou carregue da galeria para enviar junto no WhatsApp.
+                                </p>
+                              )}
+                            </div>
+
+                            {/* LINHA 7: BOTÃO GERAR MENSAGEM WHATSAPP & EXCLUIR */}
+                            <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                              <button
+                                type="button"
+                                onClick={() => handleCompartilhar(paciente)}
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-all active:scale-[0.99]"
+                              >
+                                <Share2 className="w-4 h-4" />
+                                <span>Gerar Mensagem</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Excluir paciente ${paciente.nomePaciente}?`)) {
+                                    removerAlta(paciente.id);
+                                    exibirToast("Paciente de alta removido.");
+                                  }
+                                }}
+                                className="p-2.5 rounded-xl text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors"
+                                title="Excluir paciente"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* MODAL PARA VISUALIZAR FOTO AMPLIADA */}
-      {fotoModalUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 animate-in fade-in">
-          <div className="relative max-w-2xl max-h-[85vh] rounded-2xl overflow-hidden border border-cyan-500/40">
-            <img src={fotoModalUrl} alt="Ferida Cirúrgica Ampliada" className="max-h-[80vh] w-auto object-contain" />
-            <button
-              onClick={() => setFotoModalUrl(null)}
-              className="absolute top-3 right-3 p-2 rounded-full bg-black/70 hover:bg-rose-600 text-white transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {/* MODAL NOVO PACIENTE DE ALTA */}
+      {modalNovoPaciente && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
+            <h3 className="text-sm font-bold text-slate-900 mb-1">
+              Novo Paciente de Alta / PO
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Data: {dataSelecionada.split("-").reverse().join("/")}
+            </p>
+
+            <form onSubmit={handleCriarPaciente} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Nome Completo *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={novoNome}
+                  onChange={(e) => setNovoNome(e.target.value)}
+                  placeholder="Ex: Renata Camila"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Leito *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={novoLeito}
+                    onChange={(e) => setNovoLeito(e.target.value)}
+                    placeholder="Ex: 15"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Enfermaria
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdicionandoEnfModal(!adicionandoEnfModal);
+                        setNomeNovaEnfModal("");
+                      }}
+                      className="text-[10px] text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-0.5"
+                      title="Cadastrar nova enfermaria"
+                    >
+                      <Plus className="w-3 h-3" /> Nova
+                    </button>
+                  </div>
+
+                  {adicionandoEnfModal ? (
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        autoFocus
+                        value={nomeNovaEnfModal}
+                        onChange={(e) => setNomeNovaEnfModal(e.target.value)}
+                        placeholder="Nome..."
+                        className="flex-1 px-2 py-1.5 rounded-lg border border-emerald-500 text-xs text-slate-900 focus:outline-none"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSalvarNovaEnfermariaModal(e);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSalvarNovaEnfermariaModal}
+                        className="px-2.5 py-1.5 rounded-lg bg-emerald-700 text-white text-[11px] font-bold"
+                      >
+                        OK
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      value={novaEnfermaria}
+                      onChange={(e) => setNovaEnfermaria(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    >
+                      {enfermarias.map((enf) => (
+                        <option key={enf} value={enf}>
+                          {enf}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Tipo de Cirurgia (PO)
+                </label>
+                <input
+                  type="text"
+                  value={novoPO}
+                  onChange={(e) => setNovoPO(e.target.value)}
+                  placeholder="Ex: HIB+Hu"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setModalNovoPaciente(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors"
+                >
+                  Salvar Paciente
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* MODAL DE CADASTRO/EDIÇÃO */}
-      {modalFormAberto && (
-        <ModalAltaForm
-          altaExistente={altaEmEdicao}
-          onSalvar={(a) => {
-            salvarAlta(a);
-            exibirToast("Alta / PO salva e sincronizada em tempo real!");
-          }}
-          onClose={() => {
-            setModalFormAberto(false);
-            setAltaEmEdicao(null);
-          }}
-        />
+      {/* MODAL VISUALIZADOR DE FOTO EM TAMANHO REAL */}
+      {fotoModalUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in"
+          onClick={() => setFotoModalUrl(null)}
+        >
+          <div
+            className="relative max-w-2xl w-full max-h-[90vh] flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setFotoModalUrl(null)}
+              className="absolute -top-10 right-0 p-1.5 rounded-full bg-white/20 text-white hover:bg-white/40"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img
+              src={fotoModalUrl}
+              alt="Foto da Ferida Ampliada"
+              className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/20"
+            />
+          </div>
+        </div>
       )}
     </div>
   );

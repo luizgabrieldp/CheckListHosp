@@ -1,6 +1,38 @@
 {
   "admissoes": [
     {
+      "id": "adm-1789742258526",
+      "nome": "kadfljDFN",
+      "enfermaria": "SEM ENFERMARIA",
+      "dataAdmissaoAgendada": "2026-09-18",
+      "status": "Aguardando",
+      "chegou": false,
+      "internou": false,
+      "aih": false,
+      "altaAdm": false,
+      "cancelada": false,
+      "historiaFinalizada": false,
+      "anotacoesHistoria": "HD:\n-\n\nHDA:\n\nANTECEDENTES\n- ALERGIAS\n- COMORBIDADES\n- CX PRÉVIAS\n- HÁBITOS DE VIDA\n- HEMOTX PRÉVIAS\n- MUC\n- PESO ATUAL\n\nEXAME FÍSICO:\n- GERAL: EGB, CONSCIENTE E ORIENTADO, CORADO, HIDRATADO, ACIANÓTICO, ANICTÉRICO, AFEBRIL\n- ACV: RCR EM 2T, BNF, S/S \n- AR: MV+ EM AHT, S/RA \n- ABD: GLOBOSO, FLÁCIDO, DEPRESSIVEL, INDOLOR À PALPAÇÃO SUPERFICIAL E PROFUNDA, SEM SINAIS DE IRRITAÇÃO PERITONEAL. MURPHY NEGATIVO. \n- EXT: PULSOS CHEIOS E SIMÉTRICOS. TEC < 3S.\n\nEXAMES COMPLEMENTARES\n\nCD:\n- INTERNAMENTO PARA",
+      "createdAt": "2026-09-18T14:37:38.526Z",
+      "updatedAt": "2026-09-18T14:37:38.526Z"
+    },
+    {
+      "id": "adm-1789742255127",
+      "nome": "klDF;fj",
+      "enfermaria": "SEM ENFERMARIA",
+      "dataAdmissaoAgendada": "2026-09-18",
+      "status": "Aguardando",
+      "chegou": false,
+      "internou": false,
+      "aih": false,
+      "altaAdm": false,
+      "cancelada": false,
+      "historiaFinalizada": false,
+      "anotacoesHistoria": "HD:\n-\n\nHDA:\n\nANTECEDENTES\n- ALERGIAS\n- COMORBIDADES\n- CX PRÉVIAS\n- HÁBITOS DE VIDA\n- HEMOTX PRÉVIAS\n- MUC\n- PESO ATUAL\n\nEXAME FÍSICO:\n- GERAL: EGB, CONSCIENTE E ORIENTADO, CORADO, HIDRATADO, ACIANÓTICO, ANICTÉRICO, AFEBRIL\n- ACV: RCR EM 2T, BNF, S/S \n- AR: MV+ EM AHT, S/RA \n- ABD: GLOBOSO, FLÁCIDO, DEPRESSIVEL, INDOLOR À PALPAÇÃO SUPERFICIAL E PROFUNDA, SEM SINAIS DE IRRITAÇÃO PERITONEAL. MURPHY NEGATIVO. \n- EXT: PULSOS CHEIOS E SIMÉTRICOS. TEC < 3S.\n\nEXAMES COMPLEMENTARES\n\nCD:\n- INTERNAMENTO PARA",
+      "createdAt": "2026-09-18T14:37:35.127Z",
+      "updatedAt": "2026-09-18T14:37:35.127Z"
+    },
+    {
       "id": "adm-1789527862469",
       "nome": "jose",
       "enfermaria": "SEM ENFERMARIA",
@@ -171,6 +203,28 @@
   ],
   "altas": [
     {
+      "id": "alta-1789682092958",
+      "leito": "34",
+      "nomePaciente": "Luiz Eduardo",
+      "enfermaria": "FGH",
+      "tipoCirurgia": "colecistectomia",
+      "temQueixas": false,
+      "detalhesQueixas": "",
+      "parametros": {
+        "dieta": true,
+        "deambulou": true,
+        "diurese": true,
+        "evacuacao": true
+      },
+      "sinaisVitais": {
+        "frequenciaCardiaca": 75,
+        "saturacaoO2": 98
+      },
+      "dataAlta": "2026-09-17",
+      "createdAt": "2026-09-17T21:54:52.958Z",
+      "updatedAt": "2026-09-17T21:54:57.313Z"
+    },
+    {
       "id": "alta-1",
       "leito": "Leito 03",
       "enfermaria": "Cirurgia Geral 1",
@@ -191,7 +245,8 @@
       },
       "dataAlta": "2026-09-16",
       "createdAt": "2026-09-16T02:48:37.617Z",
-      "updatedAt": "2026-09-16T02:48:37.617Z"
+      "updatedAt": "2026-09-16T21:30:11.123Z",
+      "detalhesQueixas": ""
     },
     {
       "id": "alta-2",
@@ -219,70 +274,31 @@
     }
   ],
   "permanencia": {
-    "id": "perm-hoje",
-    "data": "2026-09-16",
+    "id": "perm-2026-09-18",
+    "data": "2026-09-18",
     "equipe": {
-      "doutorandos": [
-        "Lucas Pinheiro (Internato)",
-        "Mariana Vasquez (Internato)"
-      ],
-      "residentes": [
-        "Dr. Felipe Prado (R1 Cirurgia)",
-        "Dra. Camila Nogueira (R2 Cirurgia)"
-      ],
-      "preceptores": [
-        "Dr. Alexandre Fontes (Staff Chefe)"
-      ]
+      "doutorandos": [],
+      "residentes": [],
+      "preceptores": []
     },
-    "pendencias": [
-      {
-        "id": "pend-1",
-        "titulo": "Checar resultado de TC de Abdome com contraste do Leito 05",
-        "responsavel": "Dr. Felipe Prado (R1)",
-        "status": "Em Realização",
-        "prioridade": "Urgente",
-        "leito": "Leito 05",
-        "createdAt": "2026-09-16T02:48:37.618Z",
-        "updatedAt": "2026-09-16T02:48:37.618Z"
-      },
-      {
-        "id": "pend-2",
-        "titulo": "Coletar hemograma e PCR de controle do Leito 08 (PO 3 Apendicectomia)",
-        "responsavel": "Lucas Pinheiro (Interno)",
-        "status": "Pendente",
-        "prioridade": "Normal",
-        "leito": "Leito 08",
-        "createdAt": "2026-09-16T02:48:37.618Z",
-        "updatedAt": "2026-09-16T02:48:37.618Z"
-      },
-      {
-        "id": "pend-3",
-        "titulo": "Passar prescrição de alta e orientações para Leito 03",
-        "responsavel": "Dra. Camila Nogueira (R2)",
-        "status": "Feito",
-        "prioridade": "Normal",
-        "leito": "Leito 03",
-        "createdAt": "2026-09-16T02:48:37.618Z",
-        "updatedAt": "2026-09-16T02:48:37.618Z"
-      }
-    ],
-    "createdAt": "2026-09-16T02:48:37.618Z",
-    "updatedAt": "2026-09-16T02:48:37.618Z"
+    "pendencias": [],
+    "createdAt": "2026-09-18T03:10:39.474Z",
+    "updatedAt": "2026-09-18T03:10:39.474Z"
   },
   "passagem": [
     {
       "id": "pass-1",
       "nome": "Marcos Vinicius de Souza Lima",
-      "leito": "Leito 08",
-      "enfermaria": "Cirurgia Geral 2",
+      "leito": "08",
+      "enfermaria": "FGH",
       "dataNascimento": "1984-06-15",
       "dataAdmissao": "2026-09-14",
       "hd": "PO 3 Apendicectomia por Apendicite Aguda Perfurada (Fase IV)",
       "antibioticos": [
         {
           "id": "atb-1",
-          "nome": "Ceftriaxona",
-          "dose": "1g IV",
+          "nome": "",
+          "dose": "",
           "frequenciaHoras": 12,
           "horarioPrimeiraDose": "08:00",
           "dataInicio": "2026-09-14",
@@ -298,13 +314,34 @@
           "horarioPrimeiraDose": "08:00",
           "dataInicio": "2026-09-14",
           "duracaoDias": 5,
-          "dosesPerdidas": 1,
+          "dosesPerdidas": 0,
           "observacao": "Cobertura de anaeróbios"
+        },
+        {
+          "id": "atb-1789685556422",
+          "nome": "Ceftriaxona",
+          "dose": "1g IV",
+          "frequenciaHoras": 12,
+          "horarioPrimeiraDose": "08:00",
+          "dataInicio": "2026-09-17",
+          "duracaoDias": 7,
+          "dosesPerdidas": 0,
+          "observacao": ""
+        },
+        {
+          "id": "atb-1789686281021",
+          "nome": "diahsbd",
+          "dose": "Dose padrão",
+          "frequenciaHoras": 6,
+          "horarioPrimeiraDose": "20:00",
+          "dataInicio": "2026-09-17",
+          "duracaoDias": 7,
+          "dosesPerdidas": 0,
+          "observacao": ""
         }
       ],
       "pendencias": [
-        "Monitorar débito do dreno tubular de aspiração",
-        "Aguardar leucograma e PCR de 48h"
+        "Monitorar débito do dreno tubular de aspiração"
       ],
       "sinaisVitais": {
         "fc": 78,
@@ -314,13 +351,23 @@
       },
       "conduta": "Manter ATB venoso combinado, progredir dieta branda se boa aceitação, retirar dreno se débito sero-hemático < 30ml/24h.",
       "createdAt": "2026-09-16T02:48:37.618Z",
-      "updatedAt": "2026-09-16T02:48:37.618Z"
+      "updatedAt": "2026-09-17T23:04:41.021Z",
+      "temAlergia": false,
+      "precaucaoContato": false,
+      "motivoInternamento": "abdômen agudo",
+      "hda": "qkmdl",
+      "evolucao": "Lkwdfcqldcm\nmkdcml",
+      "examesRealizados": "kcmqkdmc",
+      "medicacoesUsoGeral": "dcmldc mljkkmcjnciwjcnwic \n",
+      "isCirurgico": true,
+      "dataCirurgia": "2026-09-14",
+      "tipoCirurgia": "colecistectomia"
     },
     {
       "id": "pass-2",
       "nome": "Geraldo da Conceição Neto",
-      "leito": "Leito 09",
-      "enfermaria": "Cirurgia Geral 2",
+      "leito": "9",
+      "enfermaria": "IMIP",
       "dataNascimento": "1960-01-28",
       "dataAdmissao": "2026-09-08",
       "hd": "PO 7 Drenagem de Abscesso Hepático Amebiano",
@@ -349,7 +396,7 @@
       },
       "conduta": "Suspender antibioticoterapia venosa (atingiu meta de 7d com resolução clínica), iniciar transição para alta.",
       "createdAt": "2026-09-16T02:48:37.618Z",
-      "updatedAt": "2026-09-16T02:48:37.618Z"
+      "updatedAt": "2026-09-17T23:02:37.081Z"
     }
   ],
   "ambulantes": [
@@ -552,5 +599,5 @@
       "totalCirurgias": 5
     }
   ],
-  "lastSync": "2026-09-16T20:56:26.523Z"
+  "lastSync": "2026-09-18T14:37:38.527Z"
 }

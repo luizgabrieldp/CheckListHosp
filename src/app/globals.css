@@ -64,7 +64,7 @@
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm 12mm 10mm 12mm;
+    margin: 8mm 10mm 8mm 10mm;
   }
 
   html, body {
@@ -74,6 +74,22 @@
     line-height: 1.35 !important;
     overflow: visible !important;
     height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Resetar a margem desktop da sidebar no layout principal */
+  .lg\:ml-60,
+  div[class*="lg:ml-60"] {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
   }
 
   .no-print,
@@ -98,6 +114,7 @@
   }
 
   .print-container {
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
@@ -106,11 +123,12 @@
     background: transparent !important;
     border: none !important;
     color: #000000 !important;
+    position: relative !important;
   }
 
   .print-header {
-    border-bottom: 2px solid #333333;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
+    border-bottom: 2px solid #000000;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
   }
 }

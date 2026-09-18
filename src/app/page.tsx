@@ -30,8 +30,8 @@ export default function HomePage() {
         clearTimeout(timerInatividadeRef.current);
       }
       timerInatividadeRef.current = setTimeout(() => {
-        // Bloqueio de segurança: exige login novamente
-        useAppStore.setState({ isAuthenticated: false });
+        // Bloqueio de segurança: exige login novamente e redireciona ao painel
+        useAppStore.setState({ isAuthenticated: false, activeTab: "metricas" });
       }, TEMPO_INATIVIDADE_MS);
     }
 
@@ -55,7 +55,7 @@ export default function HomePage() {
   }, [isAuthenticated]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex print:m-0 print:p-0">
       {/* MODAL GATEKEEPER (SENHA MESTRE "cgimip") */}
       <GatekeeperModal />
 
@@ -63,12 +63,14 @@ export default function HomePage() {
       <LgpdConsentModal />
 
       {/* SIDEBAR LATERAL À ESQUERDA (ESTILO BASE44) */}
-      <Sidebar />
+      <div className={!isAuthenticated ? "filter blur-sm select-none pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+        <Sidebar />
+      </div>
 
       {/* ÁREA DE CONTEÚDO PRINCIPAL (COM MARGEM PARA A SIDEBAR) */}
-      <div className="flex-1 flex flex-col lg:ml-60 min-w-0">
+      <div className={`flex-1 flex flex-col lg:ml-60 min-w-0 transition-all duration-300 print:m-0 print:p-0 ${!isAuthenticated ? "filter blur-sm select-none pointer-events-none" : ""}`}>
         {/* CONTAINER DO MÓDULO ATIVO */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 print:p-0 print:m-0">
           {activeTab === "admissoes" && <AdmissoesView />}
           {activeTab === "altas" && <AltasView />}
           {activeTab === "permanencia" && <PermanenciaView />}
