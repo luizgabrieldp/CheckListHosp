@@ -74,6 +74,24 @@ export default function HomePage() {
     };
   }, [isAuthenticated]);
 
+  // Inicialização inteligente do estado da sidebar: PC expandido, Tablet encolhido, ou valor salvo no localStorage
+  const isSidebarCollapsed = useAppStore((s) => s.isSidebarCollapsed);
+  const setSidebarCollapsed = useAppStore((s) => s.setSidebarCollapsed);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const salvo = localStorage.getItem("checklist_sidebar_collapsed");
+      if (salvo !== null) {
+        setSidebarCollapsed(salvo === "true");
+      } else {
+        // Se for tablet (768px <= width < 1024px), inicia encolhido (true); se for desktop (>= 1024px), inicia expandido (false)
+        const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+        setSidebarCollapsed(isTablet);
+      }
+    } catch {}
+  }, [setSidebarCollapsed]);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex print:m-0 print:p-0">
       {/* MODAL GATEKEEPER (SENHA MESTRE "cgimip") */}
@@ -82,13 +100,17 @@ export default function HomePage() {
       {/* MODAL LGPD DIÁRIO */}
       <LgpdConsentModal />
 
-      {/* SIDEBAR LATERAL À ESQUERDA (ESTILO BASE44) */}
+      {/* SIDEBAR LATERAL À ESQUERDA (ESTILO BASE44 COM MODO ENCOLHIDO) */}
       <div className={!isAuthenticated ? "filter blur-sm select-none pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
         <Sidebar />
       </div>
 
-      {/* ÁREA DE CONTEÚDO PRINCIPAL (COM MARGEM PARA A SIDEBAR E ESPAÇAMENTO PARA HEADER MOBILE) */}
-      <div className={`flex-1 flex flex-col lg:ml-60 min-w-0 transition-all duration-300 print:m-0 print:p-0 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] lg:pt-0 ${!isAuthenticated ? "filter blur-sm select-none pointer-events-none" : ""}`}>
+      {/* ÁREA DE CONTEÚDO PRINCIPAL (COM MARGEM DINÂMICA PARA A SIDEBAR E ESPAÇAMENTO PARA HEADER MOBILE) */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-200 print:m-0 print:p-0 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-0 ${
+          isSidebarCollapsed ? "md:ml-[68px]" : "md:ml-60"
+        } ${!isAuthenticated ? "filter blur-sm select-none pointer-events-none" : ""}`}
+      >
         {/* CONTAINER DO MÓDULO ATIVO */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 pb-[max(1.5rem,env(safe-area-inset-bottom,1.5rem))] print:p-0 print:m-0">
           {activeTab === "admissoes" && <AdmissoesView />}

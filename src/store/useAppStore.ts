@@ -118,6 +118,11 @@ interface AppStoreState {
   modelos: ModeloTexto[];
   metricas: MetricasHistoricasDiarias[];
 
+  // Layout & Sidebar
+  isSidebarCollapsed: boolean;
+  toggleSidebarCollapsed: () => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+
   // Ações de Gatekeeper
   login: (senha: string) => boolean;
   aceitarTermoLgpd: () => void;
@@ -160,6 +165,25 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   isConnected: false,
   latencyMs: 0,
   lastSyncTime: Date.now(),
+
+  isSidebarCollapsed: false,
+  toggleSidebarCollapsed: () => {
+    const proximo = !get().isSidebarCollapsed;
+    set({ isSidebarCollapsed: proximo });
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("checklist_sidebar_collapsed", String(proximo));
+      } catch {}
+    }
+  },
+  setSidebarCollapsed: (collapsed: boolean) => {
+    set({ isSidebarCollapsed: collapsed });
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("checklist_sidebar_collapsed", String(collapsed));
+      } catch {}
+    }
+  },
 
   admissoes: carregarItemLocalStorage<AdmissaoPaciente[]>("checklist_admissoes", []),
   altas: carregarItemLocalStorage<AltaPaciente[]>("checklist_altas", []),

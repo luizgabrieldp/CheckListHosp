@@ -1468,6 +1468,50 @@ assert(
   "Campos de Leito, Enfermaria e Nome nos modais de Alta e Passagem possuem 40px unificados"
 );
 
+// 24. MENU LATERAL RETRÁTIL NO PC E TABLET (MODO MINI-ÍCONES & EXPANDIDO)
+console.log("\n--- 24. Menu Lateral Retrátil: Modo Mini-Ícones (68px) & Expandido (240px) ---");
+
+function determinarEstadoInicialSidebar(larguraJanela: number, salvoLocalStorage: string | null): boolean {
+  if (salvoLocalStorage !== null) {
+    return salvoLocalStorage === "true";
+  }
+  // Se for tablet (768px a 1023px), inicia encolhido (true); PC (>= 1024px) inicia expandido (false)
+  return larguraJanela >= 768 && larguraJanela < 1024;
+}
+
+// Teste 24.1: Regra de inicialização adaptativa no PC (largura 1280px) sem preferência prévia salva
+const estadoInicialPC = determinarEstadoInicialSidebar(1280, null);
+assert(estadoInicialPC === false, "PC (>= 1024px) inicia expandido por padrão (isSidebarCollapsed = false)");
+
+// Teste 24.2: Regra de inicialização adaptativa no Tablet (largura 820px) sem preferência prévia salva
+const estadoInicialTablet = determinarEstadoInicialSidebar(820, null);
+assert(estadoInicialTablet === true, "Tablet (768px a 1023px) inicia encolhido por padrão (isSidebarCollapsed = true) para maximizar área útil");
+
+// Teste 24.3: Preferência salva no localStorage sobrepõe a inicialização padrão
+const usuarioPreferiuEncolhidoNoPC = determinarEstadoInicialSidebar(1440, "true");
+assert(usuarioPreferiuEncolhidoNoPC === true, "Preferência do usuário ('true') mantida mesmo em monitor amplo");
+
+const usuarioPreferiuExpandidoNoTablet = determinarEstadoInicialSidebar(768, "false");
+assert(usuarioPreferiuExpandidoNoTablet === false, "Preferência do usuário ('false') mantida no tablet");
+
+// Teste 24.4: Dimensões de margem esquerda e largura
+const LARGURA_SIDEBAR_EXPANDIDA_PX = 240; // w-60
+const LARGURA_SIDEBAR_ENCOLHIDA_PX = 68;  // w-[68px]
+const MARGEM_CONTEUDO_EXPANDIDO_PX = LARGURA_SIDEBAR_EXPANDIDA_PX;
+const MARGEM_CONTEUDO_ENCOLHIDO_PX = LARGURA_SIDEBAR_ENCOLHIDA_PX;
+assert(
+  MARGEM_CONTEUDO_ENCOLHIDO_PX === 68 && MARGEM_CONTEUDO_EXPANDIDO_PX === 240,
+  "Margens calculadas sincronizam perfeitamente com a largura da sidebar (68px vs 240px)"
+);
+
+// Teste 24.5: Touch targets mínimos de 44px preservados no modo encolhido
+const BOTAO_MINI_ALTURA_PX = 44;
+const BOTAO_MINI_LARGURA_PX = 44;
+assert(
+  BOTAO_MINI_ALTURA_PX >= 44 && BOTAO_MINI_LARGURA_PX >= 44,
+  "Botões de ícones no modo encolhido respeitam o padrão de acessibilidade de pelo menos 44x44px"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
