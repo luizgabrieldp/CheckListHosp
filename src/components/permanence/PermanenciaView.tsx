@@ -11,7 +11,6 @@ import {
   Trash2,
   Flame,
   GraduationCap,
-  Award,
   Stethoscope,
   X,
   FileText,
@@ -22,7 +21,6 @@ import {
   SlidersHorizontal,
   Building2,
   Pencil,
-  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
   ArrowRight,
@@ -47,20 +45,6 @@ export function PermanenciaView() {
     d.setDate(d.getDate() - 1);
     return d.toISOString().split("T")[0];
   }, []);
-
-  function formatarDataExtenso(dataStr: string) {
-    try {
-      const [ano, mes, dia] = dataStr.split("-").map(Number);
-      const d = new Date(ano, mes - 1, dia);
-      const diaSemana = d.toLocaleDateString("pt-BR", { weekday: "long" });
-      const diaSemanaCap = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
-      const formatado = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-      const sufixo = dataStr === hojeStr ? " (Hoje)" : dataStr === ontemStr ? " (Ontem)" : "";
-      return `${diaSemanaCap}, ${formatado}${sufixo}`;
-    } catch {
-      return dataStr;
-    }
-  }
 
   function mudarDia(delta: number) {
     const [ano, mes, dia] = dataSelecionada.split("-").map(Number);
@@ -138,7 +122,6 @@ export function PermanenciaView() {
   const todosOsMembros = [
     ...(equipe.residentes || []).map((nome) => ({ nome, cargo: "Residente" })),
     ...(equipe.doutorandos || []).map((nome) => ({ nome, cargo: "Interno" })),
-    ...(equipe.preceptores || []).map((nome) => ({ nome, cargo: "Preceptor / Staff" })),
   ];
 
   // Helper para obter lista de responsáveis de uma pendência
@@ -349,67 +332,47 @@ export function PermanenciaView() {
   return (
     <div className="space-y-6">
       {/* ─────────────────────────────────────────────────────────────
-          SELETOR DE DATA NO TOPO (PADRÃO BRASILEIRO & HISTÓRICO)
+          SELETOR DE DATA NO TOPO (COMPACTO)
       ────────────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0">
-            <CalendarIcon className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-slate-700">Data do Plantão:</span>
-              <span className="text-xs font-bold text-sky-800 bg-sky-50 px-2.5 py-0.5 rounded-md border border-sky-200">
-                {formatarDataExtenso(dataSelecionada)}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500">
-              Histórico diário e colaborativo de condutas da equipe
-            </p>
-          </div>
-        </div>
+      <div className="bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200 shadow-xs flex items-center justify-between sm:justify-start gap-2 sm:gap-3 flex-wrap">
+        <button
+          type="button"
+          onClick={() => setDataSelecionada(hojeStr)}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            dataSelecionada === hojeStr
+              ? "bg-sky-600 text-white shadow-xs"
+              : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+          }`}
+        >
+          Hoje
+        </button>
 
-        {/* NAVEGAÇÃO ENTRE DIAS */}
-        <div className="flex items-center gap-1.5 self-start md:self-auto flex-wrap">
+        <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => mudarDia(-1)}
-            className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-            title="Ver dia anterior"
+            className="w-8 h-8 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer"
+            title="Dia anterior"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Dia anterior</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setDataSelecionada(hojeStr)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              dataSelecionada === hojeStr
-                ? "bg-sky-600 text-white shadow-xs"
-                : "border border-slate-200 text-slate-700 hover:bg-slate-50"
-            }`}
-          >
-            Hoje
+            <ChevronLeft className="w-4 h-4" />
           </button>
 
           <button
             type="button"
             onClick={() => mudarDia(1)}
-            className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-            title="Ver próximo dia"
+            className="w-8 h-8 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer"
+            title="Próximo dia"
           >
-            <span className="hidden sm:inline">Próximo dia</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-4 h-4" />
           </button>
-
-          <input
-            type="date"
-            value={dataSelecionada}
-            onChange={(e) => setDataSelecionada(e.target.value)}
-            className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20"
-          />
         </div>
+
+        <input
+          type="date"
+          value={dataSelecionada}
+          onChange={(e) => setDataSelecionada(e.target.value)}
+          className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 cursor-pointer"
+        />
       </div>
 
       {/* BANNER INTELIGENTE: PENDÊNCIAS EM ABERTO DO PLANTÃO ANTERIOR */}
@@ -440,30 +403,20 @@ export function PermanenciaView() {
       {/* ─────────────────────────────────────────────────────────────
           1. EQUIPE DO PLANTÃO & ROUND CIRÚRGICO (CLEAN LIGHT)
       ────────────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                Equipe do Plantão & Round Cirúrgico
-                <span className="text-[10px] bg-sky-50 text-sky-700 border border-sky-200 px-2.5 py-0.5 rounded-full font-semibold">
-                  {formatarDataExtenso(dataSelecionada)}
-                </span>
-              </h2>
-              <p className="text-xs text-slate-500">
-                Escala de médicos residentes, internos e preceptores
-              </p>
-            </div>
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-3 pb-3.5 border-b border-slate-100">
+          <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0">
+            <Users className="w-4 h-4" />
           </div>
+          <h2 className="text-sm sm:text-base font-bold text-slate-900">
+            Equipe do Plantão & Round Cirúrgico
+          </h2>
         </div>
 
-        {/* 3 COLUNAS COM INSERÇÃO E EDIÇÃO INLINE */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+        {/* 2 COLUNAS: RESIDENTES E DOUTORANDOS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 pt-3.5">
           {/* RESIDENTES DE CIRURGIA */}
-          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 flex flex-col justify-between">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/70 border border-slate-200 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-sky-800 uppercase tracking-wider">
@@ -476,10 +429,10 @@ export function PermanenciaView() {
                       setCategoriaAdicionando("residentes");
                       setNomeMembroInline("");
                     }}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-sky-600 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition-colors cursor-pointer"
+                    title="Adicionar residente"
                   >
-                    <Plus className="w-3 h-3" />
-                    <span>Adicionar</span>
+                    <Plus className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
@@ -591,7 +544,7 @@ export function PermanenciaView() {
           </div>
 
           {/* DOUTORANDOS / INTERNOS */}
-          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 flex flex-col justify-between">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/70 border border-slate-200 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-teal-800 uppercase tracking-wider">
@@ -604,10 +557,10 @@ export function PermanenciaView() {
                       setCategoriaAdicionando("doutorandos");
                       setNomeMembroInline("");
                     }}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-colors cursor-pointer"
+                    title="Adicionar doutorando/interno"
                   >
-                    <Plus className="w-3 h-3" />
-                    <span>Adicionar</span>
+                    <Plus className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
@@ -713,134 +666,6 @@ export function PermanenciaView() {
                 {(!equipe.doutorandos || equipe.doutorandos.length === 0) &&
                   categoriaAdicionando !== "doutorandos" && (
                     <span className="text-xs text-slate-400 italic">Nenhum interno cadastrado</span>
-                  )}
-              </div>
-            </div>
-          </div>
-
-          {/* PRECEPTORIA / STAFF */}
-          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wider">
-                  <Award className="w-4 h-4 text-amber-600" />
-                  <span>Preceptoria / Staff ({equipe.preceptores?.length || 0})</span>
-                </div>
-                {categoriaAdicionando !== "preceptores" && (
-                  <button
-                    onClick={() => {
-                      setCategoriaAdicionando("preceptores");
-                      setNomeMembroInline("");
-                    }}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>Adicionar</span>
-                  </button>
-                )}
-              </div>
-
-              {/* CAMPO INLINE PARA ADICIONAR PRECEPTOR */}
-              {categoriaAdicionando === "preceptores" && (
-                <div className="mb-3 p-2 rounded-lg bg-white border border-amber-300 shadow-xs animate-in fade-in">
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="text"
-                      autoFocus
-                      value={nomeMembroInline}
-                      onChange={(e) => setNomeMembroInline(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSalvarMembroInline("preceptores");
-                        if (e.key === "Escape") setCategoriaAdicionando(null);
-                      }}
-                      placeholder="Nome do preceptor (ex: Dr. Alexandre Staff)..."
-                      className="flex-1 text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-slate-800 focus:outline-none focus:border-amber-500"
-                    />
-                    <button
-                      onClick={() => handleSalvarMembroInline("preceptores")}
-                      className="p-1.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white transition-colors cursor-pointer"
-                      title="Salvar (Enter)"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setCategoriaAdicionando(null)}
-                      className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                      title="Cancelar (Esc)"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* LISTA DE PRECEPTORES COM EDIÇÃO AO CLICAR */}
-              <div className="flex flex-wrap gap-1.5">
-                {equipe.preceptores?.map((membro, idx) => {
-                  const isEditando =
-                    membroEditando?.categoria === "preceptores" && membroEditando?.index === idx;
-
-                  if (isEditando) {
-                    return (
-                      <div
-                        key={idx}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white border border-amber-400 shadow-xs"
-                      >
-                        <input
-                          type="text"
-                          autoFocus
-                          value={membroEditando.nome}
-                          onChange={(e) =>
-                            setMembroEditando({ ...membroEditando, nome: e.target.value })
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleSalvarEdicaoMembro();
-                            if (e.key === "Escape") setMembroEditando(null);
-                          }}
-                          className="text-xs text-amber-950 font-medium bg-transparent focus:outline-none w-28"
-                        />
-                        <button
-                          onClick={handleSalvarEdicaoMembro}
-                          className="text-emerald-600 hover:text-emerald-800 cursor-pointer"
-                          title="Salvar"
-                        >
-                          <Check className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={() => setMembroEditando(null)}
-                          className="text-slate-400 hover:text-slate-600 cursor-pointer"
-                          title="Cancelar"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <span
-                      key={idx}
-                      onClick={() =>
-                        setMembroEditando({ categoria: "preceptores", index: idx, nome: membro })
-                      }
-                      title="Clique para editar o nome"
-                      className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-amber-200 text-amber-950 text-xs font-medium shadow-xs hover:border-amber-300 hover:bg-amber-50/40 transition-all cursor-pointer"
-                    >
-                      <span>{membro}</span>
-                      <Pencil className="w-2.5 h-2.5 text-slate-300 group-hover:text-amber-500 transition-colors" />
-                      <button
-                        onClick={(e) => handleRemoverMembro("preceptores", idx, e)}
-                        className="text-slate-300 hover:text-rose-600 transition-colors cursor-pointer"
-                        title="Remover preceptor"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  );
-                })}
-                {(!equipe.preceptores || equipe.preceptores.length === 0) &&
-                  categoriaAdicionando !== "preceptores" && (
-                    <span className="text-xs text-slate-400 italic">Nenhum preceptor cadastrado</span>
                   )}
               </div>
             </div>
