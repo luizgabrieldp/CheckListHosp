@@ -18,6 +18,7 @@ import {
 } from "@/lib/antibiotic-engine";
 import { obterDataLocalHoje } from "@/lib/utils";
 import { ModalImpressaoSeletiva } from "./ModalImpressaoSeletiva";
+import { AutoResizeTextarea } from "@/components/ui/AutoResizeTextarea";
 import {
   Stethoscope,
   Pill,
@@ -1187,8 +1188,8 @@ export function PassagemPlantaoView() {
                                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                   Motivo do Internamento
                                 </label>
-                                <textarea
-                                  rows={2}
+                                <AutoResizeTextarea
+                                  minRows={2}
                                   value={paciente.motivoInternamento || ""}
                                   onChange={(e) =>
                                     handleSalvarCampo(
@@ -1198,7 +1199,7 @@ export function PassagemPlantaoView() {
                                     )
                                   }
                                   placeholder="PO colecistectomia, abdome agudo obstrutivo..."
-                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
+                                  className="text-slate-900 font-medium"
                                 />
                               </div>
 
@@ -1207,14 +1208,13 @@ export function PassagemPlantaoView() {
                                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                   Hipótese Diagnóstica (HD)
                                 </label>
-                                <textarea
-                                  rows={2}
+                                <AutoResizeTextarea
+                                  minRows={2}
                                   value={paciente.hd}
                                   onChange={(e) =>
                                     handleSalvarCampo(paciente, "hd", e.target.value)
                                   }
                                   placeholder="colelitíase, apendicite aguda perfurada..."
-                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                                 />
                               </div>
 
@@ -1223,14 +1223,13 @@ export function PassagemPlantaoView() {
                                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                   História da Doença Atual (HDA)
                                 </label>
-                                <textarea
-                                  rows={2}
+                                <AutoResizeTextarea
+                                  minRows={2}
                                   value={paciente.hda || ""}
                                   onChange={(e) =>
                                     handleSalvarCampo(paciente, "hda", e.target.value)
                                   }
                                   placeholder="dor abdominal de forte intensidade associada a vômitos..."
-                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                                 />
                               </div>
 
@@ -1239,14 +1238,13 @@ export function PassagemPlantaoView() {
                                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                   Evolução
                                 </label>
-                                <textarea
-                                  rows={2}
+                                <AutoResizeTextarea
+                                  minRows={2}
                                   value={paciente.evolucao || ""}
                                   onChange={(e) =>
                                     handleSalvarCampo(paciente, "evolucao", e.target.value)
                                   }
                                   placeholder="Descreva a evolução..."
-                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                                 />
                               </div>
 
@@ -1349,8 +1347,8 @@ export function PassagemPlantaoView() {
                                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                   Principais Exames Realizados
                                 </label>
-                                <textarea
-                                  rows={2}
+                                <AutoResizeTextarea
+                                  minRows={2}
                                   value={paciente.examesRealizados || ""}
                                   onChange={(e) =>
                                     handleSalvarCampo(
@@ -1360,7 +1358,6 @@ export function PassagemPlantaoView() {
                                     )
                                   }
                                   placeholder="Ex: TC abdome, hemograma, PCR..."
-                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                                 />
                               </div>
 
@@ -1369,8 +1366,8 @@ export function PassagemPlantaoView() {
                                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                   Medicações em Uso
                                 </label>
-                                <textarea
-                                  rows={2}
+                                <AutoResizeTextarea
+                                  minRows={2}
                                   value={paciente.medicacoesUsoGeral || ""}
                                   onChange={(e) =>
                                     handleSalvarCampo(
@@ -1380,7 +1377,6 @@ export function PassagemPlantaoView() {
                                     )
                                   }
                                   placeholder="Anotação geral de medicações..."
-                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                                 />
                               </div>
 
@@ -1733,14 +1729,13 @@ export function PassagemPlantaoView() {
                                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                     Condutas / Decisões do Round
                                   </label>
-                                  <textarea
-                                    rows={2}
+                                  <AutoResizeTextarea
+                                    minRows={2}
                                     value={paciente.conduta}
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "conduta", e.target.value)
                                     }
                                     placeholder="O que foi decidido na passagem de plantão..."
-                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                                   />
                                 </div>
 

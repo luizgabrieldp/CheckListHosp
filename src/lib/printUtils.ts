@@ -7,7 +7,8 @@
  * gerando atrasos de 15 a 30 segundos), esta função isola estritamente o HTML da folha A4
  * dentro de um iframe invisível descartável com CSS enxuto de impressão.
  *
- * Tempo de resposta reduzido de ~30.000ms para < 50ms (instantâneo).
+ * Tempo de resposta reduzido de ~30.000ms para < 50ms (instantâneo) e formatação
+ * 100% blindada para preservar quebras de linha clínicas (whitespace-pre-wrap) e títulos em bloco.
  */
 
 export function imprimirElementoIsolado(
@@ -68,14 +69,34 @@ export function imprimirElementoIsolado(
         return;
       }
 
-      // Coletar tags de estilo existentes na página para compatibilidade total com Tailwind
+      // Coletar regras de CSS já carregadas na página e embutir inline no iframe
       let estilosHead = "";
-      const estilosPagina = document.querySelectorAll("style, link[rel='stylesheet']");
-      estilosPagina.forEach((tag) => {
-        estilosHead += tag.outerHTML + "\n";
-      });
+      try {
+        for (let i = 0; i < document.styleSheets.length; i++) {
+          const sheet = document.styleSheets[i];
+          try {
+            if (sheet.cssRules) {
+              let cssText = "";
+              for (let j = 0; j < sheet.cssRules.length; j++) {
+                cssText += sheet.cssRules[j].cssText + "\n";
+              }
+              estilosHead += `<style>${cssText}</style>\n`;
+            }
+          } catch {
+            if (sheet.href) {
+              estilosHead += `<link rel="stylesheet" href="${sheet.href}">\n`;
+            }
+          }
+        }
+      } catch {
+        // Fallback para tags style existentes
+        const estilosPagina = document.querySelectorAll("style, link[rel='stylesheet']");
+        estilosPagina.forEach((tag) => {
+          estilosHead += tag.outerHTML + "\n";
+        });
+      }
 
-      // CSS dedicado de impressão de altíssima performance para a folha A4
+      // CSS autossuficiente e robusto de impressão A4 com classes de fallback explícitas
       const cssImpressaoA4 = `
         @page {
           size: A4 portrait;
@@ -91,7 +112,7 @@ export function imprimirElementoIsolado(
         html, body {
           background: #ffffff !important;
           color: #000000 !important;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
           font-size: 11pt !important;
           line-height: 1.35 !important;
           margin: 0 !important;
@@ -124,6 +145,23 @@ export function imprimirElementoIsolado(
         /* Quebras de linha clínicas em títulos e conteúdos */
         .whitespace-pre-wrap {
           white-space: pre-wrap !important;
+          word-break: break-word !important;
+        }
+
+        .block {
+          display: block !important;
+        }
+
+        .uppercase {
+          text-transform: uppercase !important;
+        }
+
+        .font-bold, .font-extrabold {
+          font-weight: 700 !important;
+        }
+
+        .leading-relaxed {
+          line-height: 1.5 !important;
         }
 
         /* Cabeçalho de impressão */
@@ -152,6 +190,7 @@ export function imprimirElementoIsolado(
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="${window.location.href}" />
     <title>${tituloDocumento}</title>
     ${estilosHead}
     <style>${cssImpressaoA4}</style>
@@ -181,11 +220,11 @@ export function imprimirElementoIsolado(
         }
       };
 
-      // Disparo em microtask mínima para permitir que o parser do iframe monte os nós (menos de 20ms)
+      // Disparo em microtask mínima para permitir que o parser do iframe monte os nós (menos de 25ms)
       if (frameDoc.readyState === "complete") {
-        setTimeout(acionarPrint, 25);
+        setTimeout(acionarPrint, 35);
       } else {
-        iframe.onload = () => setTimeout(acionarPrint, 25);
+        iframe.onload = () => setTimeout(acionarPrint, 35);
       }
     } catch (err) {
       console.error("[printUtils] Falha na rotina isolada de impressão:", err);

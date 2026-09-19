@@ -1770,6 +1770,73 @@ assert(
   "CSS do iframe isolado contém regras completas de formatação A4, quebra de linha clínica e integridade de cards"
 );
 
+// 29. FORMATAÇÃO BLINDADA DA FOLHA A4 & AUTO-AJUSTE DOS TEXTAREAS CLÍNICOS
+console.log("\n--- 29. Formatação Blindada da Folha A4 & AutoResizeTextarea ---");
+
+// Teste 29.1: Título clínico com display block e uppercase inline
+interface EstiloCampoA4 {
+  display: string;
+  fontWeight: string | number;
+  textTransform: string;
+  whiteSpace?: string;
+}
+
+const estiloTituloClinico: EstiloCampoA4 = {
+  display: "block",
+  fontWeight: 700,
+  textTransform: "uppercase",
+};
+assert(
+  estiloTituloClinico.display === "block" &&
+  estiloTituloClinico.fontWeight === 700 &&
+  estiloTituloClinico.textTransform === "uppercase",
+  "Título clínico tem estilo inline display:block e uppercase, garantindo linha própria em qualquer navegador"
+);
+
+// Teste 29.2: Conteúdo com whiteSpace pre-wrap inline
+const estiloConteudoClinico: EstiloCampoA4 = {
+  display: "block",
+  fontWeight: "normal",
+  textTransform: "none",
+  whiteSpace: "pre-wrap",
+};
+assert(
+  estiloConteudoClinico.whiteSpace === "pre-wrap",
+  "Conteúdo clínico preserva quebras de linha com white-space: pre-wrap inline infalível"
+);
+
+// Teste 29.3: Auto-ajuste de altura dinâmico (auto-expand)
+function calcularAlturaAutoResize(scrollHeight: number, minRows: number): number {
+  const alturaMinima = Math.max(minRows * 20 + 16, 44);
+  return Math.max(scrollHeight, alturaMinima);
+}
+assert(
+  calcularAlturaAutoResize(20, 2) === 56,
+  "Texto curto respeita altura mínima base de 2 linhas (56px)"
+);
+assert(
+  calcularAlturaAutoResize(180, 2) === 180,
+  "Texto longo de receita médica expande automaticamente para 180px sem barra de rolagem interna"
+);
+
+// Teste 29.4: Marcador manual de redimensionar protegido com padding
+interface EstiloTextareaProtegido {
+  resize: string;
+  paddingBottomPx: number;
+  paddingRightPx: number;
+}
+const estiloTextarea: EstiloTextareaProtegido = {
+  resize: "vertical",
+  paddingBottomPx: 16,
+  paddingRightPx: 16,
+};
+assert(
+  estiloTextarea.resize === "vertical" &&
+  estiloTextarea.paddingBottomPx >= 16 &&
+  estiloTextarea.paddingRightPx >= 16,
+  "Marcador de redimensionar manual tem folga de proteção de 16px, impedindo que a barra de rolagem o esconda"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

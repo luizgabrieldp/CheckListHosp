@@ -429,28 +429,56 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
       ────────────────────────────────────────────────────────────── */}
       <div ref={folhaA4Ref} className="hidden print:block print-container">
         {/* CABEÇALHO ULTRA-COMPACTO DE 1 LINHA */}
-        <div className="print-header flex items-center justify-between pb-1.5 mb-2.5 border-b-2 border-black text-xs font-bold uppercase tracking-wider text-black">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-extrabold">PASSAGEM DE PLANTÃO</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingBottom: "6px",
+            marginBottom: "10px",
+            borderBottom: "2px solid #000000",
+            fontSize: "12px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            color: "#000000",
+          }}
+          className="print-header flex items-center justify-between pb-1.5 mb-2.5 border-b-2 border-black text-xs font-bold uppercase tracking-wider text-black"
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }} className="flex items-center gap-2">
+            <span style={{ fontSize: "14px", fontWeight: "800" }} className="text-sm font-extrabold">PASSAGEM DE PLANTÃO</span>
             <span>—</span>
             <span>{dataHojeFormatada}</span>
           </div>
-          <div className="text-[11px] font-semibold text-gray-800">
+          <div style={{ fontSize: "11px", fontWeight: "600", color: "#1f2937" }} className="text-[11px] font-semibold text-gray-800">
             {totalSelecionados} {totalSelecionados === 1 ? "PACIENTE SELECIONADO" : "PACIENTES SELECIONADOS"}
           </div>
         </div>
 
         {/* LISTAGEM AGRUPADA POR ENFERMARIA E ORDENADA POR LEITO */}
-        <div className="space-y-3">
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }} className="space-y-3">
           {gruposParaImpressao.map((grupo) => (
-            <div key={grupo.nome} className="space-y-1.5">
+            <div key={grupo.nome} style={{ display: "flex", flexDirection: "column", gap: "6px" }} className="space-y-1.5">
               {/* CABEÇALHO DE ENFERMARIA */}
-              <div className="text-xs font-extrabold uppercase tracking-wider text-black bg-gray-100 border-l-4 border-black px-2 py-0.5 page-break-avoid">
+              <div
+                style={{
+                  fontSize: "11.5px",
+                  fontWeight: "800",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                  color: "#000000",
+                  backgroundColor: "#f3f4f6",
+                  borderLeft: "4px solid #000000",
+                  padding: "4px 8px",
+                  pageBreakInside: "avoid",
+                  breakInside: "avoid",
+                }}
+                className="text-xs font-extrabold uppercase tracking-wider text-black bg-gray-100 border-l-4 border-black px-2 py-0.5 page-break-avoid"
+              >
                 ENFERMARIA: {grupo.nome} ({grupo.pacientes.length} {grupo.pacientes.length === 1 ? "paciente" : "pacientes"})
               </div>
 
               {/* CARDS DOS PACIENTES */}
-              <div className="space-y-2">
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }} className="space-y-2">
                 {grupo.pacientes.map((p) => {
                   const idade = calcularIdade(p.dataNascimento);
                   const tempoInt = calcularTempoInternacao(p.dataAdmissao);
@@ -459,24 +487,47 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                   return (
                     <div
                       key={p.id}
+                      style={{
+                        border: "1px solid #9ca3af",
+                        borderRadius: "10px",
+                        padding: "12px",
+                        pageBreakInside: "avoid",
+                        breakInside: "avoid",
+                        backgroundColor: "#ffffff",
+                        color: "#000000",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
+                      }}
                       className="border border-gray-400 p-3.5 rounded-xl page-break-avoid space-y-2.5 text-xs bg-white text-black"
                     >
                       {/* LINHA 1: LEITO, NOME, IDADE, TEMPO DE INTERNAÇÃO E CIRURGIAS/DPO */}
-                      <div className="border-b border-gray-300 pb-1.5 flex flex-wrap items-baseline justify-between gap-1.5">
-                        <div className="flex flex-wrap items-baseline gap-1.5">
-                          <span className="font-extrabold text-sm text-black">
+                      <div
+                        style={{
+                          borderBottom: "1px solid #d1d5db",
+                          paddingBottom: "6px",
+                          display: "flex",
+                          flexWrap: "wrap",
+                          alignItems: "baseline",
+                          justifyContent: "space-between",
+                          gap: "6px",
+                        }}
+                        className="border-b border-gray-300 pb-1.5 flex flex-wrap items-baseline justify-between gap-1.5"
+                      >
+                        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px" }} className="flex flex-wrap items-baseline gap-1.5">
+                          <span style={{ fontWeight: "800", fontSize: "13px", color: "#000000" }} className="font-extrabold text-sm text-black">
                             [{p.leito ? `LT ${p.leito}` : "Sem Leito"}]
                           </span>
-                          <span className="font-bold text-sm text-black">
+                          <span style={{ fontWeight: "700", fontSize: "13px", color: "#000000" }} className="font-bold text-sm text-black">
                             {anonimizarNome(p.nome) || "Sem Nome"}
                           </span>
-                          <span className="text-gray-600 text-[11px]">
+                          <span style={{ color: "#4b5563", fontSize: "11px" }} className="text-gray-600 text-[11px]">
                             ({idade !== "-" ? `${idade} • ` : ""}Internação: {tempoInt})
                           </span>
                         </div>
 
                         {categorias.cirurgias && (
-                          <div className="flex flex-wrap items-center gap-1 text-xs">
+                          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", fontSize: "11px" }} className="flex flex-wrap items-center gap-1 text-xs">
                             {cirurgias.length > 0 ? (
                               cirurgias.map((cx) => {
                                 const dpoStr = formatarCirurgiaDPO(
@@ -486,43 +537,143 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                                   cx.dpoManual
                                 );
                                 return (
-                                  <span key={cx.id} className="font-bold text-gray-900 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300">
+                                  <span
+                                    key={cx.id}
+                                    style={{
+                                      fontWeight: "bold",
+                                      color: "#111827",
+                                      backgroundColor: "#f3f4f6",
+                                      padding: "2px 6px",
+                                      borderRadius: "4px",
+                                      border: "1px solid #d1d5db",
+                                    }}
+                                    className="font-bold text-gray-900 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300"
+                                  >
                                     ✂ {dpoStr}
                                   </span>
                                 );
                               })
                             ) : (
-                              <span className="text-gray-500 italic text-[11px]">Tratamento Clínico</span>
+                              <span style={{ color: "#6b7280", fontStyle: "italic", fontSize: "11px" }} className="text-gray-500 italic text-[11px]">
+                                Tratamento Clínico
+                              </span>
                             )}
                           </div>
                         )}
                       </div>
 
-                      {/* LINHA 2: HD & MOTIVO DO INTERNAMENTO (TÍTULO EM LINHA PRÓPRIA, TEXTO LOGO ABAIXO) */}
+                      {/* LINHA 2: MOTIVO DO INTERNAMENTO (TÍTULO EM LINHA PRÓPRIA, TEXTO LOGO ABAIXO) */}
                       {categorias.hd && p.motivoInternamento && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Motivo:</span>
-                          <div className="text-gray-800 text-xs whitespace-pre-wrap">{p.motivoInternamento}</div>
+                        <div style={{ display: "block", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            MOTIVO:
+                          </div>
+                          <div
+                            style={{
+                              display: "block",
+                              whiteSpace: "pre-wrap",
+                              fontSize: "11.5px",
+                              lineHeight: 1.45,
+                              color: "#1f2937",
+                              wordBreak: "break-word",
+                            }}
+                            className="text-gray-800 text-xs whitespace-pre-wrap"
+                          >
+                            {p.motivoInternamento}
+                          </div>
                         </div>
                       )}
+
+                      {/* LINHA 2: HD */}
                       {categorias.hd && p.hd && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">HD:</span>
-                          <div className="text-gray-800 text-xs whitespace-pre-wrap">{p.hd}</div>
+                        <div style={{ display: "block", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            HD:
+                          </div>
+                          <div
+                            style={{
+                              display: "block",
+                              whiteSpace: "pre-wrap",
+                              fontSize: "11.5px",
+                              lineHeight: 1.45,
+                              color: "#1f2937",
+                              wordBreak: "break-word",
+                            }}
+                            className="text-gray-800 text-xs whitespace-pre-wrap"
+                          >
+                            {p.hd}
+                          </div>
                         </div>
                       )}
 
                       {/* LINHA 3: HDA (HISTÓRIA DA DOENÇA ATUAL) */}
                       {categorias.hda && p.hda && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">HDA:</span>
-                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.hda}</div>
+                        <div style={{ display: "block", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            HDA:
+                          </div>
+                          <div
+                            style={{
+                              display: "block",
+                              whiteSpace: "pre-wrap",
+                              fontSize: "11.5px",
+                              lineHeight: 1.45,
+                              color: "#1f2937",
+                              wordBreak: "break-word",
+                            }}
+                            className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed"
+                          >
+                            {p.hda}
+                          </div>
                         </div>
                       )}
 
                       {/* LINHA 4: ALERTAS (ALERGIA E PRECAUÇÃO DE CONTATO) */}
                       {categorias.alertas && (p.temAlergia || p.precaucaoContato) && (
-                        <div className="text-amber-900 font-semibold flex items-center gap-2 flex-wrap py-0.5 text-xs">
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            alignItems: "center",
+                            gap: "8px",
+                            color: "#78350f",
+                            fontWeight: "bold",
+                            fontSize: "11px",
+                            padding: "2px 0",
+                            marginBottom: "3px",
+                          }}
+                          className="text-amber-900 font-semibold flex items-center gap-2 flex-wrap py-0.5 text-xs"
+                        >
                           {p.temAlergia && (
                             <span>⚠ Alergia: {p.descricaoAlergia || "Registrada"}</span>
                           )}
@@ -533,9 +684,33 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
 
                       {/* LINHA 5: SINAIS VITAIS / EXAME CLÍNICO */}
                       {categorias.sinaisVitais && p.sinaisVitais && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Exame Físico:</span>
-                          <div className="bg-gray-50 border border-gray-300 px-2.5 py-1 rounded text-xs text-gray-900 font-medium">
+                        <div style={{ display: "block", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            EXAME FÍSICO:
+                          </div>
+                          <div
+                            style={{
+                              display: "block",
+                              backgroundColor: "#f9fafb",
+                              border: "1px solid #d1d5db",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              fontSize: "11px",
+                              color: "#111827",
+                              fontWeight: "500",
+                            }}
+                            className="bg-gray-50 border border-gray-300 px-2.5 py-1 rounded text-xs text-gray-900 font-medium"
+                          >
                             FC: {p.sinaisVitais.fc || "-"} bpm | SatO2: {p.sinaisVitais.satO2 || "-"}% | PA: {p.sinaisVitais.pa || "-"}
                             {p.sinaisVitais.tax ? ` | Tax: ${p.sinaisVitais.tax}ºC` : ""}
                           </div>
@@ -544,40 +719,124 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
 
                       {/* LINHA 6: EVOLUÇÃO CLÍNICA */}
                       {categorias.evolucao && p.evolucao && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Evolução:</span>
-                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.evolucao}</div>
+                        <div style={{ display: "block", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            EVOLUÇÃO:
+                          </div>
+                          <div
+                            style={{
+                              display: "block",
+                              whiteSpace: "pre-wrap",
+                              fontSize: "11.5px",
+                              lineHeight: 1.45,
+                              color: "#1f2937",
+                              wordBreak: "break-word",
+                            }}
+                            className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed"
+                          >
+                            {p.evolucao}
+                          </div>
                         </div>
                       )}
 
                       {/* LINHA 7: EXAMES REALIZADOS */}
                       {categorias.exames && p.examesRealizados && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Exames Realizados:</span>
-                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.examesRealizados}</div>
+                        <div style={{ display: "block", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            EXAMES REALIZADOS:
+                          </div>
+                          <div
+                            style={{
+                              display: "block",
+                              whiteSpace: "pre-wrap",
+                              fontSize: "11.5px",
+                              lineHeight: 1.45,
+                              color: "#1f2937",
+                              wordBreak: "break-word",
+                            }}
+                            className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed"
+                          >
+                            {p.examesRealizados}
+                          </div>
                         </div>
                       )}
 
                       {/* LINHA 8: MEDICAÇÕES GERAIS */}
                       {categorias.medicacoes && p.medicacoesUsoGeral && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Medicações Gerais:</span>
-                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.medicacoesUsoGeral}</div>
+                        <div style={{ display: "block", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            MEDICAÇÕES GERAIS:
+                          </div>
+                          <div
+                            style={{
+                              display: "block",
+                              whiteSpace: "pre-wrap",
+                              fontSize: "11.5px",
+                              lineHeight: 1.45,
+                              color: "#1f2937",
+                              wordBreak: "break-word",
+                            }}
+                            className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed"
+                          >
+                            {p.medicacoesUsoGeral}
+                          </div>
                         </div>
                       )}
 
                       {/* LINHA 9: ANTIBIÓTICOS & D-DAY */}
                       {categorias.antibioticos && p.antibioticos && p.antibioticos.length > 0 && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Medicações de Controle & D-Day:</span>
-                          <ul className="list-disc pl-4 mt-0.5 space-y-0.5 text-xs text-gray-900">
+                        <div style={{ display: "block", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            MEDICAÇÕES DE CONTROLE & D-DAY:
+                          </div>
+                          <ul style={{ listStyleType: "disc", paddingLeft: "16px", marginTop: "2px", fontSize: "11px", color: "#111827" }} className="list-disc pl-4 mt-0.5 space-y-0.5 text-xs text-gray-900">
                             {p.antibioticos.map((atb) => {
                               const res = calcularDDayAntibiotico(atb);
                               return (
-                                <li key={atb.id}>
+                                <li key={atb.id} style={{ marginBottom: "2px" }}>
                                   <strong>{atb.nome}</strong> ({atb.dose} - {atb.frequenciaHoras}/
                                   {atb.frequenciaHoras}h) —{" "}
-                                  <span className="font-bold">
+                                  <span style={{ fontWeight: "bold" }}>
                                     {res.rotuloDDay}/{atb.duracaoDias}d
                                   </span>{" "}
                                   ({res.mensagemStatus}, término: {res.dataTerminoFormatada})
@@ -591,11 +850,23 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
 
                       {/* LINHA 10: PENDÊNCIAS DO LEITO */}
                       {categorias.pendencias && p.pendencias && p.pendencias.length > 0 && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Pendências do Leito:</span>
-                          <ul className="list-disc pl-4 mt-0.5 space-y-0.5 text-xs text-gray-900">
+                        <div style={{ display: "block", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            PENDÊNCIAS DO LEITO:
+                          </div>
+                          <ul style={{ listStyleType: "disc", paddingLeft: "16px", marginTop: "2px", fontSize: "11px", color: "#111827" }} className="list-disc pl-4 mt-0.5 space-y-0.5 text-xs text-gray-900">
                             {p.pendencias.map((pend, pIdx) => (
-                              <li key={pIdx} className="whitespace-pre-wrap">{pend}</li>
+                              <li key={pIdx} style={{ whiteSpace: "pre-wrap", marginBottom: "2px" }} className="whitespace-pre-wrap">{pend}</li>
                             ))}
                           </ul>
                         </div>
@@ -603,9 +874,33 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
 
                       {/* LINHA 11: CONDUTA PROPOSTA */}
                       {categorias.conduta && p.conduta && (
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Conduta:</span>
-                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.conduta}</div>
+                        <div style={{ display: "block", marginBottom: "2px" }}>
+                          <div
+                            style={{
+                              display: "block",
+                              fontWeight: "700",
+                              textTransform: "uppercase",
+                              fontSize: "11px",
+                              letterSpacing: "0.03em",
+                              color: "#111827",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            CONDUTA:
+                          </div>
+                          <div
+                            style={{
+                              display: "block",
+                              whiteSpace: "pre-wrap",
+                              fontSize: "11.5px",
+                              lineHeight: 1.45,
+                              color: "#1f2937",
+                              wordBreak: "break-word",
+                            }}
+                            className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed"
+                          >
+                            {p.conduta}
+                          </div>
                         </div>
                       )}
                     </div>
