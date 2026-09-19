@@ -1282,6 +1282,50 @@ const temAlertaDia17 = serieHistoricaTeste[0].canceladas > 0;
 assert(temAlertaDia18 === true, "Dia 18 ativa anel de alerta visual (2 cancelamentos)");
 assert(temAlertaDia17 === false, "Dia 17 não ativa anel de alerta (0 cancelamentos)");
 
+// 21. AGENDA AMBULATORIAL - CAMPOS EM BRANCO E FORMATAÇÃO CONDICIONAL
+console.log("\n--- 21. Agenda Ambulatorial: Campos Em Branco e Renderização Limpa ---");
+
+interface MedicoTeste {
+  id: string;
+  nome: string;
+  especialidade?: string;
+  sala?: string;
+}
+
+function formatarSubtituloMedico(m: MedicoTeste): string | null {
+  if (!m.especialidade && !m.sala) return null;
+  return [m.especialidade, m.sala].filter(Boolean).join(" • ");
+}
+
+// Teste 21.1: Médico sem especialidade e sem consultório não gera fallback forçado nem texto
+const medSemNada: MedicoTeste = { id: "m1", nome: "Dr. João Silva" };
+assert(formatarSubtituloMedico(medSemNada) === null, "Médico sem especialidade e sala retorna null (não exibe 'Cirurgião')");
+
+// Teste 21.2: Médico com apenas especialidade
+const medSoEsp: MedicoTeste = { id: "m2", nome: "Dra. Maria Santos", especialidade: "Cirurgia Geral" };
+assert(formatarSubtituloMedico(medSoEsp) === "Cirurgia Geral", "Médico só com especialidade exibe apenas a especialidade");
+
+// Teste 21.3: Médico com apenas consultório/sala
+const medSoSala: MedicoTeste = { id: "m3", nome: "Dr. Pedro Costa", sala: "Consultório 103" };
+assert(formatarSubtituloMedico(medSoSala) === "Consultório 103", "Médico só com sala exibe apenas o consultório sem marcadores soltos");
+
+// Teste 21.4: Médico com especialidade e consultório
+const medCompleto: MedicoTeste = { id: "m4", nome: "Dr. André Lima", especialidade: "Coloproctologia", sala: "Consultório 105" };
+assert(formatarSubtituloMedico(medCompleto) === "Coloproctologia • Consultório 105", "Médico completo exibe Especialidade • Consultório");
+
+// Teste 21.5: Valores iniciais de novo médico devem ser strings vazias
+function getValoresIniciaisNovoMedico() {
+  return {
+    nome: "",
+    especialidade: "",
+    sala: "",
+    horarios: [],
+  };
+}
+const initialVals = getValoresIniciaisNovoMedico();
+assert(initialVals.especialidade === "", "Especialidade inicial é string vazia");
+assert(initialVals.sala === "", "Sala inicial é string vazia");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

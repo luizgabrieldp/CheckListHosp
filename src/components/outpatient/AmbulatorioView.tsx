@@ -44,8 +44,8 @@ export function AmbulatorioView() {
     } else {
       setMedicoEmEdicao(null);
       setNome("");
-      setEspecialidade("Cirurgia Geral");
-      setSala("Consultório ");
+      setEspecialidade("");
+      setSala("");
       setHorarios([]);
     }
     setModalNovoMedico(true);
@@ -242,9 +242,11 @@ export function AmbulatorioView() {
               >
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs font-bold text-slate-900 truncate">{m.nome}</h4>
-                  <span className="text-[11px] text-slate-500 block mt-0.5">
-                    {m.especialidade || "Cirurgião"} {m.sala ? `• ${m.sala}` : ""}
-                  </span>
+                  {(m.especialidade || m.sala) && (
+                    <span className="text-[11px] text-slate-500 block mt-0.5">
+                      {[m.especialidade, m.sala].filter(Boolean).join(" • ")}
+                    </span>
+                  )}
 
                   <div className="flex items-center gap-1 flex-wrap mt-2">
                     {m.horarios?.length ? (
@@ -316,7 +318,7 @@ export function AmbulatorioView() {
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Ex: Dr. Bernardo Silva"
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
                 />
               </div>
 
@@ -329,8 +331,8 @@ export function AmbulatorioView() {
                     type="text"
                     value={especialidade}
                     onChange={(e) => setEspecialidade(e.target.value)}
-                    placeholder="Ex: Videolaparoscopia"
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    placeholder="Ex: Cirurgia Geral"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
                   />
                 </div>
 
@@ -343,7 +345,7 @@ export function AmbulatorioView() {
                     value={sala}
                     onChange={(e) => setSala(e.target.value)}
                     placeholder="Ex: Consultório 103"
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
                   />
                 </div>
               </div>
