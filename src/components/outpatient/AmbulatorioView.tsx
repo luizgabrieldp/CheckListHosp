@@ -125,19 +125,19 @@ export function AmbulatorioView() {
         </button>
       </div>
 
-      {/* DICA DE ROLAGEM HORIZONTAL PARA MOBILE E TABLET */}
-      <div className="lg:hidden flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/60 w-fit">
+      {/* DICA DE ROLAGEM HORIZONTAL PARA RESOLUÇÕES MENORES */}
+      <div className="xl:hidden flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/60 w-fit">
         <ArrowRightLeft className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-        <span>Deslize horizontalmente para visualizar toda a semana</span>
+        <span>Deslize horizontalmente para visualizar toda a semana com nomes completos</span>
       </div>
 
       {/* MATRIZ SEMANAL (SEGUNDA A SEXTA X MANHÃ E TARDE) */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 overflow-x-auto">
-        <div className="min-w-[780px] space-y-4">
+        <div className="min-w-[1120px] space-y-4">
           {/* CABEÇALHO DOS DIAS */}
           <div className="grid grid-cols-5 gap-3 text-center bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
             {DIAS_SEMANA.map((dia) => (
-              <div key={dia} className="font-bold text-xs uppercase tracking-wide text-slate-700">
+              <div key={dia} className="font-bold text-xs uppercase tracking-wide text-slate-700 min-w-[210px]">
                 {dia}-Feira
               </div>
             ))}
@@ -164,38 +164,41 @@ export function AmbulatorioView() {
                     return (
                       <div
                         key={`${dia}-${turno}`}
-                        className="rounded-xl bg-slate-50/80 border border-slate-200/80 p-2.5 min-h-[140px] flex flex-col justify-between transition-colors hover:border-slate-300"
+                        className="min-w-[210px] rounded-xl bg-slate-50/80 border border-slate-200/80 p-2.5 min-h-[150px] flex flex-col justify-between transition-colors hover:border-slate-300"
                       >
                         <div className="space-y-1.5">
                           {medicosOrdenados.length === 0 ? (
-                            <span className="text-[11px] text-slate-400 italic block py-4 text-center">
+                            <span className="text-[11px] text-slate-400 italic block py-6 text-center">
                               Sem ambulatório
                             </span>
                           ) : (
                             medicosOrdenados.map((m) => (
                               <div
                                 key={m.id}
-                                className="p-2 rounded-xl bg-white border border-slate-200 shadow-xs hover:border-emerald-300 hover:shadow-sm transition-all group"
+                                className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs hover:border-emerald-300 hover:shadow-sm transition-all group"
                               >
-                                <div className="flex items-start justify-between gap-1">
-                                  <span className="text-xs font-bold text-slate-800 line-clamp-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span
+                                    className="text-xs font-bold text-slate-800 whitespace-nowrap truncate flex-1"
+                                    title={m.nome}
+                                  >
                                     {m.nome}
                                   </span>
                                   <button
                                     onClick={() => abrirModal(m)}
                                     title="Editar médico"
-                                    className="opacity-80 sm:opacity-60 group-hover:opacity-100 text-slate-400 hover:text-emerald-600 transition-opacity min-h-[36px] min-w-[36px] sm:min-h-[28px] sm:min-w-[28px] flex items-center justify-center p-1 rounded-md hover:bg-slate-100 cursor-pointer"
+                                    className="opacity-70 group-hover:opacity-100 text-slate-400 hover:text-emerald-600 transition-opacity w-6 h-6 shrink-0 flex items-center justify-center rounded-md hover:bg-slate-100 cursor-pointer"
                                   >
-                                    <Edit3 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+                                    <Edit3 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
                                 {m.especialidade && (
-                                  <p className="text-[10px] font-semibold text-emerald-700 line-clamp-1 mt-0.5">
+                                  <p className="text-[10px] font-semibold text-emerald-700 whitespace-nowrap truncate mt-0.5">
                                     {m.especialidade}
                                   </p>
                                 )}
                                 {m.sala && (
-                                  <p className="text-[9px] text-slate-500 line-clamp-1 mt-0.5 flex items-center gap-1">
+                                  <p className="text-[9px] text-slate-500 whitespace-nowrap truncate mt-0.5 flex items-center gap-1">
                                     <Building2 className="w-2.5 h-2.5 text-slate-400 shrink-0" />
                                     <span>{m.sala}</span>
                                   </p>

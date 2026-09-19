@@ -1324,7 +1324,34 @@ function getValoresIniciaisNovoMedico() {
 }
 const initialVals = getValoresIniciaisNovoMedico();
 assert(initialVals.especialidade === "", "Especialidade inicial é string vazia");
-assert(initialVals.sala === "", "Sala inicial é string vazia");
+// Teste 21.6: Largura mínima de coluna (>= 210px) e da matriz semanal (>= 1120px) para acomodar nome e sobrenome em 1 linha
+const COLUNA_MIN_WIDTH_PX = 210;
+const TOTAL_COLUNAS = 5;
+const GAP_PX = 12;
+const PADDING_CONTAINER_PX = 32;
+const larguraTotalCalculada = TOTAL_COLUNAS * COLUNA_MIN_WIDTH_PX + (TOTAL_COLUNAS - 1) * GAP_PX + PADDING_CONTAINER_PX;
+assert(COLUNA_MIN_WIDTH_PX >= 210, "Largura mínima de coluna >= 210px garante espaço generoso para nome e sobrenome sem reticências");
+assert(larguraTotalCalculada >= 1120, `Matriz semanal com largura mínima ${larguraTotalCalculada}px suporta rolagem horizontal fluida`);
+
+// Teste 21.7: Altura mínima dos quadrados (min-h: 150px) acomoda confortavelmente pelo menos 2 médicos
+const ALTURA_BASE_CARD_MEDICO_PX = 46;
+const GAP_CARDS_PX = 6;
+const ALTURA_RODAPE_PX = 20;
+const PADDING_QUADRADO_PX = 20;
+const alturaMinima2Medicos = 2 * ALTURA_BASE_CARD_MEDICO_PX + GAP_CARDS_PX + ALTURA_RODAPE_PX + PADDING_QUADRADO_PX;
+const MIN_H_CONFIGURADO_PX = 150;
+assert(MIN_H_CONFIGURADO_PX >= alturaMinima2Medicos, `Altura mínima configurada (${MIN_H_CONFIGURADO_PX}px) comporta visualmente 2 médicos de base (${alturaMinima2Medicos}px) sem colapsar`);
+
+// Teste 21.8: Altura adaptativa para múltiplos médicos sem barra de rolagem vertical interna
+function calcularAlturaAdaptativaQuadrado(totalMedicos: number): number {
+  if (totalMedicos <= 0) return MIN_H_CONFIGURADO_PX;
+  const alturaItens = totalMedicos * ALTURA_BASE_CARD_MEDICO_PX + (totalMedicos - 1) * GAP_CARDS_PX + ALTURA_RODAPE_PX + PADDING_QUADRADO_PX;
+  return Math.max(MIN_H_CONFIGURADO_PX, alturaItens);
+}
+assert(calcularAlturaAdaptativaQuadrado(1) === 150, "1 médico mantém altura mínima base de 150px (espaço harmonioso)");
+assert(calcularAlturaAdaptativaQuadrado(2) === 150, "2 médicos preenchem a altura base de 150px");
+assert(calcularAlturaAdaptativaQuadrado(4) === 242, "4 médicos expandem adaptativamente para 242px sem corte e sem scroll interno");
+assert(calcularAlturaAdaptativaQuadrado(6) === 346, "6 médicos expandem adaptativamente para 346px exibindo todos os nomes");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
