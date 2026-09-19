@@ -3,6 +3,7 @@ import {
   getFirestore,
   doc,
   setDoc,
+  getDoc,
   onSnapshot,
   Firestore,
   DocumentSnapshot,
@@ -51,8 +52,58 @@ export function getFirebaseDb(): Firestore | null {
 const DOC_ID = "hospital_state_v1";
 
 /**
+ * Salva uma foto de alta em uma coleção dedicada no Firestore.
+ * Cada foto possui seu próprio documento, evitando estourar o limite de 1MB do documento principal.
+ */
+export async function salvarFotoFirestore(
+  altaId: string,
+  fotoDataUrl: string
+): Promise<boolean> {
+  const db = getFirebaseDb();
+  if (!db || !altaId || !fotoDataUrl) return false;
+
+  try {
+    const fotoDocRef = doc(db, "hospital_fotos", `alta_${altaId}`);
+    await setDoc(
+      fotoDocRef,
+      {
+        altaId,
+        fotoDataUrl,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+    return true;
+  } catch (err) {
+    console.warn("[Firebase] Falha ao salvar foto dedicada no Firestore:", err);
+    return false;
+  }
+}
+
+/**
+ * Obtém a foto dedicada de uma alta caso ela não esteja embutida
+ */
+export async function obterFotoFirestore(altaId: string): Promise<string | null> {
+  const db = getFirebaseDb();
+  if (!db || !altaId) return null;
+
+  try {
+    const fotoDocRef = doc(db, "hospital_fotos", `alta_${altaId}`);
+    const snap = await getDoc(fotoDocRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      return data.fotoDataUrl || null;
+    }
+  } catch (err) {
+    console.warn("[Firebase] Erro ao carregar foto dedicada:", err);
+  }
+  return null;
+}
+
+/**
  * Salva atualizações parciais do estado no Firestore em tempo real.
  * Sanitiza campos undefined para evitar erros nativos do Firestore SDK.
+ * Salva fotos em coleção dedicada de forma assíncrona para garantir sincronização.
  */
 export async function sincronizarComFirestore(
   dados: Partial<DatabaseState>
@@ -61,6 +112,15 @@ export async function sincronizarComFirestore(
   if (!db) return false;
 
   try {
+    // Se houver altas com fotos, garante o salvamento de cada foto em hospital_fotos
+    if (dados.altas && Array.isArray(dados.altas)) {
+      for (const a of dados.altas) {
+        if (a.id && a.fotoFeridaUrl && a.fotoFeridaUrl.startsWith("data:")) {
+          salvarFotoFirestore(a.id, a.fotoFeridaUrl).catch(() => {});
+        }
+      }
+    }
+
     const docRef = doc(db, "hospital_data", DOC_ID);
     // Remove qualquer chave com valor undefined que possa quebrar o Firestore
     const payloadSanitizado = JSON.parse(

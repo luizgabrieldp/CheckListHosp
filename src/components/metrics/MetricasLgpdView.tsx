@@ -301,29 +301,29 @@ export function MetricasLgpdView() {
         </div>
       )}
 
-      {/* 2. OS 4 CARDS SUPERIORES */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 2. OS 4 CARDS SUPERIORES (2x2 NO MOBILE, 4x1 NO DESKTOP) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* CARD 1: ADMISSÕES */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[120px]">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
-            <ClipboardList className="w-4 h-4 text-slate-400" />
+        <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
+            <ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span>Admissões</span>
           </div>
 
-          <div className="my-2">
-            <div className="text-3xl font-bold text-slate-900 leading-none">
+          <div className="my-1.5 sm:my-2">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 leading-none">
               {totalAdmissoes}
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
             {Object.keys(enfermariasAdmissoes).length === 0 ? (
-              <span className="text-[11px] text-slate-400">-</span>
+              <span className="text-[10px] sm:text-[11px] text-slate-400">-</span>
             ) : (
               Object.entries(enfermariasAdmissoes).map(([enf, qtd]) => (
                 <span
                   key={enf}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-medium"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-medium"
                 >
                   {enf}: {qtd}
                 </span>
@@ -333,26 +333,26 @@ export function MetricasLgpdView() {
         </div>
 
         {/* CARD 2: ALTAS */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[120px]">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
-            <FileCheck className="w-4 h-4 text-slate-400" />
+        <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
+            <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span>Altas</span>
           </div>
 
-          <div className="my-2">
-            <div className="text-3xl font-bold text-slate-900 leading-none">
+          <div className="my-1.5 sm:my-2">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 leading-none">
               {totalAltas}
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
             {Object.keys(enfermariasAltas).length === 0 ? (
-              <span className="text-[11px] text-slate-400">-</span>
+              <span className="text-[10px] sm:text-[11px] text-slate-400">-</span>
             ) : (
               Object.entries(enfermariasAltas).map(([enf, qtd]) => (
                 <span
                   key={enf}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-medium"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-medium"
                 >
                   {enf}: {qtd}
                 </span>
@@ -362,50 +362,52 @@ export function MetricasLgpdView() {
         </div>
 
         {/* CARD 3: PERMANÊNCIA */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[120px]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
-              <CheckSquare className="w-4 h-4 text-slate-400" />
+        <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+          <div className="flex items-center justify-between gap-1 flex-wrap">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
+              <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
               <span>Permanência</span>
             </div>
             {pendenciasUrgentesPendentes > 0 && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold animate-pulse border border-red-200 shadow-2xs">
-                <span>🚨 {pendenciasUrgentesPendentes} Urgente{pendenciasUrgentesPendentes > 1 ? "s" : ""}</span>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] sm:text-[10px] font-bold animate-pulse border border-red-200">
+                <span>🚨 {pendenciasUrgentesPendentes}</span>
               </span>
             )}
           </div>
 
-          <div className="my-2">
-            <div className="text-3xl font-bold text-slate-900 leading-none">
+          <div className="my-1.5 sm:my-2">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 leading-none">
               {concluidasPendencias}/{totalPendencias}
             </div>
           </div>
 
-          <span className="text-[11px] text-slate-400">{legendaPermanencia}</span>
+          <span className="text-[10px] sm:text-[11px] text-slate-400 truncate block">
+            {legendaPermanencia}
+          </span>
         </div>
 
         {/* CARD 4: INTERNADOS */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[120px]">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
-            <Users className="w-4 h-4 text-slate-400" />
+        <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
+            <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span>Internados</span>
           </div>
 
-          <div className="my-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900 leading-none">
+          <div className="my-1.5 sm:my-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900 leading-none">
               {totalInternados}
             </span>
-            <span className="text-xs text-slate-400 font-normal">pacientes</span>
+            <span className="text-[11px] text-slate-400 font-normal">pacientes</span>
           </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
             {Object.keys(enfermariasInternados).length === 0 ? (
-              <span className="text-[11px] text-slate-400">-</span>
+              <span className="text-[10px] sm:text-[11px] text-slate-400">-</span>
             ) : (
               Object.entries(enfermariasInternados).map(([enf, qtd]) => (
                 <span
                   key={enf}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-medium"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-medium"
                 >
                   {enf}: {qtd}
                 </span>

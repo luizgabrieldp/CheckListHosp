@@ -213,7 +213,15 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     set((prev) => ({
       ...prev,
       admissoes: state.admissoes || prev.admissoes,
-      altas: state.altas || prev.altas,
+      altas: state.altas
+        ? state.altas.map((nova) => {
+            const anterior = prev.altas.find((a) => a.id === nova.id);
+            if (!nova.fotoFeridaUrl && anterior?.fotoFeridaUrl) {
+              return { ...nova, fotoFeridaUrl: anterior.fotoFeridaUrl };
+            }
+            return nova;
+          })
+        : prev.altas,
       permanencia: state.permanencia || prev.permanencia,
       passagem: state.passagem || prev.passagem,
       ambulantes: state.ambulantes || prev.ambulantes,

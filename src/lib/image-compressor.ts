@@ -12,8 +12,8 @@ export interface ResultadoCompressao {
 
 export async function comprimirImagemParaWebP(
   arquivoOriginal: File,
-  maxSizeBytes: number = 1024 * 1024, // 1MB
-  maxDimensao: number = 1600
+  maxSizeBytes: number = 75 * 1024, // 75KB (ideal para Firestore e sincronização rápida em 4G)
+  maxDimensao: number = 900 // Resolução nítida para visualização cirúrgica
 ): Promise<ResultadoCompressao> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -49,10 +49,10 @@ export async function comprimirImagemParaWebP(
           ctx.drawImage(img, 0, 0, width, height);
 
           // Tentar compressão em WebP com ajuste dinâmico de qualidade
-          let qualidade = 0.85;
+          let qualidade = 0.8;
           let blob: Blob | null = null;
 
-          while (qualidade >= 0.3) {
+          while (qualidade >= 0.25) {
             blob = await new Promise<Blob | null>((res) =>
               canvas.toBlob((b) => res(b), "image/webp", qualidade)
             );
@@ -64,9 +64,10 @@ export async function comprimirImagemParaWebP(
           }
 
           // Se o navegador não suportar webp na toBlob, tentar jpeg
-          if (!blob) {
+          if (!blob || blob.size > maxSizeBytes * 1.5) {
+            qualidade = 0.7;
             blob = await new Promise<Blob | null>((res) =>
-              canvas.toBlob((b) => res(b), "image/jpeg", 0.75)
+              canvas.toBlob((b) => res(b), "image/jpeg", qualidade)
             );
           }
 
@@ -74,13 +75,15 @@ export async function comprimirImagemParaWebP(
             throw new Error("Falha ao gerar blob comprimido");
           }
 
-          const nomeArquivoFinal = arquivoOriginal.name.replace(/\.[^/.]+$/, "") + ".webp";
+          const mimeType = blob.type || "image/webp";
+          const extensao = mimeType.includes("jpeg") ? "jpg" : "webp";
+          const nomeArquivoFinal = arquivoOriginal.name.replace(/\.[^/.]+$/, "") + `.${extensao}`;
           const arquivoComprimido = new File([blob], nomeArquivoFinal, {
-            type: "image/webp",
+            type: mimeType,
             lastModified: Date.now(),
           });
 
-          const dataUrl = canvas.toDataURL("image/webp", qualidade);
+          const dataUrl = canvas.toDataURL(mimeType, qualidade);
 
           const tamanhoFormatado =
             blob.size < 1024 * 1024

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { Pendencia, EquipePlantao, PrioridadePendencia, StatusPendencia } from "@/types/hospital";
 import {
@@ -22,6 +22,10 @@ import {
   SlidersHorizontal,
   Building2,
   Pencil,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
 } from "lucide-react";
 
 export function PermanenciaView() {
@@ -31,6 +35,39 @@ export function PermanenciaView() {
   const atualizarEquipe = useAppStore((s) => s.atualizarEquipe);
   const enfermarias = useAppStore((s) => s.enfermarias);
   const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
+
+  // Controle de data de visualização das pendências (padrão: hoje)
+  const [dataSelecionada, setDataSelecionada] = useState(() => {
+    return new Date().toISOString().split("T")[0];
+  });
+
+  const hojeStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const ontemStr = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split("T")[0];
+  }, []);
+
+  function formatarDataExtenso(dataStr: string) {
+    try {
+      const [ano, mes, dia] = dataStr.split("-").map(Number);
+      const d = new Date(ano, mes - 1, dia);
+      const diaSemana = d.toLocaleDateString("pt-BR", { weekday: "long" });
+      const diaSemanaCap = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+      const formatado = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+      const sufixo = dataStr === hojeStr ? " (Hoje)" : dataStr === ontemStr ? " (Ontem)" : "";
+      return `${diaSemanaCap}, ${formatado}${sufixo}`;
+    } catch {
+      return dataStr;
+    }
+  }
+
+  function mudarDia(delta: number) {
+    const [ano, mes, dia] = dataSelecionada.split("-").map(Number);
+    const d = new Date(ano, mes - 1, dia);
+    d.setDate(d.getDate() + delta);
+    setDataSelecionada(d.toISOString().split("T")[0]);
+  }
 
   // Estados para criação rápida de pendência
   const [novoTitulo, setNovoTitulo] = useState("");
@@ -71,6 +108,32 @@ export function PermanenciaView() {
   const equipe = permanencia?.equipe || { doutorandos: [], residentes: [], preceptores: [] };
   const pendencias = permanencia?.pendencias || [];
 
+  // Pendências da data selecionada (ou retrocompatíveis com a data de criação/hoje)
+  const pendenciasDaData = useMemo(() => {
+    return pendencias.filter((p) => {
+      const dataP = p.data || (p.createdAt ? p.createdAt.split("T")[0] : hojeStr);
+      return dataP === dataSelecionada;
+    });
+  }, [pendencias, dataSelecionada, hojeStr]);
+
+  // Pendências não concluídas do dia anterior para o banner inteligente de transferência
+  const pendenciasOntemEmAberto = useMemo(() => {
+    return pendencias.filter((p) => {
+      const dataP = p.data || (p.createdAt ? p.createdAt.split("T")[0] : "");
+      return dataP === ontemStr && p.status !== "Feito";
+    });
+  }, [pendencias, ontemStr]);
+
+  function handleTransferirPendenciasOntemParaHoje() {
+    pendenciasOntemEmAberto.forEach((p) => {
+      salvarPendencia({
+        ...p,
+        data: hojeStr,
+        updatedAt: new Date().toISOString(),
+      });
+    });
+  }
+
   // Lista com todos os membros escalados para os seletores
   const todosOsMembros = [
     ...(equipe.residentes || []).map((nome) => ({ nome, cargo: "Residente" })),
@@ -101,7 +164,7 @@ export function PermanenciaView() {
     return 7;
   }
 
-  const pendenciasOrdenadas = [...pendencias].sort((a, b) => {
+  const pendenciasOrdenadas = [...pendenciasDaData].sort((a, b) => {
     const scoreA = getPontuacaoOrdenacao(a);
     const scoreB = getPontuacaoOrdenacao(b);
     if (scoreA !== scoreB) {
@@ -119,8 +182,8 @@ export function PermanenciaView() {
     return p.status === filtroStatus;
   });
 
-  const totalTarefas = pendencias.length;
-  const concluidasTarefas = pendencias.filter((p) => p.status === "Feito").length;
+  const totalTarefas = pendenciasDaData.length;
+  const concluidasTarefas = pendenciasDaData.filter((p) => p.status === "Feito").length;
 
   // 2. Criar pendência rápida
   function handleCriarPendencia(e?: React.FormEvent) {
@@ -129,6 +192,7 @@ export function PermanenciaView() {
 
     const nova: Pendencia = {
       id: `pend-${Date.now()}`,
+      data: dataSelecionada,
       titulo: novoTitulo.trim(),
       leito: novoLeitoNumero.trim() || undefined,
       enfermaria: novaEnfermaria.trim() || undefined,
@@ -285,6 +349,95 @@ export function PermanenciaView() {
   return (
     <div className="space-y-6">
       {/* ─────────────────────────────────────────────────────────────
+          SELETOR DE DATA NO TOPO (PADRÃO BRASILEIRO & HISTÓRICO)
+      ────────────────────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0">
+            <CalendarIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-slate-700">Data do Plantão:</span>
+              <span className="text-xs font-bold text-sky-800 bg-sky-50 px-2.5 py-0.5 rounded-md border border-sky-200">
+                {formatarDataExtenso(dataSelecionada)}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Histórico diário e colaborativo de condutas da equipe
+            </p>
+          </div>
+        </div>
+
+        {/* NAVEGAÇÃO ENTRE DIAS */}
+        <div className="flex items-center gap-1.5 self-start md:self-auto flex-wrap">
+          <button
+            type="button"
+            onClick={() => mudarDia(-1)}
+            className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+            title="Ver dia anterior"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Dia anterior</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDataSelecionada(hojeStr)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              dataSelecionada === hojeStr
+                ? "bg-sky-600 text-white shadow-xs"
+                : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            Hoje
+          </button>
+
+          <button
+            type="button"
+            onClick={() => mudarDia(1)}
+            className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+            title="Ver próximo dia"
+          >
+            <span className="hidden sm:inline">Próximo dia</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+
+          <input
+            type="date"
+            value={dataSelecionada}
+            onChange={(e) => setDataSelecionada(e.target.value)}
+            className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+          />
+        </div>
+      </div>
+
+      {/* BANNER INTELIGENTE: PENDÊNCIAS EM ABERTO DO PLANTÃO ANTERIOR */}
+      {dataSelecionada === hojeStr && pendenciasOntemEmAberto.length > 0 && (
+        <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 animate-in fade-in duration-200 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">📋</span>
+            <div>
+              <p className="text-xs font-bold text-amber-900">
+                Você tem {pendenciasOntemEmAberto.length} pendência(s) não concluída(s) de ontem
+              </p>
+              <p className="text-[11px] text-amber-700">
+                Deseja transferi-las para a lista de hoje para continuar o acompanhamento do round?
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleTransferirPendenciasOntemParaHoje}
+            className="self-end sm:self-auto px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <ArrowRight className="w-3.5 h-3.5" />
+            <span>Trazer para hoje</span>
+          </button>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
           1. EQUIPE DO PLANTÃO & ROUND CIRÚRGICO (CLEAN LIGHT)
       ────────────────────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
@@ -297,11 +450,11 @@ export function PermanenciaView() {
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 Equipe do Plantão & Round Cirúrgico
                 <span className="text-[10px] bg-sky-50 text-sky-700 border border-sky-200 px-2.5 py-0.5 rounded-full font-semibold">
-                  Hoje: {permanencia.data || "Plantão Atual"}
+                  {formatarDataExtenso(dataSelecionada)}
                 </span>
               </h2>
               <p className="text-xs text-slate-500">
-                Médicos Residentes, Doutorandos / Internos e Preceptoria escalados (clique no nome para editar)
+                Escala de médicos residentes, internos e preceptores
               </p>
             </div>
           </div>
@@ -715,7 +868,7 @@ export function PermanenciaView() {
               </span>
             </h3>
             <p className="text-xs text-slate-500">
-              Controle colaborativo de condutas e exames (urgentes sobem ao topo, concluídas descem automaticamente)
+              Acompanhamento e gestão de condutas da enfermaria
             </p>
           </div>
         </div>

@@ -33,6 +33,24 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     let reconnectTimeout: NodeJS.Timeout | null = null;
     let unsubscribeFirestore: (() => void) | null = null;
 
+    // Bloquear pinça e zoom multitoque no iOS/Safari mantendo a rolagem com 1 dedo 100% livre
+    const preventZoom = (e: TouchEvent) => {
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+    const preventGesture = (e: Event) => {
+      e.preventDefault();
+    };
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("touchstart", preventZoom, { passive: false });
+      document.addEventListener("touchmove", preventZoom, { passive: false });
+      document.addEventListener("gesturestart", preventGesture, { passive: false });
+      document.addEventListener("gesturechange", preventGesture, { passive: false });
+      document.addEventListener("gestureend", preventGesture, { passive: false });
+    }
+
     // 1. Conexão em tempo real via Firebase Firestore (se configurado)
     if (isFirebaseConfigured()) {
       unsubscribeFirestore = escutarAlteracoesFirestore(
@@ -153,6 +171,13 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       isMounted = false;
+      if (typeof document !== "undefined") {
+        document.removeEventListener("touchstart", preventZoom);
+        document.removeEventListener("touchmove", preventZoom);
+        document.removeEventListener("gesturestart", preventGesture);
+        document.removeEventListener("gesturechange", preventGesture);
+        document.removeEventListener("gestureend", preventGesture);
+      }
       if (unsubscribeFirestore) unsubscribeFirestore();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);

@@ -75,6 +75,7 @@ export type PrioridadePendencia = 'Normal' | 'Urgente';
 
 export interface Pendencia {
   id: string;
+  data?: string; // Data YYYY-MM-DD de referência da pendência
   titulo: string;
   responsavel?: string; // Mantido para retrocompatibilidade
   responsaveis?: string[]; // Múltiplos responsáveis pela tarefa

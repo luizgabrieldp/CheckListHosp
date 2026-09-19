@@ -6,6 +6,11 @@ import { AltaPaciente } from "@/types/hospital";
 import { gerarMensagemAlta, compartilharOuCopiar } from "@/lib/whatsapp";
 import { comprimirImagemParaWebP } from "@/lib/image-compressor";
 import {
+  salvarFotoFirestore,
+  obterFotoFirestore,
+  isFirebaseConfigured,
+} from "@/lib/firebase";
+import {
   Calendar as CalendarIcon,
   Search,
   Plus,
@@ -140,6 +145,22 @@ export function AltasView() {
     exibirToast(res.mensagem);
   }
 
+  // Recuperar fotos salvas de forma dedicada caso o dispositivo local ainda não a tenha em cache
+  React.useEffect(() => {
+    if (!isFirebaseConfigured()) return;
+    altas.forEach(async (a) => {
+      if (!a.fotoFeridaUrl) {
+        const fotoSalva = await obterFotoFirestore(a.id);
+        if (fotoSalva) {
+          salvarAlta({
+            ...a,
+            fotoFeridaUrl: fotoSalva,
+          });
+        }
+      }
+    });
+  }, [altas.length]);
+
   // Upload e compressão de foto para WebP
   async function handleUploadFoto(paciente: AltaPaciente, file: File) {
     if (!file) return;
@@ -151,7 +172,8 @@ export function AltasView() {
         fotoFeridaUrl: resultado.dataUrl,
         updatedAt: new Date().toISOString(),
       });
-      exibirToast(`Foto anexada (${resultado.tamanhoFormatado})!`);
+      salvarFotoFirestore(paciente.id, resultado.dataUrl).catch(() => {});
+      exibirToast(`Foto anexada e sincronizada (${resultado.tamanhoFormatado})!`);
     } catch (err) {
       exibirToast("Erro ao processar imagem.");
     }
