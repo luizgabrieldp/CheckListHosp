@@ -141,12 +141,8 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
   }
 
   function handleImprimir() {
-    // requestAnimationFrame assegura que qualquer pintura pendente foi concluída antes de congelar para o preview de impressão
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        window.print();
-      }, 50);
-    });
+    // Disparo síncrono imediato no gesto do usuário para abertura instantânea da folha de impressão
+    window.print();
   }
 
   // Grupos filtrados apenas com pacientes selecionados para impressão
@@ -432,10 +428,10 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                   return (
                     <div
                       key={p.id}
-                      className="border border-gray-400 p-2.5 rounded-lg page-break-avoid space-y-1 text-xs bg-white text-black"
+                      className="border border-gray-400 p-3.5 rounded-xl page-break-avoid space-y-2.5 text-xs bg-white text-black"
                     >
                       {/* LINHA 1: LEITO, NOME, IDADE, TEMPO DE INTERNAÇÃO E CIRURGIAS/DPO */}
-                      <div className="border-b border-gray-300 pb-1 flex flex-wrap items-baseline justify-between gap-1.5">
+                      <div className="border-b border-gray-300 pb-1.5 flex flex-wrap items-baseline justify-between gap-1.5">
                         <div className="flex flex-wrap items-baseline gap-1.5">
                           <span className="font-extrabold text-sm text-black">
                             [{p.leito ? `LT ${p.leito}` : "Sem Leito"}]
@@ -471,32 +467,31 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                         )}
                       </div>
 
-                      {/* LINHA 2: HD & MOTIVO DO INTERNAMENTO */}
-                      {categorias.hd && (p.motivoInternamento || p.hd) && (
-                        <div>
-                          {p.motivoInternamento && (
-                            <div>
-                              <strong>Motivo:</strong> {p.motivoInternamento}
-                            </div>
-                          )}
-                          {p.hd && (
-                            <div>
-                              <strong>HD:</strong> {p.hd}
-                            </div>
-                          )}
+                      {/* LINHA 2: HD & MOTIVO DO INTERNAMENTO (TÍTULO EM LINHA PRÓPRIA, TEXTO LOGO ABAIXO) */}
+                      {categorias.hd && p.motivoInternamento && (
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Motivo:</span>
+                          <div className="text-gray-800 text-xs whitespace-pre-wrap">{p.motivoInternamento}</div>
+                        </div>
+                      )}
+                      {categorias.hd && p.hd && (
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">HD:</span>
+                          <div className="text-gray-800 text-xs whitespace-pre-wrap">{p.hd}</div>
                         </div>
                       )}
 
                       {/* LINHA 3: HDA (HISTÓRIA DA DOENÇA ATUAL) */}
                       {categorias.hda && p.hda && (
-                        <div>
-                          <strong>HDA:</strong> {p.hda}
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">HDA:</span>
+                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.hda}</div>
                         </div>
                       )}
 
                       {/* LINHA 4: ALERTAS (ALERGIA E PRECAUÇÃO DE CONTATO) */}
                       {categorias.alertas && (p.temAlergia || p.precaucaoContato) && (
-                        <div className="text-amber-900 font-semibold flex items-center gap-2 flex-wrap">
+                        <div className="text-amber-900 font-semibold flex items-center gap-2 flex-wrap py-0.5 text-xs">
                           {p.temAlergia && (
                             <span>⚠ Alergia: {p.descricaoAlergia || "Registrada"}</span>
                           )}
@@ -507,39 +502,44 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
 
                       {/* LINHA 5: SINAIS VITAIS / EXAME CLÍNICO */}
                       {categorias.sinaisVitais && p.sinaisVitais && (
-                        <div className="bg-gray-50 border border-gray-200 px-2 py-0.5 rounded">
-                          <strong>Exame Físico:</strong> FC: {p.sinaisVitais.fc || "-"} bpm | SatO2:{" "}
-                          {p.sinaisVitais.satO2 || "-"}% | PA: {p.sinaisVitais.pa || "-"}
-                          {p.sinaisVitais.tax ? ` | Tax: ${p.sinaisVitais.tax}ºC` : ""}
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Exame Físico:</span>
+                          <div className="bg-gray-50 border border-gray-300 px-2.5 py-1 rounded text-xs text-gray-900 font-medium">
+                            FC: {p.sinaisVitais.fc || "-"} bpm | SatO2: {p.sinaisVitais.satO2 || "-"}% | PA: {p.sinaisVitais.pa || "-"}
+                            {p.sinaisVitais.tax ? ` | Tax: ${p.sinaisVitais.tax}ºC` : ""}
+                          </div>
                         </div>
                       )}
 
                       {/* LINHA 6: EVOLUÇÃO CLÍNICA */}
                       {categorias.evolucao && p.evolucao && (
-                        <div>
-                          <strong>Evolução:</strong> {p.evolucao}
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Evolução:</span>
+                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.evolucao}</div>
                         </div>
                       )}
 
                       {/* LINHA 7: EXAMES REALIZADOS */}
                       {categorias.exames && p.examesRealizados && (
-                        <div>
-                          <strong>Exames Realizados:</strong> {p.examesRealizados}
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Exames Realizados:</span>
+                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.examesRealizados}</div>
                         </div>
                       )}
 
                       {/* LINHA 8: MEDICAÇÕES GERAIS */}
                       {categorias.medicacoes && p.medicacoesUsoGeral && (
-                        <div>
-                          <strong>Medicações Gerais:</strong> {p.medicacoesUsoGeral}
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Medicações Gerais:</span>
+                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.medicacoesUsoGeral}</div>
                         </div>
                       )}
 
                       {/* LINHA 9: ANTIBIÓTICOS & D-DAY */}
                       {categorias.antibioticos && p.antibioticos && p.antibioticos.length > 0 && (
-                        <div>
-                          <strong>Medicações de Controle & D-Day:</strong>
-                          <ul className="list-disc pl-4 mt-0.5">
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Medicações de Controle & D-Day:</span>
+                          <ul className="list-disc pl-4 mt-0.5 space-y-0.5 text-xs text-gray-900">
                             {p.antibioticos.map((atb) => {
                               const res = calcularDDayAntibiotico(atb);
                               return (
@@ -560,11 +560,11 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
 
                       {/* LINHA 10: PENDÊNCIAS DO LEITO */}
                       {categorias.pendencias && p.pendencias && p.pendencias.length > 0 && (
-                        <div>
-                          <strong>Pendências do Leito:</strong>
-                          <ul className="list-disc pl-4 mt-0.5">
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Pendências do Leito:</span>
+                          <ul className="list-disc pl-4 mt-0.5 space-y-0.5 text-xs text-gray-900">
                             {p.pendencias.map((pend, pIdx) => (
-                              <li key={pIdx}>{pend}</li>
+                              <li key={pIdx} className="whitespace-pre-wrap">{pend}</li>
                             ))}
                           </ul>
                         </div>
@@ -572,8 +572,9 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
 
                       {/* LINHA 11: CONDUTA PROPOSTA */}
                       {categorias.conduta && p.conduta && (
-                        <div>
-                          <strong>Conduta:</strong> {p.conduta}
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">Conduta:</span>
+                          <div className="text-gray-800 text-xs whitespace-pre-wrap leading-relaxed">{p.conduta}</div>
                         </div>
                       )}
                     </div>

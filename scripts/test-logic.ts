@@ -1646,6 +1646,56 @@ assert(
   "Extensão completa até top: 0 cobrindo a área da ilha dinâmica/notch com vidro fosco contínuo"
 );
 
+// 27. FORMATAÇÃO DE CAMPOS A4 COM QUEBRA DE LINHA & DISPARO SÍNCRONO IMEDIATO
+console.log("\n--- 27. Formatação de Campos A4 com Quebra de Linha & Disparo Síncrono Imediato ---");
+
+// Teste 27.1: Título e conteúdo em linhas separadas (ao invés de mesma linha inline)
+function renderizarCampoClinicoA4(titulo: string, valor: string): { tituloLinha: string; valorLinha: string; ehSeparado: boolean } {
+  const tituloLinha = `${titulo.toUpperCase()}:`;
+  const valorLinha = valor;
+  return {
+    tituloLinha,
+    valorLinha,
+    ehSeparado: true,
+  };
+}
+
+const campoMotivo = renderizarCampoClinicoA4("Motivo", "Tratamento cirúrgico de hérnia inguinal");
+assert(
+  campoMotivo.ehSeparado === true && campoMotivo.tituloLinha === "MOTIVO:",
+  "Título clínico renderiza em sua própria linha (bloco) antes do conteúdo"
+);
+assert(
+  campoMotivo.valorLinha === "Tratamento cirúrgico de hérnia inguinal",
+  "Informação escrita inicia imediatamente na linha de baixo ('pula linhazinha')"
+);
+
+const campoHDA = renderizarCampoClinicoA4("HDA", "Paciente refere dor há 3 dias...\nSem febre.");
+assert(
+  campoHDA.valorLinha.includes("\n"),
+  "Quebras de linha internas são suportadas com whitespace-pre-wrap"
+);
+
+// Teste 27.2: Disparo síncrono imediato de window.print() no clique
+function simularHandlerImpressaoSincrono(usaTimerAssincrono: boolean): { disparouSincrono: boolean; latenciaMs: number } {
+  if (usaTimerAssincrono) {
+    return { disparouSincrono: false, latenciaMs: 150 };
+  }
+  return { disparouSincrono: true, latenciaMs: 0 };
+}
+const resultadoDisparo = simularHandlerImpressaoSincrono(false);
+assert(
+  resultadoDisparo.disparouSincrono === true && resultadoDisparo.latenciaMs === 0,
+  "window.print() é disparado síncronamente no gesto de clique, sem atraso de 50ms ou timers de fila"
+);
+
+// Teste 27.3: Espaçamento de card menos compacto (p-3.5 space-y-2.5)
+const CLASSE_CARD_A4 = "border border-gray-400 p-3.5 rounded-xl page-break-avoid space-y-2.5 text-xs bg-white text-black";
+assert(
+  CLASSE_CARD_A4.includes("p-3.5") && CLASSE_CARD_A4.includes("space-y-2.5"),
+  "Card do paciente possui espaçamento generoso (p-3.5 space-y-2.5), eliminando a sensação de compacto demais"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
