@@ -15,7 +15,6 @@ import {
   ClipboardList,
   CheckSquare,
   Users,
-  Building2,
   ChevronRight,
   ArrowRight,
   Bed,
@@ -104,57 +103,17 @@ export function MetricasLgpdView() {
     preceptores: [],
   };
 
-  // 6. ETAPAS CUMULATIVAS DA ADMISSÃO (FUNIL CLÍNICO) E PROGRESSÃO POR ENFERMARIA
+  // 6. ETAPAS CUMULATIVAS DA ADMISSÃO (FUNIL CLÍNICO GERAL)
   let countChegou = 0;
   let countInternou = 0;
   let countAih = 0;
   let countAltaAdm = 0;
 
-  interface ProgressoEnf {
-    nome: string;
-    total: number;
-    chegou: number;
-    internou: number;
-    aih: number;
-    altaAdm: number;
-  }
-  const progressoPorEnfermariaMap: Record<string, ProgressoEnf> = {};
-
   admissoesDoDia.forEach((p) => {
-    const enfNome = p.enfermaria?.trim() || "Geral";
-    if (!progressoPorEnfermariaMap[enfNome]) {
-      progressoPorEnfermariaMap[enfNome] = {
-        nome: enfNome,
-        total: 0,
-        chegou: 0,
-        internou: 0,
-        aih: 0,
-        altaAdm: 0,
-      };
-    }
-    progressoPorEnfermariaMap[enfNome].total++;
-
-    const atingiuCh = atingiuEtapaAdmissao(p, "chegou");
-    const atingiuInt = atingiuEtapaAdmissao(p, "internou");
-    const atingiuA = atingiuEtapaAdmissao(p, "aih");
-    const atingiuAlt = atingiuEtapaAdmissao(p, "altaAdm");
-
-    if (atingiuCh) {
-      countChegou++;
-      progressoPorEnfermariaMap[enfNome].chegou++;
-    }
-    if (atingiuInt) {
-      countInternou++;
-      progressoPorEnfermariaMap[enfNome].internou++;
-    }
-    if (atingiuA) {
-      countAih++;
-      progressoPorEnfermariaMap[enfNome].aih++;
-    }
-    if (atingiuAlt) {
-      countAltaAdm++;
-      progressoPorEnfermariaMap[enfNome].altaAdm++;
-    }
+    if (atingiuEtapaAdmissao(p, "chegou")) countChegou++;
+    if (atingiuEtapaAdmissao(p, "internou")) countInternou++;
+    if (atingiuEtapaAdmissao(p, "aih")) countAih++;
+    if (atingiuEtapaAdmissao(p, "altaAdm")) countAltaAdm++;
   });
 
   const fasesAtivas = [
@@ -203,10 +162,6 @@ export function MetricasLgpdView() {
       icon: CheckCircle2,
     },
   ];
-
-  const enfermariasProgresso = Object.values(progressoPorEnfermariaMap).sort(
-    (a, b) => b.total - a.total
-  );
 
   // 7. TENDÊNCIA HISTÓRICA (ÚLTIMOS 7, 14 OU 30 DIAS)
   const dadosHistoricos: {
@@ -672,95 +627,6 @@ export function MetricasLgpdView() {
               </div>
             );
           })}
-        </div>
-
-        {/* SEÇÃO: PROGRESSÃO POR ENFERMARIA */}
-        <div className="pt-2 border-t border-slate-100 space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-slate-500" />
-              <span>Fluxo e Ocupação por Enfermaria</span>
-            </h4>
-            <span className="text-[11px] font-medium text-slate-500">
-              {enfermariasProgresso.length} {enfermariasProgresso.length === 1 ? "enfermaria ativa" : "enfermarias ativas"}
-            </span>
-          </div>
-
-          {enfermariasProgresso.length === 0 ? (
-            <div className="py-4 text-center text-xs text-slate-400 italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-              Nenhuma enfermaria com admissões ativas nesta data.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {enfermariasProgresso.map((enf) => {
-                const totalEnf = enf.total;
-                const pctChegou = totalEnf > 0 ? Math.round((enf.chegou / totalEnf) * 100) : 0;
-                const pctInternou = totalEnf > 0 ? Math.round((enf.internou / totalEnf) * 100) : 0;
-                const pctAih = totalEnf > 0 ? Math.round((enf.aih / totalEnf) * 100) : 0;
-                const pctAlta = totalEnf > 0 ? Math.round((enf.altaAdm / totalEnf) * 100) : 0;
-
-                return (
-                  <div
-                    key={enf.nome}
-                    className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 hover:bg-slate-50 transition-colors space-y-2.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900 truncate">
-                        {enf.nome}
-                      </span>
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700">
-                        {totalEnf} {totalEnf === 1 ? "paciente" : "pacientes"}
-                      </span>
-                    </div>
-
-                    {/* MINI FUNIL DE 4 SEGMENTOS DA ENFERMARIA */}
-                    <div className="grid grid-cols-4 gap-1 h-1.5">
-                      <div className="h-full bg-slate-200/80 rounded-full overflow-hidden" title={`Chegou: ${enf.chegou}/${totalEnf} (${pctChegou}%)`}>
-                        <div
-                          style={{ width: `${pctChegou}%` }}
-                          className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                        />
-                      </div>
-                      <div className="h-full bg-slate-200/80 rounded-full overflow-hidden" title={`Internou: ${enf.internou}/${totalEnf} (${pctInternou}%)`}>
-                        <div
-                          style={{ width: `${pctInternou}%` }}
-                          className="h-full bg-teal-600 rounded-full transition-all duration-300"
-                        />
-                      </div>
-                      <div className="h-full bg-slate-200/80 rounded-full overflow-hidden" title={`AIH: ${enf.aih}/${totalEnf} (${pctAih}%)`}>
-                        <div
-                          style={{ width: `${pctAih}%` }}
-                          className="h-full bg-purple-600 rounded-full transition-all duration-300"
-                        />
-                      </div>
-                      <div className="h-full bg-slate-200/80 rounded-full overflow-hidden" title={`Alta/ADM: ${enf.altaAdm}/${totalEnf} (${pctAlta}%)`}>
-                        <div
-                          style={{ width: `${pctAlta}%` }}
-                          className="h-full bg-emerald-600 rounded-full transition-all duration-300"
-                        />
-                      </div>
-                    </div>
-
-                    {/* BADGES CUMULATIVOS DAS FASES NESSA ENFERMARIA */}
-                    <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200/60">
-                        Chegou: {enf.chegou}/{totalEnf}
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 font-semibold border border-teal-200/60">
-                        Internou: {enf.internou}/{totalEnf}
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-semibold border border-purple-200/60">
-                        AIH: {enf.aih}/{totalEnf}
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200/60">
-                        Alta/ADM: {enf.altaAdm}/{totalEnf}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       </div>
 
