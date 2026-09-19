@@ -43,30 +43,30 @@ export function Sidebar() {
 
   return (
     <>
-      {/* HEADER FIXO SUPERIOR PARA MOBILE (< 768px) OTIMIZADO PARA GPU */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white/98 backdrop-blur-xs border-b border-slate-200/90 px-3.5 pt-[env(safe-area-inset-top,0px)] h-[calc(3.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between no-print shadow-2xs">
+      {/* HEADER FIXO SUPERIOR PARA MOBILE (< 768px) - EFEITO VIDRO LÍQUIDO (iOS LIQUID GLASS) */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-30 liquid-glass-header border-b border-slate-200/80 px-3.5 pt-[env(safe-area-inset-top,0px)] h-[calc(3.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between no-print shadow-xs transition-colors">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
-            className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-slate-700 hover:bg-slate-100 border border-slate-200/80 transition-colors flex items-center justify-center cursor-pointer"
+            className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-slate-800 bg-white/70 hover:bg-white border border-slate-200/80 transition-all flex items-center justify-center cursor-pointer shadow-2xs active:scale-95"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
           <div className="flex items-center gap-1.5">
-            <span className="text-sm font-bold text-slate-900">CheckList</span>
+            <span className="text-sm font-bold text-slate-900 tracking-tight">CheckList</span>
             <span className="text-xs font-semibold text-emerald-600">Hospitalar</span>
           </div>
         </div>
 
         {/* Indicador de Conexão no Header Mobile */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] font-medium text-slate-600">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/70 border border-slate-200/80 text-[11px] font-medium text-slate-700 shadow-2xs">
           <span
             className={`w-2 h-2 rounded-full ${
               isConnected ? "bg-emerald-500 shadow-xs shadow-emerald-500/50" : "bg-rose-400 animate-pulse"
             }`}
           />
-          <span className="text-[10px]">{isConnected ? "Ao vivo" : "Offline"}</span>
+          <span className="text-[10px] font-semibold">{isConnected ? "Ao vivo" : "Offline"}</span>
         </div>
       </header>
 

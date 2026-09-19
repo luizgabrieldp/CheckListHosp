@@ -74,6 +74,19 @@
   background: #94a3b8;
 }
 
+/* Efeito Vidro Líquido (iOS Liquid Glass) com Fallback Seguro para Aparelhos Antigos */
+.liquid-glass-header {
+  background-color: #ffffff;
+}
+
+@supports (backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)) {
+  .liquid-glass-header {
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
 /* Eficiência Energética e Economia de Bateria: Standby em Segundo Plano */
 body.app-background *,
 body.app-background *::before,

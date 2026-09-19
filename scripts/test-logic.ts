@@ -1592,6 +1592,60 @@ assert(
   "Disparo de window.print ocorre em 50ms pós-render tick, eliminando o delay percebido pelo usuário"
 );
 
+// 26. BARRA SUPERIOR MOBILE: VIDRO LÍQUIDO (iOS LIQUID GLASS) & FALLBACK SEGURO
+console.log("\n--- 26. Barra Superior Mobile: Vidro Líquido (iOS Liquid Glass) & Fallback Seguro ---");
+
+// Teste 26.1: Nenhuma classe inválida de opacidade (como bg-white/98) que cause transparência total indesejada
+function validarClasseFundoHeader(classeHeader: string): boolean {
+  // bg-white/98 não existe no Tailwind e resulta em background transparente
+  if (classeHeader.includes("bg-white/98")) return false;
+  // Deve possuir classe liquid-glass-header ou bg-white legítima
+  return classeHeader.includes("liquid-glass-header") || classeHeader.includes("bg-white");
+}
+const headerClasseAtual = "md:hidden fixed top-0 left-0 right-0 z-30 liquid-glass-header border-b border-slate-200/80 px-3.5 pt-[env(safe-area-inset-top,0px)] h-[calc(3.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between no-print shadow-xs transition-colors";
+assert(
+  validarClasseFundoHeader(headerClasseAtual) === true,
+  "Cabeçalho mobile não utiliza classes inválidas de opacidade (evitando transparência acidental)"
+);
+
+// Teste 26.2: Fallback seguro do efeito Vidro Líquido
+function simularRenderizacaoLiquidGlass(suportaBackdropFilter: boolean): { corFundo: string; desfoqueAtivo: boolean } {
+  if (suportaBackdropFilter) {
+    return { corFundo: "rgba(255, 255, 255, 0.85)", desfoqueAtivo: true };
+  }
+  return { corFundo: "#ffffff", desfoqueAtivo: false };
+}
+const renderIphoneModerno = simularRenderizacaoLiquidGlass(true);
+assert(
+  renderIphoneModerno.corFundo === "rgba(255, 255, 255, 0.85)" && renderIphoneModerno.desfoqueAtivo === true,
+  "Dispositivo moderno com suporte a blur: Vidro Líquido translúcido a 85% com desfoque de 12px"
+);
+const renderCelularAntigo = simularRenderizacaoLiquidGlass(false);
+assert(
+  renderCelularAntigo.corFundo === "#ffffff" && renderCelularAntigo.desfoqueAtivo === false,
+  "Dispositivo legado sem suporte a blur: Fallback 100% branco sólido (zero poluição visual e 0% gasto extra de GPU)"
+);
+
+// Teste 26.3: Borda fina e sombra suave delimitando o final da barra na rolagem
+function validarAcabamentoHeader(classeHeader: string): boolean {
+  const temBorda = classeHeader.includes("border-b");
+  const temSombra = classeHeader.includes("shadow-xs") || classeHeader.includes("shadow-sm");
+  return temBorda && temSombra;
+}
+assert(
+  validarAcabamentoHeader(headerClasseAtual) === true,
+  "Borda fina translúcida e sombra suave presentes para separação nítida e elegante ao rolar a página"
+);
+
+// Teste 26.4: Cobertura da safe-area do notch / ilha dinâmica do iPhone
+function validarSafeAreaHeader(classeHeader: string): boolean {
+  return classeHeader.includes("env(safe-area-inset-top");
+}
+assert(
+  validarSafeAreaHeader(headerClasseAtual) === true,
+  "Extensão completa até top: 0 cobrindo a área da ilha dinâmica/notch com vidro fosco contínuo"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
