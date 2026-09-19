@@ -790,7 +790,7 @@ export function PermanenciaView() {
                       <select
                         value={responsavelSelecionadoCriacao}
                         onChange={(e) => setResponsavelSelecionadoCriacao(e.target.value)}
-                        className="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                        className="flex-1 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                       >
                         <option value="">Selecione um profissional</option>
                         {todosOsMembros.map((m, idx) => (
@@ -811,10 +811,10 @@ export function PermanenciaView() {
                           }
                         }}
                         disabled={!responsavelSelecionadoCriacao}
-                        className="p-1.5 rounded-lg bg-sky-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-700 cursor-pointer"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-sky-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-700 cursor-pointer shrink-0"
                         title="Adicionar responsável"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-4 h-4" />
                       </button>
                     </div>
 
@@ -824,7 +824,7 @@ export function PermanenciaView() {
                         {novosResponsaveis.map((resp, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-sky-800 text-[10px] font-medium"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 text-[11px] font-medium"
                           >
                             <span>{resp}</span>
                             <button
@@ -832,9 +832,9 @@ export function PermanenciaView() {
                               onClick={() =>
                                 setNovosResponsaveis(novosResponsaveis.filter((r) => r !== resp))
                               }
-                              className="text-slate-400 hover:text-rose-600 cursor-pointer"
+                              className="p-1 -mr-1 text-slate-400 hover:text-rose-600 cursor-pointer"
                             >
-                              <X className="w-2.5 h-2.5" />
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           </span>
                         ))}
@@ -1171,12 +1171,12 @@ export function PermanenciaView() {
                                   if (e.key === "Escape") setMostrandoNovaEnfId(null);
                                 }}
                                 placeholder="Nome da enfermaria..."
-                                className="flex-1 px-2 py-1 bg-white border border-sky-400 rounded-lg text-xs uppercase"
+                                className="flex-1 px-2 py-1 min-h-[38px] bg-white border border-sky-400 rounded-lg text-xs uppercase"
                               />
                               <button
                                 type="button"
                                 onClick={() => handleCriarNovaEnfermaria(p.id)}
-                                className="p-1 rounded bg-sky-600 text-white cursor-pointer"
+                                className="min-h-[38px] min-w-[38px] flex items-center justify-center p-1 rounded-lg bg-sky-600 text-white cursor-pointer hover:bg-sky-700 transition-colors"
                                 title="Salvar"
                               >
                                 <Check className="w-3.5 h-3.5" />
@@ -1184,7 +1184,7 @@ export function PermanenciaView() {
                               <button
                                 type="button"
                                 onClick={() => setMostrandoNovaEnfId(null)}
-                                className="p-1 rounded text-slate-400 hover:text-slate-600 cursor-pointer"
+                                className="min-h-[38px] min-w-[38px] flex items-center justify-center p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
                                 title="Cancelar"
                               >
                                 <X className="w-3.5 h-3.5" />
@@ -1194,7 +1194,7 @@ export function PermanenciaView() {
                             <select
                               value={p.enfermaria || ""}
                               onChange={(e) => handleAtualizarCampo(p, { enfermaria: e.target.value })}
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs focus:border-sky-500 focus:outline-none"
+                              className="w-full px-2.5 py-1.5 min-h-[44px] rounded-lg bg-white border border-slate-200 text-slate-800 text-xs focus:border-sky-500 focus:outline-none"
                             >
                               <option value="">Sem enfermaria</option>
                               {enfermarias.map((enf) => (
@@ -1221,7 +1221,7 @@ export function PermanenciaView() {
                                   [p.id]: e.target.value,
                                 }))
                               }
-                              className="flex-1 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs focus:border-sky-500 focus:outline-none"
+                              className="flex-1 px-2.5 py-1.5 min-h-[44px] rounded-lg bg-white border border-slate-200 text-slate-800 text-xs focus:border-sky-500 focus:outline-none"
                             >
                               <option value="">Selecione um profissional</option>
                               {todosOsMembros.map((m, idx) => (
@@ -1237,7 +1237,7 @@ export function PermanenciaView() {
                                 if (nome) handleAdicionarResponsavel(p, nome);
                               }}
                               disabled={!responsavelTempPorTarefa[p.id]}
-                              className="p-1.5 rounded-lg bg-sky-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-700 cursor-pointer"
+                              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5 rounded-lg bg-sky-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-700 cursor-pointer transition-colors"
                               title="Adicionar responsável"
                             >
                               <Plus className="w-3.5 h-3.5" />
@@ -1256,10 +1256,10 @@ export function PermanenciaView() {
                                   <button
                                     type="button"
                                     onClick={(e) => handleRemoverResponsavel(p, resp, e)}
-                                    className="text-slate-400 hover:text-rose-600 cursor-pointer"
+                                    className="p-1 -mr-1 text-slate-400 hover:text-rose-600 cursor-pointer"
                                     title="Remover responsável"
                                   >
-                                    <X className="w-3 h-3" />
+                                    <X className="w-3.5 h-3.5" />
                                   </button>
                                 </span>
                               ))

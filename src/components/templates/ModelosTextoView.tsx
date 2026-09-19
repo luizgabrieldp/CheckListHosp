@@ -307,7 +307,7 @@ export function ModelosTextoView() {
                           <button
                             type="button"
                             onClick={() => toggleExpandido(m.id)}
-                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            className={`min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center p-1.5 rounded-lg transition-colors cursor-pointer ${
                               isAberto
                                 ? "bg-emerald-50 text-emerald-700"
                                 : "text-slate-400 hover:text-slate-700 hover:bg-slate-100"
@@ -325,7 +325,7 @@ export function ModelosTextoView() {
                           <button
                             type="button"
                             onClick={() => handleCopiar(m.id, m.conteudo)}
-                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            className={`min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center p-1.5 rounded-lg transition-colors cursor-pointer ${
                               isCopiado
                                 ? "bg-emerald-500 text-white font-bold shadow-xs"
                                 : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
@@ -343,7 +343,7 @@ export function ModelosTextoView() {
                           <button
                             type="button"
                             onClick={() => abrirModal(m)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
+                            className="min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
                             title="Editar modelo"
                           >
                             <Edit3 className="w-4 h-4" />
@@ -357,7 +357,7 @@ export function ModelosTextoView() {
                                 removerModelo(m.id);
                               }
                             }}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            className="min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                             title="Excluir modelo"
                           >
                             <Trash2 className="w-4 h-4" />

@@ -961,7 +961,7 @@ export function PassagemPlantaoView() {
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "dataAdmissao", e.target.value)
                                     }
-                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                    className="w-full px-3 py-1.5 min-h-[40px] rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                                   />
                                 </div>
 
@@ -984,7 +984,7 @@ export function PassagemPlantaoView() {
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "dataNascimento", e.target.value)
                                     }
-                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                    className="w-full px-3 py-1.5 min-h-[40px] rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                                   />
                                 </div>
                               </div>
@@ -1163,11 +1163,11 @@ export function PassagemPlantaoView() {
                                           />
                                         </div>
 
-                                        <div className="sm:col-span-1 text-right">
+                                        <div className="sm:col-span-1 text-right flex items-center justify-end">
                                           <button
                                             type="button"
                                             onClick={() => handleRemoverCirurgia(paciente, cx.id)}
-                                            className="p-1.5 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                                            className="min-h-[38px] min-w-[38px] flex items-center justify-center p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                                             title="Remover este procedimento"
                                           >
                                             <Trash2 className="w-3.5 h-3.5" />
@@ -1665,7 +1665,7 @@ export function PassagemPlantaoView() {
                                                     handleAjustarDosePerdida(paciente, atb.id, -1)
                                                   }
                                                   disabled={(atb.dosesPerdidas || 0) <= 0}
-                                                  className="w-7 h-7 sm:w-6 sm:h-6 rounded bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-30 text-xs font-bold flex items-center justify-center cursor-pointer"
+                                                  className="w-8 h-8 sm:w-7 sm:h-7 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-30 text-xs font-bold flex items-center justify-center cursor-pointer"
                                                 >
                                                   -
                                                 </button>
@@ -1677,7 +1677,7 @@ export function PassagemPlantaoView() {
                                                   onClick={() =>
                                                     handleAjustarDosePerdida(paciente, atb.id, 1)
                                                   }
-                                                  className="w-7 h-7 sm:w-6 sm:h-6 rounded bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-rose-600 flex items-center justify-center cursor-pointer"
+                                                  className="w-8 h-8 sm:w-7 sm:h-7 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-rose-600 flex items-center justify-center cursor-pointer"
                                                 >
                                                   +
                                                 </button>
@@ -1690,7 +1690,7 @@ export function PassagemPlantaoView() {
                                               onClick={() =>
                                                 abrirEdicaoSubPainelMed(paciente.id, atb)
                                               }
-                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
+                                              className="min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
                                               title="Editar medicação"
                                             >
                                               <Edit3 className="w-4 h-4" />
@@ -1700,7 +1700,7 @@ export function PassagemPlantaoView() {
                                             <button
                                               type="button"
                                               onClick={() => handleRemoverAtb(paciente, atb.id)}
-                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                              className="min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                                               title="Remover medicação"
                                             >
                                               <Trash2 className="w-4 h-4" />
@@ -1931,18 +1931,18 @@ export function PassagemPlantaoView() {
                 className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
               />
 
-              <div className="flex items-center justify-end gap-2 pt-2 shrink-0">
+              <div className="flex flex-col-reverse sm:flex-row items-center sm:justify-end gap-2 pt-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setModalNovaEnfAberto(false)}
-                  className="min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 cursor-pointer flex items-center justify-center"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 cursor-pointer flex items-center justify-center"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={!novaEnfNome.trim()}
-                  className="min-h-[44px] px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center"
+                  className="w-full sm:w-auto min-h-[44px] px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center"
                 >
                   Salvar
                 </button>

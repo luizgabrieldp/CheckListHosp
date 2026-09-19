@@ -17,8 +17,8 @@ export function LgpdConsentModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 md:p-8 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto flex flex-col">
-        <div className="flex items-center gap-3 mb-5 shrink-0">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-5 sm:p-7 md:p-8 shadow-2xl border border-slate-200 relative max-h-[90vh] flex flex-col">
+        <div className="flex items-center gap-3 mb-4 shrink-0">
           <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
             <ShieldCheck className="w-6 h-6" />
           </div>
@@ -33,21 +33,21 @@ export function LgpdConsentModal() {
           </div>
         </div>
 
-        {/* AVISO CRÍTICO */}
-        <div className="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-3 shrink-0">
-          <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="leading-relaxed">
-            <strong className="block text-rose-800 font-semibold mb-0.5">
-              AVISO REGULATÓRIO FUNDAMENTAL:
-            </strong>
-            Este sistema destina-se exclusivamente a agilizar o fluxo da enfermaria.{" "}
-            <span className="underline font-bold">NÃO substitui o prontuário eletrônico ou físico oficial</span> do hospital.
+        <div className="space-y-3 overflow-y-auto flex-1 pr-1 pb-2">
+          {/* AVISO CRÍTICO */}
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="leading-relaxed">
+              <strong className="block text-rose-800 font-semibold mb-0.5">
+                AVISO REGULATÓRIO FUNDAMENTAL:
+              </strong>
+              Este sistema destina-se exclusivamente a agilizar o fluxo da enfermaria.{" "}
+              <span className="underline font-bold">NÃO substitui o prontuário eletrônico ou físico oficial</span> do hospital.
+            </div>
           </div>
-        </div>
 
-        {/* POLÍTICA 48H */}
-        <div className="space-y-2.5 mb-6 text-xs text-slate-700 flex-1">
-          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+          {/* POLÍTICA 48H */}
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
             <Clock className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <div>
               <strong className="text-slate-900 font-semibold">
@@ -60,13 +60,15 @@ export function LgpdConsentModal() {
           </div>
         </div>
 
-        <button
-          onClick={aceitarTermoLgpd}
-          className="min-h-[48px] w-full py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm transition-all shadow-md shadow-emerald-700/20 flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer shrink-0"
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>Estou ciente e concordo / Iniciar Plantão</span>
-        </button>
+        <div className="pt-3 border-t border-slate-100 shrink-0">
+          <button
+            onClick={aceitarTermoLgpd}
+            className="min-h-[48px] w-full py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm transition-all shadow-md shadow-emerald-700/20 flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Estou ciente e concordo / Iniciar Plantão</span>
+          </button>
+        </div>
       </div>
     </div>
   );

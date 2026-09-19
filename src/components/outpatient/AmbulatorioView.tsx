@@ -184,9 +184,9 @@ export function AmbulatorioView() {
                                   <button
                                     onClick={() => abrirModal(m)}
                                     title="Editar médico"
-                                    className="opacity-60 group-hover:opacity-100 text-slate-400 hover:text-emerald-600 transition-opacity min-h-[28px] min-w-[28px] flex items-center justify-center p-1 rounded-md hover:bg-slate-100 cursor-pointer"
+                                    className="opacity-80 sm:opacity-60 group-hover:opacity-100 text-slate-400 hover:text-emerald-600 transition-opacity min-h-[36px] min-w-[36px] sm:min-h-[28px] sm:min-w-[28px] flex items-center justify-center p-1 rounded-md hover:bg-slate-100 cursor-pointer"
                                   >
-                                    <Edit3 className="w-3 h-3" />
+                                    <Edit3 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                                   </button>
                                 </div>
                                 {m.especialidade && (
@@ -386,17 +386,17 @@ export function AmbulatorioView() {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+              <div className="pt-3 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center sm:justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setModalNovoMedico(false)}
-                  className="min-h-[44px] px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[44px] px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+                  className="w-full sm:w-auto min-h-[44px] px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center"
                 >
                   Salvar Médico
                 </button>
