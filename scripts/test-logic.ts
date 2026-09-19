@@ -2,6 +2,7 @@ import { anonimizarNome, deveExpurgarAdmissao, deveExpurgarAlta, deveExpurgarPer
 import { calcularDDayAntibiotico, calcularIdade, calcularTempoInternacao, calcularDPO, formatarCirurgiaDPO, obterCirurgiasPaciente } from "../src/lib/antibiotic-engine";
 import { AdmissaoPaciente, AltaPaciente, PrescricaoAntibiotico, Pendencia, EquipePlantao, StatusPendencia, PacientePassagem } from "../src/types/hospital";
 import { gerarMensagemWhatsAppAdmissoes, gerarMensagemAlta } from "../src/lib/whatsapp";
+import { obterNivelProgressoAdmissao, atingiuEtapaAdmissao } from "../src/lib/utils";
 
 let passed = 0;
 let failed = 0;
@@ -1192,6 +1193,72 @@ assert(
 const maxValor = 10;
 const yAxisMax = Math.max(8, Math.ceil((maxValor + 2.5) / 4) * 4);
 assert(yAxisMax === 16, "Escala Y com max=10 projeta teto 16 (folga superior garantida sem corte)");
+
+// 19. TESTES DE FUNIL CUMULATIVO DO PAINEL & ORDENAÇÃO POR STATUS NA ADMISSÃO
+console.log("\n--- 19. Funil Cumulativo do Painel & Ordenação por Status na Admissão ---");
+
+// Teste 19.1: Ordenação na Admissão: 1º Não Chegou ➔ 2º Chegou ➔ 3º Internou ➔ 4º AIH ➔ 5º Alta/ADM (desempate A-Z)
+const listaPacientesAdmissaoTeste: AdmissaoPaciente[] = [
+  { id: "1", nome: "Beatriz Santos", enfermaria: "FGH", dataAdmissaoAgendada: "2026-09-19", status: "Alta/ADM", altaAdm: true, cancelada: false, historiaFinalizada: false, createdAt: "", updatedAt: "" },
+  { id: "2", nome: "Carlos Eduardo", enfermaria: "FGH", dataAdmissaoAgendada: "2026-09-19", status: "Aguardando", cancelada: false, historiaFinalizada: false, createdAt: "", updatedAt: "" },
+  { id: "3", nome: "Amanda Lima", enfermaria: "FGH", dataAdmissaoAgendada: "2026-09-19", status: "Aguardando", cancelada: false, historiaFinalizada: false, createdAt: "", updatedAt: "" },
+  { id: "4", nome: "Daniel Rocha", enfermaria: "FGH", dataAdmissaoAgendada: "2026-09-19", status: "Chegou", chegou: true, cancelada: false, historiaFinalizada: false, createdAt: "", updatedAt: "" },
+  { id: "5", nome: "Eduardo Souza", enfermaria: "FGH", dataAdmissaoAgendada: "2026-09-19", status: "Internou", internou: true, cancelada: false, historiaFinalizada: false, createdAt: "", updatedAt: "" },
+  { id: "6", nome: "Fernanda Alves", enfermaria: "FGH", dataAdmissaoAgendada: "2026-09-19", status: "AIH", aih: true, cancelada: false, historiaFinalizada: false, createdAt: "", updatedAt: "" },
+  { id: "7", nome: "Arthur Silva", enfermaria: "FGH", dataAdmissaoAgendada: "2026-09-19", status: "Alta/ADM", altaAdm: true, cancelada: false, historiaFinalizada: false, createdAt: "", updatedAt: "" },
+];
+
+const listaOrdenada = [...listaPacientesAdmissaoTeste].sort((a, b) => {
+  const nivelA = obterNivelProgressoAdmissao(a);
+  const nivelB = obterNivelProgressoAdmissao(b);
+  if (nivelA !== nivelB) return nivelA - nivelB;
+  return a.nome.localeCompare(b.nome, "pt-BR");
+});
+
+assert(listaOrdenada[0].nome === "Amanda Lima", "1º lugar: Amanda Lima (Não Chegou, A-Z)");
+assert(listaOrdenada[1].nome === "Carlos Eduardo", "2º lugar: Carlos Eduardo (Não Chegou, A-Z)");
+assert(listaOrdenada[2].nome === "Daniel Rocha", "3º lugar: Daniel Rocha (Chegou)");
+assert(listaOrdenada[3].nome === "Eduardo Souza", "4º lugar: Eduardo Souza (Internou)");
+assert(listaOrdenada[4].nome === "Fernanda Alves", "5º lugar: Fernanda Alves (AIH)");
+assert(listaOrdenada[5].nome === "Arthur Silva", "6º lugar: Arthur Silva (Alta/ADM, A-Z)");
+assert(listaOrdenada[6].nome === "Beatriz Santos", "7º lugar: Beatriz Santos (Alta/ADM, A-Z)");
+
+// Teste 19.2: Funil Cumulativo Clínico (Cenário do usuário: 4 pacientes, 4 chegaram, 4 internaram, 4 AIH, 3 Alta/ADM)
+const pacientesFunilTeste = [
+  { status: "Alta/ADM", altaAdm: true },
+  { status: "Alta/ADM", altaAdm: true },
+  { status: "Alta/ADM", altaAdm: true },
+  { status: "AIH", aih: true },
+];
+const totalPacientes = pacientesFunilTeste.length; // 4
+let cChegou = 0;
+let cInternou = 0;
+let cAih = 0;
+let cAltaAdm = 0;
+
+pacientesFunilTeste.forEach((p) => {
+  if (atingiuEtapaAdmissao(p, "chegou")) cChegou++;
+  if (atingiuEtapaAdmissao(p, "internou")) cInternou++;
+  if (atingiuEtapaAdmissao(p, "aih")) cAih++;
+  if (atingiuEtapaAdmissao(p, "altaAdm")) cAltaAdm++;
+});
+
+const pChegou = Math.round((cChegou / totalPacientes) * 100);
+const pInternou = Math.round((cInternou / totalPacientes) * 100);
+const pAih = Math.round((cAih / totalPacientes) * 100);
+const pAltaAdm = Math.round((cAltaAdm / totalPacientes) * 100);
+
+assert(cChegou === 4 && pChegou === 100, `Funil Chegou: esperado 4 (100%), obtido ${cChegou} (${pChegou}%)`);
+assert(cInternou === 4 && pInternou === 100, `Funil Internou: esperado 4 (100%), obtido ${cInternou} (${pInternou}%)`);
+assert(cAih === 4 && pAih === 100, `Funil AIH: esperado 4 (100%), obtido ${cAih} (${pAih}%)`);
+assert(cAltaAdm === 3 && pAltaAdm === 75, `Funil Alta/ADM: esperado 3 (75%), obtido ${cAltaAdm} (${pAltaAdm}%)`);
+
+// Teste 19.3: Paciente com flag Alta/ADM herda implicitamente todas as etapas anteriores
+const pacienteAltaIsolada = { altaAdm: true };
+assert(atingiuEtapaAdmissao(pacienteAltaIsolada, "chegou") === true, "Alta/ADM herda Chegou");
+assert(atingiuEtapaAdmissao(pacienteAltaIsolada, "internou") === true, "Alta/ADM herda Internou");
+assert(atingiuEtapaAdmissao(pacienteAltaIsolada, "aih") === true, "Alta/ADM herda AIH");
+assert(atingiuEtapaAdmissao(pacienteAltaIsolada, "altaAdm") === true, "Alta/ADM conclui Alta/ADM");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);

@@ -8,7 +8,7 @@ import {
   compartilharOuCopiar,
   obterEmojisStatusAdmissao,
 } from "@/lib/whatsapp";
-import { obterDataLocalHoje } from "@/lib/utils";
+import { obterDataLocalHoje, obterNivelProgressoAdmissao } from "@/lib/utils";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -300,9 +300,16 @@ export function AdmissoesView() {
       grupos[enf].push(p);
     });
 
-    // Ordenar pacientes alfabeticamente dentro de cada enfermaria
+    // Ordenar pacientes: 1º por status (quem ainda não chegou primeiro ➔ Chegou ➔ Internou ➔ AIH ➔ Alta/ADM por último) com desempate alfabético
     Object.keys(grupos).forEach((enf) => {
-      grupos[enf].sort((a, b) => a.nome.localeCompare(b.nome));
+      grupos[enf].sort((a, b) => {
+        const nivelA = obterNivelProgressoAdmissao(a);
+        const nivelB = obterNivelProgressoAdmissao(b);
+        if (nivelA !== nivelB) {
+          return nivelA - nivelB;
+        }
+        return a.nome.localeCompare(b.nome, "pt-BR");
+      });
     });
 
     return grupos;
@@ -311,8 +318,15 @@ export function AdmissoesView() {
   // Abertura do modal de impressão com os pacientes ativos do dia
   function handleAbrirModalImpressao() {
     const ativos = admissoesDaData.filter((p) => !p.cancelada);
-    // Ordenar inicialmente por ordem alfabética
-    const ordenados = [...ativos].sort((a, b) => a.nome.localeCompare(b.nome));
+    // Ordenar inicialmente por status e desempate alfabético
+    const ordenados = [...ativos].sort((a, b) => {
+      const nivelA = obterNivelProgressoAdmissao(a);
+      const nivelB = obterNivelProgressoAdmissao(b);
+      if (nivelA !== nivelB) {
+        return nivelA - nivelB;
+      }
+      return a.nome.localeCompare(b.nome, "pt-BR");
+    });
     setOrdemImpressaoPacientes(ordenados);
     setModalImpressaoAberto(true);
   }

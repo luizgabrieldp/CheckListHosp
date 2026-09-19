@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
-import { formatarDataBR, obterDataLocalHoje } from "@/lib/utils";
+import { formatarDataBR, obterDataLocalHoje, atingiuEtapaAdmissao } from "@/lib/utils";
 import {
   ShieldCheck,
   Clock,
@@ -104,7 +104,7 @@ export function MetricasLgpdView() {
     preceptores: [],
   };
 
-  // 6. ETAPAS ATIVAS DA ADMISSÃO E PROGRESSÃO POR ENFERMARIA (SEM 'AGUARDANDO')
+  // 6. ETAPAS CUMULATIVAS DA ADMISSÃO (FUNIL CLÍNICO) E PROGRESSÃO POR ENFERMARIA
   let countChegou = 0;
   let countInternou = 0;
   let countAih = 0;
@@ -134,22 +134,28 @@ export function MetricasLgpdView() {
     }
     progressoPorEnfermariaMap[enfNome].total++;
 
-    if (p.status === "Alta/ADM" || p.altaAdm) {
-      countAltaAdm++;
-      progressoPorEnfermariaMap[enfNome].altaAdm++;
-    } else if (p.status === "AIH" || p.aih) {
-      countAih++;
-      progressoPorEnfermariaMap[enfNome].aih++;
-    } else if (p.status === "Internou" || p.internou) {
-      countInternou++;
-      progressoPorEnfermariaMap[enfNome].internou++;
-    } else if (p.status === "Chegou" || p.chegou) {
+    const atingiuCh = atingiuEtapaAdmissao(p, "chegou");
+    const atingiuInt = atingiuEtapaAdmissao(p, "internou");
+    const atingiuA = atingiuEtapaAdmissao(p, "aih");
+    const atingiuAlt = atingiuEtapaAdmissao(p, "altaAdm");
+
+    if (atingiuCh) {
       countChegou++;
       progressoPorEnfermariaMap[enfNome].chegou++;
     }
+    if (atingiuInt) {
+      countInternou++;
+      progressoPorEnfermariaMap[enfNome].internou++;
+    }
+    if (atingiuA) {
+      countAih++;
+      progressoPorEnfermariaMap[enfNome].aih++;
+    }
+    if (atingiuAlt) {
+      countAltaAdm++;
+      progressoPorEnfermariaMap[enfNome].altaAdm++;
+    }
   });
-
-  const totalAtivos = countChegou + countInternou + countAih + countAltaAdm;
 
   const fasesAtivas = [
     {
@@ -157,6 +163,7 @@ export function MetricasLgpdView() {
       label: "Chegou",
       sublabel: "Na unidade",
       count: countChegou,
+      pct: totalAdmissoes > 0 ? Math.round((countChegou / totalAdmissoes) * 100) : 0,
       color: "bg-blue-500",
       hex: "#3b82f6",
       bgBadge: "bg-blue-50 text-blue-700 border-blue-200",
@@ -167,6 +174,7 @@ export function MetricasLgpdView() {
       label: "Internou",
       sublabel: "No leito",
       count: countInternou,
+      pct: totalAdmissoes > 0 ? Math.round((countInternou / totalAdmissoes) * 100) : 0,
       color: "bg-teal-600",
       hex: "#0d9488",
       bgBadge: "bg-teal-50 text-teal-700 border-teal-200",
@@ -177,6 +185,7 @@ export function MetricasLgpdView() {
       label: "AIH Pronta",
       sublabel: "Aguardando cirurgia",
       count: countAih,
+      pct: totalAdmissoes > 0 ? Math.round((countAih / totalAdmissoes) * 100) : 0,
       color: "bg-purple-600",
       hex: "#9333ea",
       bgBadge: "bg-purple-50 text-purple-700 border-purple-200",
@@ -185,8 +194,9 @@ export function MetricasLgpdView() {
     {
       id: "altaAdm",
       label: "Alta / ADM",
-      sublabel: "Concluído",
+      sublabel: "Fluxo concluído",
       count: countAltaAdm,
+      pct: totalAdmissoes > 0 ? Math.round((countAltaAdm / totalAdmissoes) * 100) : 0,
       color: "bg-emerald-600",
       hex: "#16a34a",
       bgBadge: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -565,33 +575,46 @@ export function MetricasLgpdView() {
               <span>Fluxo e Fases da Admissão</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Acompanhamento do ciclo do paciente no hospital cirúrgico
+              Funil cumulativo de progressão do paciente no hospital cirúrgico
             </p>
           </div>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-            {totalAtivos} em fluxo ativo
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+              {countChegou}/{totalAdmissoes} em atendimento
+            </span>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              {countAltaAdm}/{totalAdmissoes} concluídos
+            </span>
+          </div>
         </div>
 
-        {/* BARRA DE FLUXO CONTÍNUA */}
-        <div className="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden flex p-0.5 shadow-inner gap-0.5">
-          {totalAtivos === 0 ? (
-            <div className="w-full h-full bg-slate-200/70 rounded-full flex items-center justify-center">
-              <span className="text-[10px] font-medium text-slate-500">Sem pacientes em fluxo ativo nesta data</span>
+        {/* FUNIL VISUAL DE PROGRESSÃO LINEAR */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+            <span>Progressão do fluxo ({totalAdmissoes} paciente{totalAdmissoes !== 1 ? "s" : ""} agendado{totalAdmissoes !== 1 ? "s" : ""})</span>
+            <span className="font-semibold text-slate-700">
+              {totalAdmissoes > 0 ? Math.round((countAltaAdm / totalAdmissoes) * 100) : 0}% com Alta/ADM
+            </span>
+          </div>
+          {totalAdmissoes === 0 ? (
+            <div className="w-full h-3 bg-slate-100 rounded-full flex items-center justify-center">
+              <span className="text-[10px] font-medium text-slate-400">Sem pacientes agendados para esta data</span>
             </div>
           ) : (
-            fasesAtivas.map((fase) => {
-              if (fase.count === 0) return null;
-              const pct = (fase.count / totalAtivos) * 100;
-              return (
+            <div className="grid grid-cols-4 gap-1.5 h-2.5">
+              {fasesAtivas.map((fase) => (
                 <div
                   key={fase.id}
-                  style={{ width: `${pct}%`, backgroundColor: fase.hex }}
-                  className="h-full first:rounded-l-full last:rounded-r-full transition-all duration-300"
-                  title={`${fase.label}: ${fase.count} (${pct.toFixed(0)}%)`}
-                />
-              );
-            })
+                  className="h-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60 shadow-2xs"
+                  title={`${fase.label}: ${fase.count}/${totalAdmissoes} (${fase.pct}%)`}
+                >
+                  <div
+                    style={{ width: `${fase.pct}%`, backgroundColor: fase.hex }}
+                    className="h-full rounded-full transition-all duration-300"
+                  />
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
@@ -599,13 +622,12 @@ export function MetricasLgpdView() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           {fasesAtivas.map((fase, idx) => {
             const Icon = fase.icon;
-            const pct = totalAtivos > 0 ? Math.round((fase.count / totalAtivos) * 100) : 0;
             return (
               <div
                 key={fase.id}
                 className="flex flex-col justify-between p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 hover:bg-slate-50 transition-colors"
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span
                       className="w-6 h-6 rounded-lg flex items-center justify-center text-white shrink-0 shadow-2xs"
@@ -623,15 +645,28 @@ export function MetricasLgpdView() {
                 </div>
 
                 <div className="flex items-baseline justify-between mt-1">
-                  <span className="text-xl font-extrabold text-slate-900 tracking-tight">
-                    {fase.count}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-500">
-                    {pct}%
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+                      {fase.count}
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">
+                      /{totalAdmissoes}
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-slate-600">
+                    {fase.pct}%
                   </span>
                 </div>
 
-                <span className="text-[10px] text-slate-400 font-medium mt-1 truncate">
+                {/* MINI BARRA DE PROCESSO INTERNA DO CARD */}
+                <div className="w-full h-1.5 bg-slate-200/70 rounded-full overflow-hidden mt-2">
+                  <div
+                    style={{ width: `${fase.pct}%`, backgroundColor: fase.hex }}
+                    className="h-full rounded-full transition-all duration-300"
+                  />
+                </div>
+
+                <span className="text-[10px] text-slate-400 font-medium mt-1.5 truncate">
                   {fase.sublabel}
                 </span>
               </div>
@@ -659,10 +694,10 @@ export function MetricasLgpdView() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {enfermariasProgresso.map((enf) => {
                 const totalEnf = enf.total;
-                const pctChegou = totalEnf > 0 ? (enf.chegou / totalEnf) * 100 : 0;
-                const pctInternou = totalEnf > 0 ? (enf.internou / totalEnf) * 100 : 0;
-                const pctAih = totalEnf > 0 ? (enf.aih / totalEnf) * 100 : 0;
-                const pctAlta = totalEnf > 0 ? (enf.altaAdm / totalEnf) * 100 : 0;
+                const pctChegou = totalEnf > 0 ? Math.round((enf.chegou / totalEnf) * 100) : 0;
+                const pctInternou = totalEnf > 0 ? Math.round((enf.internou / totalEnf) * 100) : 0;
+                const pctAih = totalEnf > 0 ? Math.round((enf.aih / totalEnf) * 100) : 0;
+                const pctAlta = totalEnf > 0 ? Math.round((enf.altaAdm / totalEnf) * 100) : 0;
 
                 return (
                   <div
@@ -678,68 +713,48 @@ export function MetricasLgpdView() {
                       </span>
                     </div>
 
-                    {/* MINI BARRA SEGMENTADA DA ENFERMARIA */}
-                    <div className="w-full h-2 bg-slate-200/70 rounded-full overflow-hidden flex gap-0.5">
-                      {pctChegou > 0 && (
+                    {/* MINI FUNIL DE 4 SEGMENTOS DA ENFERMARIA */}
+                    <div className="grid grid-cols-4 gap-1 h-1.5">
+                      <div className="h-full bg-slate-200/80 rounded-full overflow-hidden" title={`Chegou: ${enf.chegou}/${totalEnf} (${pctChegou}%)`}>
                         <div
                           style={{ width: `${pctChegou}%` }}
-                          className="h-full bg-blue-500 first:rounded-l-full last:rounded-r-full"
-                          title={`Chegou: ${enf.chegou}`}
+                          className="h-full bg-blue-500 rounded-full transition-all duration-300"
                         />
-                      )}
-                      {pctInternou > 0 && (
+                      </div>
+                      <div className="h-full bg-slate-200/80 rounded-full overflow-hidden" title={`Internou: ${enf.internou}/${totalEnf} (${pctInternou}%)`}>
                         <div
                           style={{ width: `${pctInternou}%` }}
-                          className="h-full bg-teal-600 first:rounded-l-full last:rounded-r-full"
-                          title={`Internou: ${enf.internou}`}
+                          className="h-full bg-teal-600 rounded-full transition-all duration-300"
                         />
-                      )}
-                      {pctAih > 0 && (
+                      </div>
+                      <div className="h-full bg-slate-200/80 rounded-full overflow-hidden" title={`AIH: ${enf.aih}/${totalEnf} (${pctAih}%)`}>
                         <div
                           style={{ width: `${pctAih}%` }}
-                          className="h-full bg-purple-600 first:rounded-l-full last:rounded-r-full"
-                          title={`AIH: ${enf.aih}`}
+                          className="h-full bg-purple-600 rounded-full transition-all duration-300"
                         />
-                      )}
-                      {pctAlta > 0 && (
+                      </div>
+                      <div className="h-full bg-slate-200/80 rounded-full overflow-hidden" title={`Alta/ADM: ${enf.altaAdm}/${totalEnf} (${pctAlta}%)`}>
                         <div
                           style={{ width: `${pctAlta}%` }}
-                          className="h-full bg-emerald-600 first:rounded-l-full last:rounded-r-full"
-                          title={`Alta/ADM: ${enf.altaAdm}`}
+                          className="h-full bg-emerald-600 rounded-full transition-all duration-300"
                         />
-                      )}
+                      </div>
                     </div>
 
-                    {/* BADGES COMPACTOS DAS FASES NESSA ENFERMARIA */}
+                    {/* BADGES CUMULATIVOS DAS FASES NESSA ENFERMARIA */}
                     <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
-                      {enf.chegou > 0 && (
-                        <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200/60">
-                          Chegou: {enf.chegou}
-                        </span>
-                      )}
-                      {enf.internou > 0 && (
-                        <span className="px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 font-semibold border border-teal-200/60">
-                          Internou: {enf.internou}
-                        </span>
-                      )}
-                      {enf.aih > 0 && (
-                        <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-semibold border border-purple-200/60">
-                          AIH: {enf.aih}
-                        </span>
-                      )}
-                      {enf.altaAdm > 0 && (
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200/60">
-                          Alta/ADM: {enf.altaAdm}
-                        </span>
-                      )}
-                      {enf.chegou === 0 &&
-                        enf.internou === 0 &&
-                        enf.aih === 0 &&
-                        enf.altaAdm === 0 && (
-                          <span className="text-slate-400 italic">
-                            Aguardando início do fluxo
-                          </span>
-                        )}
+                      <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200/60">
+                        Chegou: {enf.chegou}/{totalEnf}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 font-semibold border border-teal-200/60">
+                        Internou: {enf.internou}/{totalEnf}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-semibold border border-purple-200/60">
+                        AIH: {enf.aih}/{totalEnf}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200/60">
+                        Alta/ADM: {enf.altaAdm}/{totalEnf}
+                      </span>
                     </div>
                   </div>
                 );
