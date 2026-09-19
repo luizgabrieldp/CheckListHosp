@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
-import { formatarDataBR } from "@/lib/utils";
+import { formatarDataBR, obterDataLocalHoje } from "@/lib/utils";
 import {
   ShieldCheck,
   Clock,
@@ -17,6 +17,9 @@ import {
   Users,
   Building2,
   ChevronRight,
+  ArrowRight,
+  Bed,
+  Activity,
 } from "lucide-react";
 
 export function MetricasLgpdView() {
@@ -27,12 +30,7 @@ export function MetricasLgpdView() {
   const passagem = useAppStore((s) => s.passagem || []);
 
   // Data do filtro (padrão hoje no fuso local no formato YYYY-MM-DD)
-  const [dataFiltro, setDataFiltro] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-      d.getDate()
-    ).padStart(2, "0")}`;
-  });
+  const [dataFiltro, setDataFiltro] = useState(() => obterDataLocalHoje());
 
   const [periodo, setPeriodo] = useState<7 | 14 | 30>(7);
   const [executandoExpurgo, setExecutandoExpurgo] = useState(false);
@@ -106,37 +104,99 @@ export function MetricasLgpdView() {
     preceptores: [],
   };
 
-  // 6. FASES DA ADMISSÃO (5 FASES BASE44)
-  let countAguardando = 0;
+  // 6. ETAPAS ATIVAS DA ADMISSÃO E PROGRESSÃO POR ENFERMARIA (SEM 'AGUARDANDO')
   let countChegou = 0;
   let countInternou = 0;
   let countAih = 0;
   let countAltaAdm = 0;
 
+  interface ProgressoEnf {
+    nome: string;
+    total: number;
+    chegou: number;
+    internou: number;
+    aih: number;
+    altaAdm: number;
+  }
+  const progressoPorEnfermariaMap: Record<string, ProgressoEnf> = {};
+
   admissoesDoDia.forEach((p) => {
+    const enfNome = p.enfermaria?.trim() || "Geral";
+    if (!progressoPorEnfermariaMap[enfNome]) {
+      progressoPorEnfermariaMap[enfNome] = {
+        nome: enfNome,
+        total: 0,
+        chegou: 0,
+        internou: 0,
+        aih: 0,
+        altaAdm: 0,
+      };
+    }
+    progressoPorEnfermariaMap[enfNome].total++;
+
     if (p.status === "Alta/ADM" || p.altaAdm) {
       countAltaAdm++;
+      progressoPorEnfermariaMap[enfNome].altaAdm++;
     } else if (p.status === "AIH" || p.aih) {
       countAih++;
+      progressoPorEnfermariaMap[enfNome].aih++;
     } else if (p.status === "Internou" || p.internou) {
       countInternou++;
+      progressoPorEnfermariaMap[enfNome].internou++;
     } else if (p.status === "Chegou" || p.chegou) {
       countChegou++;
-    } else {
-      countAguardando++;
+      progressoPorEnfermariaMap[enfNome].chegou++;
     }
   });
 
-  const fases = [
-    { label: "Aguardando", count: countAguardando, color: "bg-[#8a99ad]", hex: "#8a99ad" },
-    { label: "Chegou", count: countChegou, color: "bg-[#3b82f6]", hex: "#3b82f6" },
-    { label: "Internou", count: countInternou, color: "bg-[#0d9488]", hex: "#0d9488" },
-    { label: "AIH", count: countAih, color: "bg-[#a855f7]", hex: "#a855f7" },
-    { label: "Alta/ADM", count: countAltaAdm, color: "bg-[#22c55e]", hex: "#22c55e" },
+  const totalAtivos = countChegou + countInternou + countAih + countAltaAdm;
+
+  const fasesAtivas = [
+    {
+      id: "chegou",
+      label: "Chegou",
+      sublabel: "Na unidade",
+      count: countChegou,
+      color: "bg-blue-500",
+      hex: "#3b82f6",
+      bgBadge: "bg-blue-50 text-blue-700 border-blue-200",
+      icon: Users,
+    },
+    {
+      id: "internou",
+      label: "Internou",
+      sublabel: "No leito",
+      count: countInternou,
+      color: "bg-teal-600",
+      hex: "#0d9488",
+      bgBadge: "bg-teal-50 text-teal-700 border-teal-200",
+      icon: Bed,
+    },
+    {
+      id: "aih",
+      label: "AIH Pronta",
+      sublabel: "Aguardando cirurgia",
+      count: countAih,
+      color: "bg-purple-600",
+      hex: "#9333ea",
+      bgBadge: "bg-purple-50 text-purple-700 border-purple-200",
+      icon: FileCheck,
+    },
+    {
+      id: "altaAdm",
+      label: "Alta / ADM",
+      sublabel: "Concluído",
+      count: countAltaAdm,
+      color: "bg-emerald-600",
+      hex: "#16a34a",
+      bgBadge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      icon: CheckCircle2,
+    },
   ];
 
-  const maxFaseCount = Math.max(...fases.map((f) => f.count), 1);
-  const yAxisMaxFases = Math.max(8, Math.ceil(maxFaseCount / 4) * 4);
+  const enfermariasProgresso = Object.values(progressoPorEnfermariaMap).sort(
+    (a, b) => b.total - a.total
+  );
 
   // 7. TENDÊNCIA HISTÓRICA (ÚLTIMOS 7, 14 OU 30 DIAS)
   const dadosHistoricos: {
@@ -496,30 +556,38 @@ export function MetricasLgpdView() {
         </div>
       </div>
 
-      {/* 4. CARD: FASES DA ADMISSÃO (BARRA SEGMENTADA CONTÍNUA + PILLS COM %) */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">Fases da admissão</h3>
-          <span className="text-xs font-medium text-slate-500">
-            {totalAdmissoes} paciente{totalAdmissoes !== 1 ? "s" : ""}
+      {/* 4. CARD: FLUXO E ETAPAS DA ADMISSÃO + PROGRESSÃO POR ENFERMARIA */}
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-5">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-teal-700" />
+              <span>Fluxo e Fases da Admissão</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Acompanhamento do ciclo do paciente no hospital cirúrgico
+            </p>
+          </div>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+            {totalAtivos} em fluxo ativo
           </span>
         </div>
 
-        {/* BARRA DE PROGRESSO SEGMENTADA CONTÍNUA */}
-        <div className="w-full h-5 bg-slate-100 rounded-full overflow-hidden flex p-0.5 shadow-inner gap-0.5">
-          {totalAdmissoes === 0 ? (
-            <div className="w-full h-full bg-slate-200/80 rounded-full flex items-center justify-center">
-              <span className="text-[10px] font-medium text-slate-500">Sem admissões para esta data</span>
+        {/* BARRA DE FLUXO CONTÍNUA */}
+        <div className="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden flex p-0.5 shadow-inner gap-0.5">
+          {totalAtivos === 0 ? (
+            <div className="w-full h-full bg-slate-200/70 rounded-full flex items-center justify-center">
+              <span className="text-[10px] font-medium text-slate-500">Sem pacientes em fluxo ativo nesta data</span>
             </div>
           ) : (
-            fases.map((fase) => {
-              const pct = (fase.count / totalAdmissoes) * 100;
+            fasesAtivas.map((fase) => {
               if (fase.count === 0) return null;
+              const pct = (fase.count / totalAtivos) * 100;
               return (
                 <div
-                  key={fase.label}
+                  key={fase.id}
                   style={{ width: `${pct}%`, backgroundColor: fase.hex }}
-                  className="h-full first:rounded-l-full last:rounded-r-full transition-all duration-300 hover:opacity-90 cursor-default"
+                  className="h-full first:rounded-l-full last:rounded-r-full transition-all duration-300"
                   title={`${fase.label}: ${fase.count} (${pct.toFixed(0)}%)`}
                 />
               );
@@ -527,33 +595,157 @@ export function MetricasLgpdView() {
           )}
         </div>
 
-        {/* GRID DE 5 PILLS COM COR, NOME, CONTAGEM E % */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 pt-1">
-          {fases.map((fase) => {
-            const pct = totalAdmissoes > 0 ? (fase.count / totalAdmissoes) * 100 : 0;
+        {/* STEPPER / CARDS LINEARES DAS 4 ETAPAS ATIVAS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {fasesAtivas.map((fase, idx) => {
+            const Icon = fase.icon;
+            const pct = totalAtivos > 0 ? Math.round((fase.count / totalAtivos) * 100) : 0;
             return (
               <div
-                key={fase.label}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100/70 transition-colors"
+                key={fase.id}
+                className="flex flex-col justify-between p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 hover:bg-slate-50 transition-colors"
               >
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
-                  style={{ backgroundColor: fase.hex }}
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="text-[11px] font-medium text-slate-600 truncate">
-                    {fase.label}
-                  </div>
-                  <div className="text-xs font-bold text-slate-900 leading-tight">
-                    {fase.count}{" "}
-                    <span className="text-[10px] font-medium text-slate-400">
-                      ({totalAdmissoes > 0 ? pct.toFixed(0) : 0}%)
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span
+                      className="w-6 h-6 rounded-lg flex items-center justify-center text-white shrink-0 shadow-2xs"
+                      style={{ backgroundColor: fase.hex }}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="text-xs font-bold text-slate-800 truncate">
+                      {idx + 1}. {fase.label}
                     </span>
                   </div>
+                  {idx < 3 && (
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0 hidden md:block" />
+                  )}
                 </div>
+
+                <div className="flex items-baseline justify-between mt-1">
+                  <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+                    {fase.count}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-500">
+                    {pct}%
+                  </span>
+                </div>
+
+                <span className="text-[10px] text-slate-400 font-medium mt-1 truncate">
+                  {fase.sublabel}
+                </span>
               </div>
             );
           })}
+        </div>
+
+        {/* SEÇÃO: PROGRESSÃO POR ENFERMARIA */}
+        <div className="pt-2 border-t border-slate-100 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-slate-500" />
+              <span>Fluxo e Ocupação por Enfermaria</span>
+            </h4>
+            <span className="text-[11px] font-medium text-slate-500">
+              {enfermariasProgresso.length} {enfermariasProgresso.length === 1 ? "enfermaria ativa" : "enfermarias ativas"}
+            </span>
+          </div>
+
+          {enfermariasProgresso.length === 0 ? (
+            <div className="py-4 text-center text-xs text-slate-400 italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+              Nenhuma enfermaria com admissões ativas nesta data.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {enfermariasProgresso.map((enf) => {
+                const totalEnf = enf.total;
+                const pctChegou = totalEnf > 0 ? (enf.chegou / totalEnf) * 100 : 0;
+                const pctInternou = totalEnf > 0 ? (enf.internou / totalEnf) * 100 : 0;
+                const pctAih = totalEnf > 0 ? (enf.aih / totalEnf) * 100 : 0;
+                const pctAlta = totalEnf > 0 ? (enf.altaAdm / totalEnf) * 100 : 0;
+
+                return (
+                  <div
+                    key={enf.nome}
+                    className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 hover:bg-slate-50 transition-colors space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900 truncate">
+                        {enf.nome}
+                      </span>
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700">
+                        {totalEnf} {totalEnf === 1 ? "paciente" : "pacientes"}
+                      </span>
+                    </div>
+
+                    {/* MINI BARRA SEGMENTADA DA ENFERMARIA */}
+                    <div className="w-full h-2 bg-slate-200/70 rounded-full overflow-hidden flex gap-0.5">
+                      {pctChegou > 0 && (
+                        <div
+                          style={{ width: `${pctChegou}%` }}
+                          className="h-full bg-blue-500 first:rounded-l-full last:rounded-r-full"
+                          title={`Chegou: ${enf.chegou}`}
+                        />
+                      )}
+                      {pctInternou > 0 && (
+                        <div
+                          style={{ width: `${pctInternou}%` }}
+                          className="h-full bg-teal-600 first:rounded-l-full last:rounded-r-full"
+                          title={`Internou: ${enf.internou}`}
+                        />
+                      )}
+                      {pctAih > 0 && (
+                        <div
+                          style={{ width: `${pctAih}%` }}
+                          className="h-full bg-purple-600 first:rounded-l-full last:rounded-r-full"
+                          title={`AIH: ${enf.aih}`}
+                        />
+                      )}
+                      {pctAlta > 0 && (
+                        <div
+                          style={{ width: `${pctAlta}%` }}
+                          className="h-full bg-emerald-600 first:rounded-l-full last:rounded-r-full"
+                          title={`Alta/ADM: ${enf.altaAdm}`}
+                        />
+                      )}
+                    </div>
+
+                    {/* BADGES COMPACTOS DAS FASES NESSA ENFERMARIA */}
+                    <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                      {enf.chegou > 0 && (
+                        <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200/60">
+                          Chegou: {enf.chegou}
+                        </span>
+                      )}
+                      {enf.internou > 0 && (
+                        <span className="px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 font-semibold border border-teal-200/60">
+                          Internou: {enf.internou}
+                        </span>
+                      )}
+                      {enf.aih > 0 && (
+                        <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-semibold border border-purple-200/60">
+                          AIH: {enf.aih}
+                        </span>
+                      )}
+                      {enf.altaAdm > 0 && (
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200/60">
+                          Alta/ADM: {enf.altaAdm}
+                        </span>
+                      )}
+                      {enf.chegou === 0 &&
+                        enf.internou === 0 &&
+                        enf.aih === 0 &&
+                        enf.altaAdm === 0 && (
+                          <span className="text-slate-400 italic">
+                            Aguardando início do fluxo
+                          </span>
+                        )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

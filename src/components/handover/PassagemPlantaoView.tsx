@@ -66,7 +66,7 @@ export function PassagemPlantaoView() {
   const [medFreqHoras, setMedFreqHoras] = useState<number | "">(6);
   const [medHorario1aDose, setMedHorario1aDose] = useState("20:00");
   const [medDataInicio, setMedDataInicio] = useState(() => obterDataLocalHoje());
-  const [medDuracaoDias, setMedDuracaoDias] = useState<number>(7);
+  const [medDuracaoDias, setMedDuracaoDias] = useState<number | "">(7);
   const [medDataTermino, setMedDataTermino] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
@@ -282,30 +282,25 @@ export function PassagemPlantaoView() {
   // Sincronização bidirecional de datas
   function handleMudarDataInicio(novaDataInicio: string) {
     setMedDataInicio(novaDataInicio);
-    if (novaDataInicio && medDuracaoDias > 0) {
+    if (novaDataInicio && typeof medDuracaoDias === "number" && medDuracaoDias > 0) {
       try {
         const [ano, mes, dia] = novaDataInicio.split("-").map(Number);
         const d = new Date(ano, mes - 1, dia);
         d.setDate(d.getDate() + medDuracaoDias);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const dt = String(d.getDate()).padStart(2, "0");
-        setMedDataTermino(`${y}-${m}-${dt}`);
+        setMedDataTermino(obterDataLocalHoje(d));
       } catch {}
     }
   }
 
-  function handleMudarDuracaoDias(dias: number) {
+  function handleMudarDuracaoDias(dias: number | "") {
     setMedDuracaoDias(dias);
-    if (medDataInicio && dias > 0) {
+    if (dias === "" || dias <= 0) return;
+    if (medDataInicio) {
       try {
         const [ano, mes, dia] = medDataInicio.split("-").map(Number);
         const d = new Date(ano, mes - 1, dia);
-        d.setDate(d.getDate() + dias);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const dt = String(d.getDate()).padStart(2, "0");
-        setMedDataTermino(`${y}-${m}-${dt}`);
+        d.setDate(d.getDate() + Number(dias));
+        setMedDataTermino(obterDataLocalHoje(d));
       } catch {}
     }
   }
@@ -331,6 +326,7 @@ export function PassagemPlantaoView() {
     if (!medNome.trim()) return;
 
     const freq = typeof medFreqHoras === "number" && medFreqHoras > 0 ? medFreqHoras : 6;
+    const duracao = typeof medDuracaoDias === "number" && medDuracaoDias > 0 ? medDuracaoDias : 7;
 
     if (medEmEdicaoId) {
       // Atualizar existente
@@ -343,7 +339,7 @@ export function PassagemPlantaoView() {
             frequenciaHoras: freq,
             horarioPrimeiraDose: medHorario1aDose.trim() || "20:00",
             dataInicio: medDataInicio,
-            duracaoDias: Math.max(1, medDuracaoDias),
+            duracaoDias: duracao,
             dosesPerdidas: Math.max(0, medDosesPerdidas),
           };
         }
@@ -359,7 +355,7 @@ export function PassagemPlantaoView() {
         frequenciaHoras: freq,
         horarioPrimeiraDose: medHorario1aDose.trim() || "20:00",
         dataInicio: medDataInicio,
-        duracaoDias: Math.max(1, medDuracaoDias),
+        duracaoDias: duracao,
         dosesPerdidas: Math.max(0, medDosesPerdidas),
         observacao: "",
       };
@@ -1413,7 +1409,7 @@ export function PassagemPlantaoView() {
 
                                 {/* FORMULÁRIO DO SUB-PAINEL (NOVA OU EDIÇÃO) */}
                                 {pacienteAdicionandoMed === paciente.id && (
-                                  <div className="p-3.5 rounded-xl border border-teal-300 bg-teal-50/20 space-y-3 animate-in fade-in">
+                                  <div className="p-3.5 rounded-xl border border-teal-300 bg-teal-50/20 space-y-3 animate-in fade-in overflow-hidden w-full max-w-full box-border">
                                     <div className="flex items-center justify-between">
                                       <h6 className="text-xs font-bold text-teal-900 flex items-center gap-1.5">
                                         {medEmEdicaoId ? (
@@ -1441,7 +1437,7 @@ export function PassagemPlantaoView() {
                                     </div>
 
                                     {/* NOME DO MEDICAMENTO */}
-                                    <div>
+                                    <div className="min-w-0 w-full max-w-full">
                                       <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                         Nome do medicamento
                                       </label>
@@ -1451,13 +1447,13 @@ export function PassagemPlantaoView() {
                                         onChange={(e) => setMedNome(e.target.value)}
                                         placeholder="Ex: Dipirona"
                                         autoFocus
-                                        className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:border-teal-500 focus:outline-none"
+                                        className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:border-teal-500 focus:outline-none"
                                       />
                                     </div>
 
                                     {/* DOSE E FREQUÊNCIA (HORAS) */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                      <div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+                                      <div className="min-w-0 w-full max-w-full">
                                         <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                           Dose
                                         </label>
@@ -1466,11 +1462,11 @@ export function PassagemPlantaoView() {
                                           value={medDose}
                                           onChange={(e) => setMedDose(e.target.value)}
                                           placeholder="Ex: 500mg"
-                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                          className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
                                         />
                                       </div>
 
-                                      <div>
+                                      <div className="min-w-0 w-full max-w-full">
                                         <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                           Frequência (horas)
                                         </label>
@@ -1486,14 +1482,14 @@ export function PassagemPlantaoView() {
                                             )
                                           }
                                           placeholder="Ex: 6"
-                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                          className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
                                         />
                                       </div>
                                     </div>
 
                                     {/* 1ª DOSE (HORÁRIO) E DATA DE INÍCIO */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                      <div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+                                      <div className="min-w-0 w-full max-w-full">
                                         <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                           1ª dose (horário)
                                         </label>
@@ -1503,11 +1499,11 @@ export function PassagemPlantaoView() {
                                           onChange={(e) =>
                                             setMedHorario1aDose(e.target.value)
                                           }
-                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                          className="w-full max-w-full min-w-0 box-border block px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none appearance-none"
                                         />
                                       </div>
 
-                                      <div>
+                                      <div className="min-w-0 w-full max-w-full">
                                         <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                           Data de início
                                         </label>
@@ -1517,14 +1513,14 @@ export function PassagemPlantaoView() {
                                           onChange={(e) =>
                                             handleMudarDataInicio(e.target.value)
                                           }
-                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                          className="w-full max-w-full min-w-0 box-border block px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none appearance-none"
                                         />
                                       </div>
                                     </div>
 
                                     {/* DURAÇÃO (DIAS) E DATA DE TÉRMINO (SINCRONIZAÇÃO BIDIRECIONAL) */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                      <div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+                                      <div className="min-w-0 w-full max-w-full">
                                         <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                           Duração (dias)
                                         </label>
@@ -1534,17 +1530,23 @@ export function PassagemPlantaoView() {
                                           pattern="[0-9]*"
                                           min={1}
                                           value={medDuracaoDias}
-                                          onChange={(e) =>
-                                            handleMudarDuracaoDias(
-                                              parseInt(e.target.value, 10) || 1
-                                            )
-                                          }
+                                          onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === "") {
+                                              handleMudarDuracaoDias("");
+                                            } else {
+                                              const parsed = parseInt(val, 10);
+                                              if (!isNaN(parsed)) {
+                                                handleMudarDuracaoDias(parsed);
+                                              }
+                                            }
+                                          }}
                                           placeholder="Ex: 7"
-                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                          className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
                                         />
                                       </div>
 
-                                      <div>
+                                      <div className="min-w-0 w-full max-w-full">
                                         <label className="block text-[11px] font-bold text-slate-700 mb-1">
                                           Data de término
                                         </label>
@@ -1554,7 +1556,7 @@ export function PassagemPlantaoView() {
                                           onChange={(e) =>
                                             handleMudarDataTermino(e.target.value)
                                           }
-                                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                          className="w-full max-w-full min-w-0 box-border block px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none appearance-none"
                                         />
                                       </div>
                                     </div>
