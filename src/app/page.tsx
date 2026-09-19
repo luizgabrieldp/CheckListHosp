@@ -20,20 +20,27 @@ export default function HomePage() {
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const activeTab = useAppStore((s) => s.activeTab);
   const timerInatividadeRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityLoggedRef = useRef<number>(0);
 
-  // Monitoramento contínuo de inatividade (5 minutos) com proteção total anti-F5 e segundo plano
+  // Monitoramento de inatividade (5 minutos) de alta eficiência energética com proteção anti-F5
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    function resetarTimerInatividade() {
-      useAppStore.getState().registrarAtividade();
-      if (timerInatividadeRef.current) {
-        clearTimeout(timerInatividadeRef.current);
+    const THROTTLE_ATIVIDADE_MS = 4000; // Throttle de 4s: evita acordar CPU 120x/s durante rolagem/toques
+
+    function resetarTimerInatividade(force = false) {
+      const agora = Date.now();
+      if (force || agora - lastActivityLoggedRef.current >= THROTTLE_ATIVIDADE_MS) {
+        lastActivityLoggedRef.current = agora;
+        useAppStore.getState().registrarAtividade();
+        if (timerInatividadeRef.current) {
+          clearTimeout(timerInatividadeRef.current);
+        }
+        timerInatividadeRef.current = setTimeout(() => {
+          // Bloqueio de segurança irrestrito: limpa memória e sessionStorage exigindo senha mesmo com F5
+          useAppStore.getState().logout();
+        }, TEMPO_INATIVIDADE_MS);
       }
-      timerInatividadeRef.current = setTimeout(() => {
-        // Bloqueio de segurança irrestrito: limpa memória e sessionStorage exigindo senha mesmo com F5
-        useAppStore.getState().logout();
-      }, TEMPO_INATIVIDADE_MS);
     }
 
     function verificarExpiracaoSegundoPlano() {
@@ -47,16 +54,28 @@ export default function HomePage() {
           }
         }
       }
-      resetarTimerInatividade();
+      resetarTimerInatividade(true);
+    }
+
+    function handleMudancaVisibilidade() {
+      if (typeof document !== "undefined") {
+        if (document.hidden) {
+          // Modo Standby ultra-econômico: congela animações e shaders de GPU
+          document.body.classList.add("app-background");
+        } else {
+          document.body.classList.remove("app-background");
+          verificarExpiracaoSegundoPlano();
+        }
+      }
     }
 
     const eventos = ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"];
 
     eventos.forEach((evento) => {
-      window.addEventListener(evento, resetarTimerInatividade, { passive: true });
+      window.addEventListener(evento, () => resetarTimerInatividade(false), { passive: true });
     });
 
-    window.addEventListener("visibilitychange", verificarExpiracaoSegundoPlano);
+    window.addEventListener("visibilitychange", handleMudancaVisibilidade);
     window.addEventListener("focus", verificarExpiracaoSegundoPlano);
 
     // Iniciar contagem e verificar se já não estava expirado
@@ -66,10 +85,13 @@ export default function HomePage() {
       if (timerInatividadeRef.current) {
         clearTimeout(timerInatividadeRef.current);
       }
+      if (typeof document !== "undefined") {
+        document.body.classList.remove("app-background");
+      }
       eventos.forEach((evento) => {
-        window.removeEventListener(evento, resetarTimerInatividade);
+        window.removeEventListener(evento, () => resetarTimerInatividade(false));
       });
-      window.removeEventListener("visibilitychange", verificarExpiracaoSegundoPlano);
+      window.removeEventListener("visibilitychange", handleMudancaVisibilidade);
       window.removeEventListener("focus", verificarExpiracaoSegundoPlano);
     };
   }, [isAuthenticated]);

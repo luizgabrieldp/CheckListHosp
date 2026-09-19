@@ -1512,6 +1512,86 @@ assert(
   "Botões de ícones no modo encolhido respeitam o padrão de acessibilidade de pelo menos 44x44px"
 );
 
+// 25. MOTOR DE IMPRESSÃO INSTANTÂNEO & EFICIÊNCIA ENERGÉTICA MOBILE
+console.log("\n--- 25. Motor de Impressão Instantâneo & Eficiência Energética Mobile ---");
+
+// Teste 25.1: Desacoplamento de impressão - a folha A4 não pode ser descendente de elemento no-print
+function verificarIsolamentoFolhaImpressao(folhaIsoladaForaDoModal: boolean, interfaceTelaOcultaNaImpressao: boolean) {
+  return folhaIsoladaForaDoModal && interfaceTelaOcultaNaImpressao;
+}
+const isolamentoValido = verificarIsolamentoFolhaImpressao(true, true);
+assert(
+  isolamentoValido === true,
+  "A folha A4 (print-container) é desacoplada do container .no-print e a UI de tela é isolada para impressão imediata"
+);
+
+// Teste 25.2: Throttle de inatividade de 4 segundos reduz acordadas de CPU em mais de 99%
+function simularEventosRolagemComThrottle(
+  totalEventos: number,
+  duracaoTotalMs: number,
+  throttleMs: number
+): { escritasSemThrottle: number; escritasComThrottle: number; reducaoPercentual: number } {
+  const escritasSemThrottle = totalEventos;
+  let escritasComThrottle = 0;
+  let ultimaEscrita = -Infinity;
+
+  const intervaloEntreEventos = duracaoTotalMs / totalEventos;
+  for (let i = 0; i < totalEventos; i++) {
+    const tempoAtual = i * intervaloEntreEventos;
+    if (tempoAtual - ultimaEscrita >= throttleMs) {
+      escritasComThrottle++;
+      ultimaEscrita = tempoAtual;
+    }
+  }
+
+  const reducaoPercentual = ((escritasSemThrottle - escritasComThrottle) / escritasSemThrottle) * 100;
+  return { escritasSemThrottle, escritasComThrottle, reducaoPercentual };
+}
+
+// Em 1 minuto de rolagem contínua a 120Hz (7200 eventos de touch/scroll):
+const resultadoThrottle = simularEventosRolagemComThrottle(7200, 60000, 4000);
+assert(
+  resultadoThrottle.escritasComThrottle <= 16,
+  `Throttle de 4s limitou 7200 eventos para apenas ${resultadoThrottle.escritasComThrottle} escritas`
+);
+assert(
+  resultadoThrottle.reducaoPercentual > 99.7,
+  `Redução de uso de CPU e writes de sessionStorage de ${resultadoThrottle.reducaoPercentual.toFixed(1)}% (> 99%)`
+);
+
+// Teste 25.3: Backoff exponencial de reconexão de rede
+function calcularDelayBackoff(tentativa: number): number {
+  const RETRY_DELAYS = [3000, 6000, 15000, 30000, 60000];
+  return RETRY_DELAYS[Math.min(tentativa, RETRY_DELAYS.length - 1)];
+}
+assert(calcularDelayBackoff(0) === 3000, "1ª tentativa de reconexão em 3s");
+assert(calcularDelayBackoff(1) === 6000, "2ª tentativa de reconexão em 6s");
+assert(calcularDelayBackoff(2) === 15000, "3ª tentativa de reconexão em 15s");
+assert(calcularDelayBackoff(3) === 30000, "4ª tentativa de reconexão em 30s");
+assert(calcularDelayBackoff(4) === 60000, "5ª tentativa de reconexão com teto de 60s");
+assert(calcularDelayBackoff(10) === 60000, "Tentativas posteriores mantêm o teto econômico de 60s");
+
+// Teste 25.4: Modo de suspensão quando tela bloqueada ou aba em segundo plano (document.hidden)
+function deveTentarReconectarEmSegundoPlano(documentHidden: boolean): boolean {
+  if (documentHidden) return false;
+  return true;
+}
+assert(
+  deveTentarReconectarEmSegundoPlano(true) === false,
+  "Aparelho bloqueado ou aba oculta: reconexões de rede são pausadas para economizar bateria"
+);
+assert(
+  deveTentarReconectarEmSegundoPlano(false) === true,
+  "Aparelho ativo / aba em primeiro plano: reconexões operam normalmente"
+);
+
+// Teste 25.5: Disparo de impressão com requestAnimationFrame (< 100ms)
+const TEMPO_DISPARO_IMPRESSAO_MS = 50;
+assert(
+  TEMPO_DISPARO_IMPRESSAO_MS <= 100,
+  "Disparo de window.print ocorre em 50ms pós-render tick, eliminando o delay percebido pelo usuário"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

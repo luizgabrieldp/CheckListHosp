@@ -43,8 +43,8 @@ export function Sidebar() {
 
   return (
     <>
-      {/* HEADER FIXO SUPERIOR PARA MOBILE (< 768px) */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 pt-[env(safe-area-inset-top,0px)] h-[calc(3.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between no-print shadow-2xs">
+      {/* HEADER FIXO SUPERIOR PARA MOBILE (< 768px) OTIMIZADO PARA GPU */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white/98 backdrop-blur-xs border-b border-slate-200/90 px-3.5 pt-[env(safe-area-inset-top,0px)] h-[calc(3.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between no-print shadow-2xs">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -63,7 +63,7 @@ export function Sidebar() {
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] font-medium text-slate-600">
           <span
             className={`w-2 h-2 rounded-full ${
-              isConnected ? "bg-emerald-500 animate-pulse" : "bg-rose-400"
+              isConnected ? "bg-emerald-500 shadow-xs shadow-emerald-500/50" : "bg-rose-400 animate-pulse"
             }`}
           />
           <span className="text-[10px]">{isConnected ? "Ao vivo" : "Offline"}</span>
@@ -151,7 +151,7 @@ export function Sidebar() {
             >
               <span
                 className={`w-2.5 h-2.5 rounded-full ${
-                  isConnected ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
+                  isConnected ? "bg-emerald-500 shadow-xs shadow-emerald-500/50" : "bg-rose-500 animate-pulse"
                 }`}
               />
             </div>
@@ -160,7 +160,7 @@ export function Sidebar() {
               <div className="flex items-center gap-1.5">
                 <span
                   className={`w-2 h-2 rounded-full ${
-                    isConnected ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
+                    isConnected ? "bg-emerald-500 shadow-xs shadow-emerald-500/50" : "bg-rose-500 animate-pulse"
                   }`}
                 />
                 <span className="font-semibold text-slate-600">

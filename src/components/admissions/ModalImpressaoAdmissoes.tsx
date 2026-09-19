@@ -101,13 +101,16 @@ export function ModalImpressaoAdmissoes({ admissoes, onClose, onSalvarOrdem }: P
 
   function handleImprimir() {
     onSalvarOrdem(itens);
-    setTimeout(() => {
-      window.print();
-    }, 150);
+    onClose();
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        window.print();
+      }, 50);
+    });
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200 no-print print:hidden">
       <div className="w-full max-w-2xl rounded-2xl glass-card border border-cyan-500/40 p-6 shadow-2xl flex flex-col max-h-[90vh]">
         {/* CABEÇALHO MODAL */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">

@@ -16,7 +16,7 @@ export function LgpdConsentModal() {
   if (!precisaAceitar) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200 no-print print:hidden">
       <div className="w-full max-w-lg rounded-2xl bg-white p-5 sm:p-7 md:p-8 shadow-2xl border border-slate-200 relative max-h-[90vh] flex flex-col">
         <div className="flex items-center gap-3 mb-4 shrink-0">
           <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">

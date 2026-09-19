@@ -23,7 +23,7 @@ export function GatekeeperModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-100/85 backdrop-blur-2xl p-4 transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-100/90 backdrop-blur-xs p-4 transition-all no-print print:hidden">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 sm:p-8 shadow-2xl border border-slate-200/90 relative animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center space-x-3 mb-6">
           <div className="w-12 h-12 rounded-xl bg-emerald-700 flex items-center justify-center text-white shadow-md shadow-emerald-700/25">

@@ -74,6 +74,25 @@
   background: #94a3b8;
 }
 
+/* Eficiência Energética e Economia de Bateria: Standby em Segundo Plano */
+body.app-background *,
+body.app-background *::before,
+body.app-background *::after {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Otimização Rigorosa para Impressão A4 (@media print) */
 @media print {
   @page {
@@ -94,7 +113,8 @@
 
   /* Resetar a margem desktop da sidebar no layout principal */
   .lg\:ml-60,
-  div[class*="lg:ml-60"] {
+  div[class*="lg:ml-60"],
+  div[class*="md:ml-"] {
     margin-left: 0 !important;
     padding: 0 !important;
   }
@@ -107,11 +127,12 @@
   }
 
   .no-print,
+  .print-hide,
   nav,
   header,
   aside,
   button,
-  .print-hide {
+  [class*="no-print"] {
     display: none !important;
   }
 

@@ -88,7 +88,7 @@ export function Header() {
               >
                 <span
                   className={`w-2 h-2 rounded-full ${
-                    isConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-400"
+                    isConnected ? "bg-emerald-400 shadow-xs shadow-emerald-400/50" : "bg-rose-400 animate-pulse"
                   }`}
                 />
                 <span>{isConnected ? `${latencyMs}ms` : "Offline"}</span>
@@ -100,7 +100,7 @@ export function Header() {
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* BADGE DE ALERTA URGENTE */}
             {urgentesNaoFeitas > 0 ? (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-500/50 text-rose-300 font-semibold animate-bounce shadow-lg shadow-rose-500/20">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/25 border border-rose-500/60 text-rose-200 font-bold shadow-md shadow-rose-500/20">
                 <Flame className="w-4 h-4 text-rose-400 shrink-0" />
                 <span>⚠️ {urgentesNaoFeitas} Urgente{urgentesNaoFeitas > 1 ? "s" : ""} pendente!</span>
               </div>

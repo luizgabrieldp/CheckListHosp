@@ -141,9 +141,12 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
   }
 
   function handleImprimir() {
-    setTimeout(() => {
-      window.print();
-    }, 150);
+    // requestAnimationFrame assegura que qualquer pintura pendente foi concluída antes de congelar para o preview de impressão
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        window.print();
+      }, 50);
+    });
   }
 
   // Grupos filtrados apenas com pacientes selecionados para impressão
@@ -160,10 +163,12 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
   const dataHojeFormatada = formatarDataBR(obterDataLocalHoje());
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in no-print">
-      <div className="w-full max-w-3xl rounded-2xl bg-white border border-slate-200 p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92vh]">
-        {/* CABEÇALHO DO MODAL */}
-        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-200 shrink-0 gap-3">
+    <>
+      {/* DIÁLOGO INTERATIVO DE SELEÇÃO - VISÍVEL APENAS NA TELA (TOTALMENTE OCULTO NA IMPRESSÃO) */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in no-print print:hidden">
+        <div className="w-full max-w-3xl rounded-2xl bg-white border border-slate-200 p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92vh]">
+          {/* CABEÇALHO DO MODAL */}
+          <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-200 shrink-0 gap-3">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
               <Printer className="w-5 h-5 text-sky-600 shrink-0" />
@@ -386,9 +391,11 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
           </button>
         </div>
       </div>
+      </div>
 
       {/* ─────────────────────────────────────────────────────────────
           ÁREA DE IMPRESSÃO A4 OTIMIZADA (@media print)
+          - Fora de qualquer container .no-print
           - Sem banner institucional volumoso tomando meia página
           - Cabeçalho ultra-compacto de 1 linha
           - Dividido por enfermaria e estritamente ordenado por leito
@@ -577,7 +584,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

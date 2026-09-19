@@ -50,8 +50,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
     let reconnectTimeout: NodeJS.Timeout | null = null;
     let unsubscribeFirestore: (() => void) | null = null;
+    let retryAttempt = 0;
+    const RETRY_DELAYS = [3000, 6000, 15000, 30000, 60000];
 
-    // Bloquear pinça e zoom multitoque no iOS/Safari mantendo a rolagem com 1 dedo 100% livre
+    // Bloquear pinça e zoom multitoque no iOS/Safari mantendo a rolagem fluida nativa por hardware a 60/120fps
     const preventZoom = (e: TouchEvent) => {
       if (e.touches && e.touches.length > 1) {
         e.preventDefault();
@@ -63,7 +65,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     if (typeof document !== "undefined") {
       document.addEventListener("touchstart", preventZoom, { passive: false });
-      document.addEventListener("touchmove", preventZoom, { passive: false });
+      // touchmove mantido passivo para não travar a thread de composição de rolagem da GPU móvel
+      document.addEventListener("touchmove", preventZoom, { passive: true });
       document.addEventListener("gesturestart", preventGesture, { passive: false });
       document.addEventListener("gesturechange", preventGesture, { passive: false });
       document.addEventListener("gestureend", preventGesture, { passive: false });
@@ -108,6 +111,11 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Se a aba estiver oculta ou tela bloqueada, adia a conexão para economizar bateria
+      if (typeof document !== "undefined" && document.hidden) {
+        return;
+      }
+
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const host = window.location.host;
       const wsUrl = `${protocol}//${host}/ws`;
@@ -119,6 +127,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
         socket.onopen = () => {
           if (!isMounted) return;
+          retryAttempt = 0;
           setConnected(true, 12);
 
           if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
@@ -173,7 +182,16 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           }
           registerSocket(null);
           if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
-          reconnectTimeout = setTimeout(connectWs, 3000);
+
+          // Backoff exponencial para poupar bateria e tráfego de rede
+          const delay = RETRY_DELAYS[Math.min(retryAttempt, RETRY_DELAYS.length - 1)];
+          retryAttempt++;
+
+          // Não reconecta se o dispositivo estiver com tela bloqueada ou aba em segundo plano
+          if (typeof document !== "undefined" && document.hidden) {
+            return;
+          }
+          reconnectTimeout = setTimeout(connectWs, delay);
         };
 
         socket.onerror = (err) => {
@@ -183,6 +201,19 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       } catch (err) {
         console.warn("Não foi possível iniciar WebSocket:", err);
       }
+    }
+
+    const handleVisibilidade = () => {
+      if (typeof document !== "undefined" && !document.hidden && isMounted) {
+        if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
+          if (reconnectTimeout) clearTimeout(reconnectTimeout);
+          connectWs();
+        }
+      }
+    };
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", handleVisibilidade);
     }
 
     connectWs();
@@ -195,6 +226,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         document.removeEventListener("gesturestart", preventGesture);
         document.removeEventListener("gesturechange", preventGesture);
         document.removeEventListener("gestureend", preventGesture);
+        document.removeEventListener("visibilitychange", handleVisibilidade);
       }
       if (unsubscribeFirestore) unsubscribeFirestore();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);

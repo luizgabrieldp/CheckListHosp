@@ -484,10 +484,12 @@ export function PassagemPlantaoView() {
 
   return (
     <div className="space-y-6">
-      {/* ─────────────────────────────────────────────────────────────
-          1. TOPO DA PASSAGEM DE PLANTÃO
-      ────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* WRAPPER DA INTERFACE INTERATIVA DE TELA (OCULTO NA IMPRESSÃO PARA VELOCIDADE INSTANTÂNEA) */}
+      <div className="space-y-6 no-print print:hidden">
+        {/* ─────────────────────────────────────────────────────────────
+            1. TOPO DA PASSAGEM DE PLANTÃO
+        ────────────────────────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             Passagem de Plantão
@@ -1953,6 +1955,7 @@ export function PassagemPlantaoView() {
           </div>
         </div>
       )}
+      </div>
 
       {/* ─────────────────────────────────────────────────────────────
           6. MODAL DE IMPRESSÃO SELETIVA

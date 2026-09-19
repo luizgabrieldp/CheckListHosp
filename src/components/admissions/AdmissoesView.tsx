@@ -344,9 +344,11 @@ export function AdmissoesView() {
 
   function handleConfirmarImpressao() {
     setModalImpressaoAberto(false);
-    setTimeout(() => {
-      window.print();
-    }, 150);
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        window.print();
+      }, 50);
+    });
   }
 
   // Regra de etapas progressivas automáticas para os 4 status
@@ -441,8 +443,10 @@ export function AdmissoesView() {
 
   return (
     <div className="space-y-5 max-w-6xl mx-auto">
-      {/* TOAST FLUTUANTE */}
-      {toastMsg && (
+      {/* WRAPPER DE TELA INTERATIVA (TOTALMENTE OCULTO NA IMPRESSÃO PARA PREVIEW INSTANTÂNEO) */}
+      <div className="space-y-5 no-print print:hidden">
+        {/* TOAST FLUTUANTE */}
+        {toastMsg && (
         <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 no-print">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMsg}</span>
@@ -951,6 +955,7 @@ export function AdmissoesView() {
           </div>
         </div>
       )}
+      </div>
 
       {/* FOLHA A4 DE IMPRESSÃO LIMPA E ESTRITAMENTE NUMERADA */}
       <div className="hidden print:block print-container w-full">
