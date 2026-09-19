@@ -21,18 +21,33 @@ export default function HomePage() {
   const activeTab = useAppStore((s) => s.activeTab);
   const timerInatividadeRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Monitoramento contínuo de inatividade (5 minutos)
+  // Monitoramento contínuo de inatividade (5 minutos) com proteção total anti-F5 e segundo plano
   useEffect(() => {
     if (!isAuthenticated) return;
 
     function resetarTimerInatividade() {
+      useAppStore.getState().registrarAtividade();
       if (timerInatividadeRef.current) {
         clearTimeout(timerInatividadeRef.current);
       }
       timerInatividadeRef.current = setTimeout(() => {
-        // Bloqueio de segurança: exige login novamente e redireciona ao painel
-        useAppStore.setState({ isAuthenticated: false, activeTab: "metricas" });
+        // Bloqueio de segurança irrestrito: limpa memória e sessionStorage exigindo senha mesmo com F5
+        useAppStore.getState().logout();
       }, TEMPO_INATIVIDADE_MS);
+    }
+
+    function verificarExpiracaoSegundoPlano() {
+      if (typeof window !== "undefined") {
+        const lastStr = sessionStorage.getItem("checklist_last_activity");
+        if (lastStr) {
+          const decorrido = Date.now() - Number(lastStr);
+          if (decorrido >= TEMPO_INATIVIDADE_MS) {
+            useAppStore.getState().logout();
+            return;
+          }
+        }
+      }
+      resetarTimerInatividade();
     }
 
     const eventos = ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"];
@@ -41,8 +56,11 @@ export default function HomePage() {
       window.addEventListener(evento, resetarTimerInatividade, { passive: true });
     });
 
-    // Iniciar contagem
-    resetarTimerInatividade();
+    window.addEventListener("visibilitychange", verificarExpiracaoSegundoPlano);
+    window.addEventListener("focus", verificarExpiracaoSegundoPlano);
+
+    // Iniciar contagem e verificar se já não estava expirado
+    verificarExpiracaoSegundoPlano();
 
     return () => {
       if (timerInatividadeRef.current) {
@@ -51,6 +69,8 @@ export default function HomePage() {
       eventos.forEach((evento) => {
         window.removeEventListener(evento, resetarTimerInatividade);
       });
+      window.removeEventListener("visibilitychange", verificarExpiracaoSegundoPlano);
+      window.removeEventListener("focus", verificarExpiracaoSegundoPlano);
     };
   }, [isAuthenticated]);
 

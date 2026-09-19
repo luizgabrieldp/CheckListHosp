@@ -122,6 +122,7 @@ interface AppStoreState {
   login: (senha: string) => boolean;
   aceitarTermoLgpd: () => void;
   logout: () => void;
+  registrarAtividade: () => void;
   setActiveTab: (tab: AppStoreState['activeTab']) => void;
 
   // Ações de Conexão
@@ -184,6 +185,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
       set({ isAuthenticated: true, activeTab: "metricas" });
       if (typeof window !== "undefined") {
         sessionStorage.setItem("checklist_auth", "true");
+        sessionStorage.setItem("checklist_last_activity", Date.now().toString());
       }
       return true;
     }
@@ -202,6 +204,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     set({ isAuthenticated: false, activeTab: "metricas" });
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("checklist_auth");
+      sessionStorage.removeItem("checklist_last_activity");
+    }
+  },
+
+  registrarAtividade: () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("checklist_last_activity", Date.now().toString());
     }
   },
 

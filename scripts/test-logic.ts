@@ -1353,6 +1353,81 @@ assert(calcularAlturaAdaptativaQuadrado(2) === 150, "2 médicos preenchem a altu
 assert(calcularAlturaAdaptativaQuadrado(4) === 242, "4 médicos expandem adaptativamente para 242px sem corte e sem scroll interno");
 assert(calcularAlturaAdaptativaQuadrado(6) === 346, "6 médicos expandem adaptativamente para 346px exibindo todos os nomes");
 
+// 22. SEGURANÇA DE LOGIN, EXPIRAÇÃO DE SESSÃO (5 MIN) E PROTEÇÃO CONTRA F5
+console.log("\n--- 22. Segurança da Sessão: Expiração em 5 Minutos & Proteção no F5 ---");
+
+const TEMPO_INATIVIDADE_TESTE_MS = 5 * 60 * 1000; // 300.000 ms
+
+interface StorageSimulado {
+  [key: string]: string | undefined;
+}
+
+function simularVerificacaoF5(storage: StorageSimulado, timestampAtual: number): boolean {
+  const auth = storage["checklist_auth"];
+  const lastActivity = storage["checklist_last_activity"];
+
+  if (auth === "true" && lastActivity) {
+    const decorrido = timestampAtual - Number(lastActivity);
+    if (decorrido < TEMPO_INATIVIDADE_TESTE_MS) {
+      // Sessão válida e recente: permite entrada e renova atividade
+      storage["checklist_last_activity"] = timestampAtual.toString();
+      return true;
+    } else {
+      // Sessão expirada (> 5 min): invalida e remove credenciais
+      delete storage["checklist_auth"];
+      delete storage["checklist_last_activity"];
+      return false;
+    }
+  }
+
+  delete storage["checklist_auth"];
+  delete storage["checklist_last_activity"];
+  return false;
+}
+
+function simularDisparoTimeoutInatividade(storage: StorageSimulado) {
+  // Ação de logout no timeout de 5 minutos
+  delete storage["checklist_auth"];
+  delete storage["checklist_last_activity"];
+}
+
+// Teste 22.1: Sessão após 5 minutos de inatividade disparada pelo timer
+const storageInativo: StorageSimulado = {
+  checklist_auth: "true",
+  checklist_last_activity: (Date.now() - 5 * 60 * 1000).toString(),
+};
+simularDisparoTimeoutInatividade(storageInativo);
+assert(storageInativo["checklist_auth"] === undefined, "Timer de inatividade limpa 'checklist_auth' do storage");
+assert(storageInativo["checklist_last_activity"] === undefined, "Timer de inatividade limpa 'checklist_last_activity'");
+
+// Teste 22.2: F5 imediatamente após o bloqueio de 5 minutos não restaura autenticação
+const reautenticouAposBloqueio = simularVerificacaoF5(storageInativo, Date.now());
+assert(reautenticouAposBloqueio === false, "F5 após bloqueio de inatividade exige senha mestre (não entra)");
+
+// Teste 22.3: F5 durante uso ativo (< 5 minutos, ex: 1 minuto) mantém conectado sem pedir senha
+const agoraTesteAuth = Date.now();
+const storageAtivo: StorageSimulado = {
+  checklist_auth: "true",
+  checklist_last_activity: (agoraTesteAuth - 1 * 60 * 1000).toString(), // 1 min atrás
+};
+const manteveAtivo = simularVerificacaoF5(storageAtivo, agoraTesteAuth);
+assert(manteveAtivo === true, "F5 durante uso ativo (< 5 min) preserva a sessão do profissional");
+assert(Number(storageAtivo["checklist_last_activity"]) === agoraTesteAuth, "F5 ativo renova o timestamp de última atividade");
+
+// Teste 22.4: Aba deixada em segundo plano / celular suspenso por 10 minutos e depois F5
+const storageSuspenso: StorageSimulado = {
+  checklist_auth: "true",
+  checklist_last_activity: (agoraTesteAuth - 10 * 60 * 1000).toString(), // 10 min atrás
+};
+const expirouSegundoPlano = simularVerificacaoF5(storageSuspenso, agoraTesteAuth);
+assert(expirouSegundoPlano === false, "F5 após 10 minutos em segundo plano rejeita o acesso e exige senha");
+assert(storageSuspenso["checklist_auth"] === undefined, "Storage é completamente limpo após expiração em segundo plano");
+
+// Teste 22.5: Usuário sem login anterior dando F5
+const storageVazio: StorageSimulado = {};
+const tentouSemLogin = simularVerificacaoF5(storageVazio, agoraTesteAuth);
+assert(tentouSemLogin === false, "Usuário sem credencial prévia permanece bloqueado");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

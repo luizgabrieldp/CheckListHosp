@@ -17,12 +17,30 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const pingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Restaurar sessão se já autenticado na aba
+    // Restaurar sessão com validação estrita de expiração por inatividade (5 minutos)
     if (typeof window !== "undefined") {
       const auth = sessionStorage.getItem("checklist_auth");
-      if (auth === "true") {
-        useAppStore.setState({ isAuthenticated: true });
+      const lastActivity = sessionStorage.getItem("checklist_last_activity");
+      const TEMPO_LIMITE_INATIVIDADE = 5 * 60 * 1000; // 5 minutos
+
+      if (auth === "true" && lastActivity) {
+        const decorrido = Date.now() - Number(lastActivity);
+        if (decorrido < TEMPO_LIMITE_INATIVIDADE) {
+          // Sessão ativa e recente: restaura acesso e renova timestamp
+          useAppStore.setState({ isAuthenticated: true });
+          sessionStorage.setItem("checklist_last_activity", Date.now().toString());
+        } else {
+          // Mais de 5 minutos inativo: sessão expirada, exige senha na tela de bloqueio
+          sessionStorage.removeItem("checklist_auth");
+          sessionStorage.removeItem("checklist_last_activity");
+          useAppStore.setState({ isAuthenticated: false, activeTab: "metricas" });
+        }
+      } else {
+        sessionStorage.removeItem("checklist_auth");
+        sessionStorage.removeItem("checklist_last_activity");
+        useAppStore.setState({ isAuthenticated: false });
       }
+
       const lgpdData = localStorage.getItem("checklist_lgpd_date");
       if (lgpdData) {
         useAppStore.setState({ lgpdAcceptedDate: lgpdData });
