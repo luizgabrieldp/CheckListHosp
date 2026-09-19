@@ -44,17 +44,20 @@ export function imprimirElementoIsolado(
       iframe.setAttribute("tabindex", "-1");
       iframe.setAttribute("title", tituloDocumento);
 
-      // Usar coordenadas fixas fora da viewport com opacidade quase zero (não display:none)
-      // para garantir que o Safari (iOS/macOS) renderize a árvore gráfica para o diálogo de impressão
+      // Usar coordenadas fixas fora da viewport com largura e altura reais de página A4.
+      // No Safari/WebKit (macOS e iOS), a viewport do iframe determina a largura de renderização
+      // da mídia de impressão. Usar 210mm (min 794px) impede que o Safari esprema o documento
+      // em uma coluna minúscula de 10px que quebrava palavras letra a letra em 9 páginas.
       iframe.style.position = "fixed";
+      iframe.style.right = "-9999px";
       iframe.style.top = "0";
-      iframe.style.left = "0";
-      iframe.style.width = "10px";
-      iframe.style.height = "10px";
+      iframe.style.width = "210mm";
+      iframe.style.minWidth = "794px";
+      iframe.style.height = "297mm";
       iframe.style.padding = "0";
       iframe.style.margin = "0";
       iframe.style.border = "none";
-      iframe.style.opacity = "0.01";
+      iframe.style.opacity = "0";
       iframe.style.pointerEvents = "none";
       iframe.style.zIndex = "-99999";
 
@@ -118,14 +121,19 @@ export function imprimirElementoIsolado(
           margin: 0 !important;
           padding: 0 !important;
           width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
         }
 
-        /* Garantir visibilidade irrestrita da folha A4 no iframe */
+        /* Garantir visibilidade irrestrita da folha A4 no iframe com largura fluida total */
         .hidden,
         .print\\:block,
         .print-container {
           display: block !important;
           visibility: visible !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
         }
 
         .no-print,
@@ -171,12 +179,73 @@ export function imprimirElementoIsolado(
           margin-bottom: 10px !important;
         }
 
-        /* Utilitários essenciais de margens e flexbox */
+        /* Utilitários essenciais de largura, margens e flexbox */
+        .w-full { width: 100% !important; }
+        .max-w-full { max-width: 100% !important; }
         .flex { display: flex !important; }
         .flex-wrap { flex-wrap: wrap !important; }
         .items-center { align-items: center !important; }
         .items-baseline { align-items: baseline !important; }
         .justify-between { justify-content: space-between !important; }
+        .shrink-0 { flex-shrink: 0 !important; }
+        .gap-1 { gap: 4px !important; }
+        .gap-1\\.5 { gap: 6px !important; }
+        .gap-2 { gap: 8px !important; }
+
+        /* Tipografia clínica */
+        .text-xs, .text-\\[11px\\] { font-size: 11px !important; }
+        .text-sm { font-size: 13px !important; }
+        .text-lg { font-size: 16px !important; }
+        .font-medium { font-weight: 500 !important; }
+        .font-semibold { font-weight: 600 !important; }
+        .font-bold { font-weight: 700 !important; }
+        .font-extrabold { font-weight: 800 !important; }
+        .tracking-wider { letter-spacing: 0.04em !important; }
+        .text-center { text-align: center !important; }
+        .italic { font-style: italic !important; }
+
+        /* Cores de alto contraste e legibilidade hospitalar */
+        .text-black { color: #000000 !important; }
+        .text-gray-900 { color: #111827 !important; }
+        .text-gray-800 { color: #1f2937 !important; }
+        .text-gray-700 { color: #374151 !important; }
+        .text-gray-600 { color: #4b5563 !important; }
+        .text-gray-500 { color: #6b7280 !important; }
+        .text-amber-900 { color: #78350f !important; }
+        .bg-white { background-color: #ffffff !important; }
+        .bg-gray-100 { background-color: #f3f4f6 !important; }
+        .bg-gray-50 { background-color: #f9fafb !important; }
+
+        /* Bordas e arredondamentos */
+        .border { border: 1px solid #9ca3af !important; }
+        .border-b { border-bottom: 1px solid #d1d5db !important; }
+        .border-b-2 { border-bottom: 2px solid #000000 !important; }
+        .border-l-4 { border-left: 4px solid #000000 !important; }
+        .border-black { border-color: #000000 !important; }
+        .border-gray-400 { border-color: #9ca3af !important; }
+        .border-gray-300 { border-color: #d1d5db !important; }
+        .rounded { border-radius: 4px !important; }
+        .rounded-xl { border-radius: 10px !important; }
+
+        /* Espaçamentos e listas */
+        .p-3\\.5 { padding: 12px !important; }
+        .px-1\\.5 { padding-left: 6px !important; padding-right: 6px !important; }
+        .px-2 { padding-left: 8px !important; padding-right: 8px !important; }
+        .px-2\\.5 { padding-left: 10px !important; padding-right: 10px !important; }
+        .py-0\\.5 { padding-top: 2px !important; padding-bottom: 2px !important; }
+        .py-1 { padding-top: 4px !important; padding-bottom: 4px !important; }
+        .py-1\\.5 { padding-top: 6px !important; padding-bottom: 6px !important; }
+        .pb-1\\.5 { padding-bottom: 6px !important; }
+        .pb-3 { padding-bottom: 12px !important; }
+        .mb-1 { margin-bottom: 4px !important; }
+        .mb-2 { margin-bottom: 8px !important; }
+        .mb-2\\.5 { margin-bottom: 10px !important; }
+        .mb-4 { margin-bottom: 16px !important; }
+        .mt-0\\.5 { margin-top: 2px !important; }
+        .mt-1 { margin-top: 4px !important; }
+        .pt-1 { padding-top: 4px !important; }
+        .list-disc { list-style-type: disc !important; }
+        .pl-4 { padding-left: 16px !important; }
         .space-y-3 > * + * { margin-top: 12px !important; }
         .space-y-2 > * + * { margin-top: 8px !important; }
         .space-y-2\\.5 > * + * { margin-top: 9px !important; }
@@ -220,11 +289,11 @@ export function imprimirElementoIsolado(
         }
       };
 
-      // Disparo em microtask mínima para permitir que o parser do iframe monte os nós (menos de 25ms)
+      // Disparo com intervalo adequado para garantir renderização e layout completos
       if (frameDoc.readyState === "complete") {
-        setTimeout(acionarPrint, 35);
+        setTimeout(acionarPrint, 50);
       } else {
-        iframe.onload = () => setTimeout(acionarPrint, 35);
+        iframe.onload = () => setTimeout(acionarPrint, 50);
       }
     } catch (err) {
       console.error("[printUtils] Falha na rotina isolada de impressão:", err);

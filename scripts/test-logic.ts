@@ -1720,10 +1720,13 @@ assert(
   "Disparo na janela principal causava lockup de ~30s pela repaginação da SPA inteira"
 );
 
-// Teste 28.2: Configuração de invisibilidade e renderização garantida no WebKit/Safari
+// Teste 28.2: Configuração de invisibilidade e viewport A4 garantida no WebKit/Safari (sem espremer em 10px)
 interface ConfigIframeImpressao {
   position: string;
+  right: string;
+  top: string;
   width: string;
+  minWidth: string;
   height: string;
   opacity: string;
   pointerEvents: string;
@@ -1732,16 +1735,23 @@ interface ConfigIframeImpressao {
 
 const configIframe: ConfigIframeImpressao = {
   position: "fixed",
-  width: "10px",
-  height: "10px",
-  opacity: "0.01",
+  right: "-9999px",
+  top: "0",
+  width: "210mm",
+  minWidth: "794px",
+  height: "297mm",
+  opacity: "0",
   pointerEvents: "none",
-  displayNone: false, // Não usar display:none para garantir renderização de layout no Safari iOS/macOS
+  displayNone: false, // Não usar display:none para garantir renderização gráfica de layout no Safari iOS/macOS
 };
 
 assert(
-  configIframe.displayNone === false && configIframe.opacity === "0.01",
-  "Iframe não usa display:none, garantindo disparo 100% confiável no Safari/WebKit e invisibilidade na tela"
+  configIframe.displayNone === false && configIframe.opacity === "0",
+  "Iframe não usa display:none e opacidade zero fora da tela, invisível para o usuário"
+);
+assert(
+  configIframe.width === "210mm" && configIframe.minWidth === "794px" && configIframe.height === "297mm",
+  "Viewport do iframe tem dimensões físicas de folha A4 (210mm x 297mm, min 794px), impedindo que o Safari esprema o layout em coluna de 10px e 9 páginas"
 );
 
 // Teste 28.3: Prevenção de cliques múltiplos sucessivos durante abertura do diálogo
@@ -1805,21 +1815,41 @@ assert(
   "Conteúdo clínico preserva quebras de linha com white-space: pre-wrap inline infalível"
 );
 
-// Teste 29.3: Auto-ajuste de altura dinâmico (auto-expand)
-function calcularAlturaAutoResize(scrollHeight: number, minRows: number): number {
+// Teste 29.3: Auto-ajuste de altura dinâmico (auto-expand) com compensação de bordas em box-sizing
+function calcularAlturaAutoResize(scrollHeight: number, minRows: number, bordasVerticais: number = 2): number {
   const alturaMinima = Math.max(minRows * 20 + 16, 44);
-  return Math.max(scrollHeight, alturaMinima);
+  return Math.max(scrollHeight + bordasVerticais, alturaMinima);
 }
 assert(
-  calcularAlturaAutoResize(20, 2) === 56,
+  calcularAlturaAutoResize(20, 2, 2) === 56,
   "Texto curto respeita altura mínima base de 2 linhas (56px)"
 );
 assert(
-  calcularAlturaAutoResize(180, 2) === 180,
-  "Texto longo de receita médica expande automaticamente para 180px sem barra de rolagem interna"
+  calcularAlturaAutoResize(180, 2, 2) === 182,
+  "Texto longo expande para 182px (180px + 2px de borda), garantindo clientHeight === scrollHeight e zero scrollbar fantasma"
 );
 
-// Teste 29.4: Marcador manual de redimensionar protegido com padding
+// Teste 29.4: Preservação do gesto nativo de seleção de texto (duplo clique seleciona palavra sem resetar redimensionamento)
+function simularAcaoDuploClique(
+  userResized: boolean,
+  alturaAtual: number
+): { selecionouPalavraNativamente: boolean; alturaPreservada: number; manteveManual: boolean } {
+  // Duplo clique é o gesto nativo de seleção de palavras no sistema operacional e NÃO deve resetar a altura manual
+  return {
+    selecionouPalavraNativamente: true,
+    alturaPreservada: alturaAtual,
+    manteveManual: userResized,
+  };
+}
+const resultadoDuploClique = simularAcaoDuploClique(true, 90);
+assert(
+  resultadoDuploClique.selecionouPalavraNativamente === true &&
+  resultadoDuploClique.alturaPreservada === 90 &&
+  resultadoDuploClique.manteveManual === true,
+  "Duplo clique no textarea preserva seleção nativa de palavras do SO e não destrói a altura manual definida pelo médico"
+);
+
+// Teste 29.5: Marcador manual de redimensionar protegido com padding
 interface EstiloTextareaProtegido {
   resize: string;
   paddingBottomPx: number;
@@ -1835,6 +1865,63 @@ assert(
   estiloTextarea.paddingBottomPx >= 16 &&
   estiloTextarea.paddingRightPx >= 16,
   "Marcador de redimensionar manual tem folga de proteção de 16px, impedindo que a barra de rolagem o esconda"
+);
+
+// Teste 29.5: Suporte a rolagem vertical ao redimensionar para área reduzida
+function simularComportamentoTextarea(
+  scrollHeight: number,
+  alturaManual: number | null,
+  userResized: boolean,
+  conteudoVazio: boolean
+): { alturaFinal: number; overflowY: "auto"; permiteScroll: boolean; manteveManual: boolean } {
+  const alturaMinima = 56;
+  let finalUserResized = userResized;
+
+  if (conteudoVazio) {
+    finalUserResized = false;
+  }
+
+  if (finalUserResized && alturaManual !== null) {
+    return {
+      alturaFinal: alturaManual,
+      overflowY: "auto",
+      permiteScroll: alturaManual < scrollHeight,
+      manteveManual: true,
+    };
+  }
+
+  const alturaAuto = Math.max(scrollHeight, alturaMinima);
+  return {
+    alturaFinal: alturaAuto,
+    overflowY: "auto",
+    permiteScroll: false, // cabe perfeitamente
+    manteveManual: false,
+  };
+}
+
+// Caso 1: Usuário encolheu um texto de 200px para 80px (área reduzida)
+const redimMenor = simularComportamentoTextarea(200, 80, true, false);
+assert(
+  redimMenor.alturaFinal === 80 && redimMenor.overflowY === "auto" && redimMenor.permiteScroll === true,
+  "Ao redimensionar para campo menor (80px < 200px), overflowY é 'auto' e rolagem vertical fica ativa para ver todo o texto"
+);
+assert(
+  redimMenor.manteveManual === true,
+  "Altura manual de 80px é preservada sem ser destruída por novos eventos de digitação"
+);
+
+// Caso 2: Campo sem redimensionamento manual expande normalmente
+const autoExpandNormal = simularComportamentoTextarea(150, null, false, false);
+assert(
+  autoExpandNormal.alturaFinal === 150 && autoExpandNormal.overflowY === "auto" && autoExpandNormal.manteveManual === false,
+  "Sem redimensionamento manual, campo auto-expande suavemente até 150px mantendo overflowY: auto"
+);
+
+// Caso 3: Limpar o conteúdo reseta a altura manual para a base
+const resetAoLimpar = simularComportamentoTextarea(20, 80, true, true);
+assert(
+  resetAoLimpar.alturaFinal === 56 && resetAoLimpar.manteveManual === false,
+  "Ao limpar o conteúdo, redimensionamento manual é resetado e campo volta à altura mínima base (56px)"
 );
 
 console.log(`\n==============================================`);

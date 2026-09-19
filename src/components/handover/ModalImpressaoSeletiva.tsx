@@ -427,7 +427,11 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
           - Cabeçalho ultra-compacto de 1 linha
           - Dividido por enfermaria e estritamente ordenado por leito
       ────────────────────────────────────────────────────────────── */}
-      <div ref={folhaA4Ref} className="hidden print:block print-container">
+      <div
+        ref={folhaA4Ref}
+        style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
+        className="hidden print:block print-container w-full"
+      >
         {/* CABEÇALHO ULTRA-COMPACTO DE 1 LINHA */}
         <div
           style={{
@@ -441,8 +445,10 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
             fontWeight: "bold",
             textTransform: "uppercase",
             color: "#000000",
+            width: "100%",
+            boxSizing: "border-box",
           }}
-          className="print-header flex items-center justify-between pb-1.5 mb-2.5 border-b-2 border-black text-xs font-bold uppercase tracking-wider text-black"
+          className="print-header flex items-center justify-between pb-1.5 mb-2.5 border-b-2 border-black text-xs font-bold uppercase tracking-wider text-black w-full"
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }} className="flex items-center gap-2">
             <span style={{ fontSize: "14px", fontWeight: "800" }} className="text-sm font-extrabold">PASSAGEM DE PLANTÃO</span>
@@ -455,9 +461,9 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
         </div>
 
         {/* LISTAGEM AGRUPADA POR ENFERMARIA E ORDENADA POR LEITO */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }} className="space-y-3">
+        <div style={{ display: "block", width: "100%", boxSizing: "border-box" }} className="space-y-3 w-full">
           {gruposParaImpressao.map((grupo) => (
-            <div key={grupo.nome} style={{ display: "flex", flexDirection: "column", gap: "6px" }} className="space-y-1.5">
+            <div key={grupo.nome} style={{ display: "block", width: "100%", boxSizing: "border-box", marginBottom: "14px" }} className="space-y-1.5 w-full">
               {/* CABEÇALHO DE ENFERMARIA */}
               <div
                 style={{
@@ -471,14 +477,16 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                   padding: "4px 8px",
                   pageBreakInside: "avoid",
                   breakInside: "avoid",
+                  width: "100%",
+                  boxSizing: "border-box",
                 }}
-                className="text-xs font-extrabold uppercase tracking-wider text-black bg-gray-100 border-l-4 border-black px-2 py-0.5 page-break-avoid"
+                className="text-xs font-extrabold uppercase tracking-wider text-black bg-gray-100 border-l-4 border-black px-2 py-0.5 page-break-avoid w-full"
               >
                 ENFERMARIA: {grupo.nome} ({grupo.pacientes.length} {grupo.pacientes.length === 1 ? "paciente" : "pacientes"})
               </div>
 
               {/* CARDS DOS PACIENTES */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }} className="space-y-2">
+              <div style={{ display: "block", width: "100%", boxSizing: "border-box" }} className="space-y-2 w-full">
                 {grupo.pacientes.map((p) => {
                   const idade = calcularIdade(p.dataNascimento);
                   const tempoInt = calcularTempoInternacao(p.dataAdmissao);
@@ -495,11 +503,12 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                         breakInside: "avoid",
                         backgroundColor: "#ffffff",
                         color: "#000000",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "8px",
+                        display: "block",
+                        width: "100%",
+                        boxSizing: "border-box",
+                        marginBottom: "10px",
                       }}
-                      className="border border-gray-400 p-3.5 rounded-xl page-break-avoid space-y-2.5 text-xs bg-white text-black"
+                      className="border border-gray-400 p-3.5 rounded-xl page-break-avoid space-y-2.5 text-xs bg-white text-black w-full"
                     >
                       {/* LINHA 1: LEITO, NOME, IDADE, TEMPO DE INTERNAÇÃO E CIRURGIAS/DPO */}
                       <div
@@ -511,8 +520,10 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                           alignItems: "baseline",
                           justifyContent: "space-between",
                           gap: "6px",
+                          width: "100%",
+                          boxSizing: "border-box",
                         }}
-                        className="border-b border-gray-300 pb-1.5 flex flex-wrap items-baseline justify-between gap-1.5"
+                        className="border-b border-gray-300 pb-1.5 flex flex-wrap items-baseline justify-between gap-1.5 w-full"
                       >
                         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px" }} className="flex flex-wrap items-baseline gap-1.5">
                           <span style={{ fontWeight: "800", fontSize: "13px", color: "#000000" }} className="font-extrabold text-sm text-black">
