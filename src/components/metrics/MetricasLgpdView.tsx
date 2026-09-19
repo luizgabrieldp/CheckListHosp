@@ -40,6 +40,7 @@ export function MetricasLgpdView() {
     data: string;
     admissoes: number;
     altas: number;
+    canceladas: number;
   } | null>(null);
 
   // Formatar data para exibição no picker (DD/MM/AAAA)
@@ -169,6 +170,7 @@ export function MetricasLgpdView() {
     label: string;
     admissoes: number;
     altas: number;
+    canceladas: number;
   }[] = [];
 
   const baseDate = new Date(dataFiltro + "T12:00:00");
@@ -183,10 +185,19 @@ export function MetricasLgpdView() {
     const historico = metricas.find((m) => m.data === dataStr);
     let adm = historico ? historico.totalAdmissoes : 0;
     let alt = historico ? historico.totalAltas : 0;
+    let canc = historico ? historico.totalCancelamentos || 0 : 0;
+
+    const canceladasCadastradas = admissoes.filter(
+      (a) =>
+        a.cancelada &&
+        (a.dataAdmissaoAgendada === dataStr ||
+          (!a.dataAdmissaoAgendada && dataStr === dataFiltro))
+    ).length;
 
     if (dataStr === dataFiltro) {
       adm = Math.max(adm, totalAdmissoes);
       alt = Math.max(alt, totalAltas);
+      canc = Math.max(canc, canceladasCadastradas);
     } else if (!historico) {
       const admsCadastradas = admissoes.filter(
         (a) => !a.cancelada && a.dataAdmissaoAgendada === dataStr
@@ -196,6 +207,7 @@ export function MetricasLgpdView() {
       ).length;
       adm = admsCadastradas;
       alt = altasCadastradas;
+      canc = canceladasCadastradas;
     }
 
     dadosHistoricos.push({
@@ -203,8 +215,11 @@ export function MetricasLgpdView() {
       label,
       admissoes: adm,
       altas: alt,
+      canceladas: canc,
     });
   }
+
+  const totalCanceladasPeriodo = dadosHistoricos.reduce((acc, d) => acc + d.canceladas, 0);
 
   // Cálculos SVG para curvas suaves
   const svgWidth = 800;
@@ -218,7 +233,7 @@ export function MetricasLgpdView() {
   const chartHeight = svgHeight - paddingTop - paddingBottom;
 
   const maxValorTendencia = Math.max(
-    ...dadosHistoricos.map((d) => Math.max(d.admissoes, d.altas)),
+    ...dadosHistoricos.map((d) => Math.max(d.admissoes, d.altas, d.canceladas)),
     8
   );
   // Folga superior para garantir que valores altos não cortem no teto do gráfico
@@ -246,6 +261,17 @@ export function MetricasLgpdView() {
     return { x, y, data: d.label, valor: d.altas };
   });
 
+  const pontosCanceladas = dadosHistoricos.map((d, index) => {
+    const x =
+      paddingLeft +
+      (index / (dadosHistoricos.length - 1 || 1)) * chartWidth;
+    const y =
+      paddingTop +
+      chartHeight -
+      (d.canceladas / yAxisMaxTendencia) * chartHeight;
+    return { x, y, data: d.label, valor: d.canceladas };
+  });
+
   function gerarCaminhoCurvaSuave(pontos: { x: number; y: number }[]): string {
     if (pontos.length === 0) return "";
     if (pontos.length === 1) return `M ${pontos[0].x} ${pontos[0].y}`;
@@ -269,6 +295,7 @@ export function MetricasLgpdView() {
 
   const dCurvaAdmissoes = gerarCaminhoCurvaSuave(pontosAdmissoes);
   const dCurvaAltas = gerarCaminhoCurvaSuave(pontosAltas);
+  const dCurvaCanceladas = gerarCaminhoCurvaSuave(pontosCanceladas);
 
   // Disparo manual de expurgo
   async function handleForcarExpurgo() {
@@ -649,7 +676,32 @@ export function MetricasLgpdView() {
 
       {/* 6. CARD: TENDÊNCIA HISTÓRICA (GRÁFICO SVG COM CURVAS SUAVES) */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
-        <h3 className="text-sm font-bold text-slate-900">Tendência histórica</h3>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Tendência histórica</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Volume diário nos últimos {periodo} dias
+            </p>
+          </div>
+
+          {/* LEGENDA DAS CURVAS */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap text-xs">
+            <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#0d9488]" />
+              <span>Admissões</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1]" />
+              <span>Altas</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-rose-600 font-medium">
+              <span className="w-3.5 h-1 border-t-2 border-dashed border-[#f43f5e]" />
+              <span>
+                Cirurgias canceladas{totalCanceladasPeriodo > 0 ? ` (${totalCanceladasPeriodo})` : ""}
+              </span>
+            </div>
+          </div>
+        </div>
 
         <div className="w-full overflow-x-auto">
           <div className="min-w-[640px] relative">
@@ -749,7 +801,18 @@ export function MetricasLgpdView() {
                 strokeLinejoin="round"
               />
 
-              {/* PONTOS DE HOVER INTERATIVOS */}
+              {/* CURVA DE CIRURGIAS CANCELADAS (ROSE/VERMELHO TRACEJADO) */}
+              <path
+                d={dCurvaCanceladas}
+                fill="none"
+                stroke="#f43f5e"
+                strokeWidth="2"
+                strokeDasharray="5 4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+
+              {/* PONTOS DE HOVER INTERATIVOS: ADMISSÕES */}
               {pontosAdmissoes.map((p, i) => (
                 <circle
                   key={`adm-${i}`}
@@ -764,12 +827,14 @@ export function MetricasLgpdView() {
                       data: dadosHistoricos[i].label,
                       admissoes: dadosHistoricos[i].admissoes,
                       altas: dadosHistoricos[i].altas,
+                      canceladas: dadosHistoricos[i].canceladas,
                     })
                   }
                   onMouseLeave={() => setHoverPonto(null)}
                 />
               ))}
 
+              {/* PONTOS DE HOVER INTERATIVOS: ALTAS */}
               {pontosAltas.map((p, i) => (
                 <circle
                   key={`alt-${i}`}
@@ -784,11 +849,50 @@ export function MetricasLgpdView() {
                       data: dadosHistoricos[i].label,
                       admissoes: dadosHistoricos[i].admissoes,
                       altas: dadosHistoricos[i].altas,
+                      canceladas: dadosHistoricos[i].canceladas,
                     })
                   }
                   onMouseLeave={() => setHoverPonto(null)}
                 />
               ))}
+
+              {/* PONTOS DE HOVER INTERATIVOS: CANCELADAS COM ANÉIS DE ALERTA */}
+              {pontosCanceladas.map((p, i) => {
+                const temCancelamento = dadosHistoricos[i].canceladas > 0;
+                return (
+                  <g key={`canc-group-${i}`}>
+                    {temCancelamento && (
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r="8"
+                        className="fill-[#f43f5e]/20 animate-pulse"
+                      />
+                    )}
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r={temCancelamento ? "4.5" : "2.5"}
+                      className={`${
+                        temCancelamento
+                          ? "fill-[#f43f5e] stroke-white stroke-2"
+                          : "fill-[#f43f5e]/40 stroke-transparent"
+                      } cursor-pointer hover:scale-125 transition-all`}
+                      onMouseEnter={() =>
+                        setHoverPonto({
+                          x: p.x,
+                          y: p.y,
+                          data: dadosHistoricos[i].label,
+                          admissoes: dadosHistoricos[i].admissoes,
+                          altas: dadosHistoricos[i].altas,
+                          canceladas: dadosHistoricos[i].canceladas,
+                        })
+                      }
+                      onMouseLeave={() => setHoverPonto(null)}
+                    />
+                  </g>
+                );
+              })}
             </svg>
 
             {/* TOOLTIP INTERATIVO FLUTUANTE */}
@@ -803,16 +907,27 @@ export function MetricasLgpdView() {
                 }}
                 className={`absolute pointer-events-none -translate-x-1/2 ${
                   hoverPonto.y < 90 ? "translate-y-0" : "-translate-y-full -translate-y-2"
-                } bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg shadow-lg space-y-0.5 z-20 whitespace-nowrap transition-transform duration-75`}
+                } bg-slate-900 text-white text-[11px] px-3 py-2 rounded-xl shadow-xl space-y-1 z-20 whitespace-nowrap transition-transform duration-75 border border-slate-700/60`}
               >
-                <div className="font-bold text-slate-300 border-b border-slate-800 pb-0.5">
-                  Dia {hoverPonto.data}
+                <div className="font-bold text-slate-300 border-b border-slate-800 pb-1 flex items-center justify-between gap-3">
+                  <span>Dia {hoverPonto.data}</span>
+                  {hoverPonto.canceladas > 0 && (
+                    <span className="text-[10px] bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded font-semibold border border-rose-500/30">
+                      Alerta
+                    </span>
+                  )}
                 </div>
-                <div className="text-teal-400 font-semibold">
-                  Admissões: {hoverPonto.admissoes}
+                <div className="text-teal-400 font-semibold flex items-center justify-between gap-3">
+                  <span>Admissões:</span>
+                  <span className="font-bold">{hoverPonto.admissoes}</span>
                 </div>
-                <div className="text-indigo-400 font-semibold">
-                  Altas: {hoverPonto.altas}
+                <div className="text-indigo-400 font-semibold flex items-center justify-between gap-3">
+                  <span>Altas:</span>
+                  <span className="font-bold">{hoverPonto.altas}</span>
+                </div>
+                <div className="text-rose-400 font-semibold flex items-center justify-between gap-3">
+                  <span>Canceladas:</span>
+                  <span className="font-bold">{hoverPonto.canceladas}</span>
                 </div>
               </div>
             )}

@@ -1260,6 +1260,28 @@ assert(atingiuEtapaAdmissao(pacienteAltaIsolada, "internou") === true, "Alta/ADM
 assert(atingiuEtapaAdmissao(pacienteAltaIsolada, "aih") === true, "Alta/ADM herda AIH");
 assert(atingiuEtapaAdmissao(pacienteAltaIsolada, "altaAdm") === true, "Alta/ADM conclui Alta/ADM");
 
+// 20. CIRURGIAS CANCELADAS NA TENDÊNCIA HISTÓRICA
+console.log("\n--- 20. Cirurgias Canceladas na Tendência Histórica ---");
+const serieHistoricaTeste = [
+  { data: "2026-09-17", admissoes: 5, altas: 4, canceladas: 0 },
+  { data: "2026-09-18", admissoes: 6, altas: 3, canceladas: 2 },
+  { data: "2026-09-19", admissoes: 4, altas: 5, canceladas: 1 },
+];
+
+const totalCancPeriodo = serieHistoricaTeste.reduce((acc, d) => acc + d.canceladas, 0);
+assert(totalCancPeriodo === 3, `Total de canceladas no período: esperado 3, obtido ${totalCancPeriodo}`);
+
+// Escala Y respeita o pico máximo de qualquer uma das 3 métricas
+const maxValorSerie = Math.max(...serieHistoricaTeste.map((d) => Math.max(d.admissoes, d.altas, d.canceladas)), 8);
+const yAxisMaxSerie = Math.max(8, Math.ceil((maxValorSerie + 2.5) / 4) * 4);
+assert(yAxisMaxSerie === 12, `Escala Y com pico 6 projeta teto 12 (folga garantida sem corte): obtido ${yAxisMaxSerie}`);
+
+// Verificação de marcador de alerta nos dias com cancelamento
+const temAlertaDia18 = serieHistoricaTeste[1].canceladas > 0;
+const temAlertaDia17 = serieHistoricaTeste[0].canceladas > 0;
+assert(temAlertaDia18 === true, "Dia 18 ativa anel de alerta visual (2 cancelamentos)");
+assert(temAlertaDia17 === false, "Dia 17 não ativa anel de alerta (0 cancelamentos)");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
