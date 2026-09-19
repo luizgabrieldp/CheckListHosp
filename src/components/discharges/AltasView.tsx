@@ -10,6 +10,7 @@ import {
   obterFotoFirestore,
   isFirebaseConfigured,
 } from "@/lib/firebase";
+import { obterDataLocalHoje } from "@/lib/utils";
 import {
   Calendar as CalendarIcon,
   Search,
@@ -36,9 +37,9 @@ export function AltasView() {
   const enfermarias = useAppStore((s) => s.enfermarias);
   const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
 
-  // Data selecionada no topo (padrão: hoje)
+  // Data selecionada no topo (padrão: hoje no fuso local)
   const [dataSelecionada, setDataSelecionada] = useState(() => {
-    return new Date().toISOString().split("T")[0];
+    return obterDataLocalHoje();
   });
 
   const [busca, setBusca] = useState("");

@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { Pendencia, EquipePlantao, PrioridadePendencia, StatusPendencia } from "@/types/hospital";
+import { obterDataLocalHoje } from "@/lib/utils";
 import {
   Users,
   CheckCircle2,
@@ -34,23 +35,23 @@ export function PermanenciaView() {
   const enfermarias = useAppStore((s) => s.enfermarias);
   const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
 
-  // Controle de data de visualização das pendências (padrão: hoje)
+  // Controle de data de visualização das pendências (padrão: hoje no fuso local)
   const [dataSelecionada, setDataSelecionada] = useState(() => {
-    return new Date().toISOString().split("T")[0];
+    return obterDataLocalHoje();
   });
 
-  const hojeStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const hojeStr = useMemo(() => obterDataLocalHoje(), []);
   const ontemStr = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() - 1);
-    return d.toISOString().split("T")[0];
+    return obterDataLocalHoje(d);
   }, []);
 
   function mudarDia(delta: number) {
     const [ano, mes, dia] = dataSelecionada.split("-").map(Number);
     const d = new Date(ano, mes - 1, dia);
     d.setDate(d.getDate() + delta);
-    setDataSelecionada(d.toISOString().split("T")[0]);
+    setDataSelecionada(obterDataLocalHoje(d));
   }
 
   // Estados para criação rápida de pendência

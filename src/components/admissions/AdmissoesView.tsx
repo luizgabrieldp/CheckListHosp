@@ -8,6 +8,7 @@ import {
   compartilharOuCopiar,
   obterEmojisStatusAdmissao,
 } from "@/lib/whatsapp";
+import { obterDataLocalHoje } from "@/lib/utils";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -177,7 +178,7 @@ export function AdmissoesView() {
 
   // Data selecionada no topo (padrão: hoje no fuso local)
   const [dataSelecionada, setDataSelecionada] = useState(() => {
-    return new Date().toISOString().split("T")[0];
+    return obterDataLocalHoje();
   });
 
   const [busca, setBusca] = useState("");

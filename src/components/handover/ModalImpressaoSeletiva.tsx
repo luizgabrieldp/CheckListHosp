@@ -10,7 +10,7 @@ import {
   formatarCirurgiaDPO,
   obterCirurgiasPaciente,
 } from "@/lib/antibiotic-engine";
-import { formatarDataBR } from "@/lib/utils";
+import { formatarDataBR, obterDataLocalHoje } from "@/lib/utils";
 import {
   Printer,
   X,
@@ -157,7 +157,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
   }, [gruposEnfermarias, pacientesSelecionados]);
 
   const totalSelecionados = pacientesSelecionados.length;
-  const dataHojeFormatada = formatarDataBR(new Date().toISOString().split("T")[0]);
+  const dataHojeFormatada = formatarDataBR(obterDataLocalHoje());
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in no-print">

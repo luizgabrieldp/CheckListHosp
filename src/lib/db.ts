@@ -11,6 +11,7 @@ import {
   PacientePassagem,
 } from "@/types/hospital";
 import { deveExpurgarAdmissao, deveExpurgarAlta, deveExpurgarPermanencia, agregarMetricasDiarias } from "./lgpd";
+import { obterDataLocalHoje } from "./utils";
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_FILE = path.join(DB_DIR, "hospital-db.json");
@@ -191,13 +192,13 @@ const AMBULATORIO_PADRAO: MedicoAmbulatorio[] = [
 ];
 
 // Dados iniciais realistas para a enfermaria
-const hojeIso = new Date().toISOString().split("T")[0];
+const hojeIso = obterDataLocalHoje();
 const ontemDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
-const ontemIso = ontemDate.toISOString().split("T")[0];
+const ontemIso = obterDataLocalHoje(ontemDate);
 const anteontemDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
-const anteontemIso = anteontemDate.toISOString().split("T")[0];
+const anteontemIso = obterDataLocalHoje(anteontemDate);
 const amanhaDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
-const amanhaIso = amanhaDate.toISOString().split("T")[0];
+const amanhaIso = obterDataLocalHoje(amanhaDate);
 
 const INITIAL_STATE: DatabaseState = {
   admissoes: [
@@ -721,8 +722,8 @@ class DatabaseManager {
     if (this.state.permanencia && deveExpurgarPermanencia(this.state.permanencia.data, agora)) {
       expurgadasPermanencia = true;
       this.state.permanencia = {
-        id: `perm-${agora.toISOString().split("T")[0]}`,
-        data: agora.toISOString().split("T")[0],
+        id: `perm-${obterDataLocalHoje(agora)}`,
+        data: obterDataLocalHoje(agora),
         equipe: { doutorandos: [], residentes: [], preceptores: [] },
         pendencias: [],
         createdAt: agora.toISOString(),

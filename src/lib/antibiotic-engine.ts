@@ -1,5 +1,6 @@
 import { PrescricaoAntibiotico, CirurgiaProcedimento, PacientePassagem } from "@/types/hospital";
 import { differenceInYears, differenceInMonths, differenceInDays } from "date-fns";
+import { obterDataLocalHoje } from "@/lib/utils";
 
 export interface ResultadoCalculoAntibiotico {
   dosesPorDia: number;
@@ -33,7 +34,7 @@ export function calcularDDayAntibiotico(
 
   // Montar data e hora da primeira dose
   const [hora, minuto] = (atb.horarioPrimeiraDose || "12:00").split(":").map((v) => parseInt(v, 10) || 0);
-  const [ano, mes, dia] = (atb.dataInicio || new Date().toISOString().split("T")[0])
+  const [ano, mes, dia] = (atb.dataInicio || obterDataLocalHoje(agora))
     .split("-")
     .map((v) => parseInt(v, 10));
 

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { obterDataLocalHoje } from "@/lib/utils";
 import { ShieldCheck, AlertTriangle, Clock, FileText, CheckCircle2 } from "lucide-react";
 
 export function LgpdConsentModal() {
@@ -9,7 +10,7 @@ export function LgpdConsentModal() {
   const lgpdAcceptedDate = useAppStore((s) => s.lgpdAcceptedDate);
   const aceitarTermoLgpd = useAppStore((s) => s.aceitarTermoLgpd);
 
-  const hoje = new Date().toISOString().split("T")[0];
+  const hoje = obterDataLocalHoje();
   const precisaAceitar = isAuthenticated && lgpdAcceptedDate !== hoje;
 
   if (!precisaAceitar) return null;

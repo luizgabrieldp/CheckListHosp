@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { PacientePassagem, PrescricaoAntibiotico } from "@/types/hospital";
+import { obterDataLocalHoje } from "@/lib/utils";
 import { X, Save, Plus, Trash2, Pill, Activity, Stethoscope } from "lucide-react";
 
 interface Props {
@@ -16,7 +17,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
   const [enfermaria, setEnfermaria] = useState(pacienteExistente?.enfermaria || "Cirurgia Geral 1");
   const [dataNascimento, setDataNascimento] = useState(pacienteExistente?.dataNascimento || "1980-01-01");
   const [dataAdmissao, setDataAdmissao] = useState(
-    pacienteExistente?.dataAdmissao || new Date().toISOString().split("T")[0]
+    pacienteExistente?.dataAdmissao || obterDataLocalHoje()
   );
   const [hd, setHd] = useState(pacienteExistente?.hd || "");
   const [conduta, setConduta] = useState(pacienteExistente?.conduta || "");
@@ -43,7 +44,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
       dose: "1g IV",
       frequenciaHoras: 12,
       horarioPrimeiraDose: "08:00",
-      dataInicio: new Date().toISOString().split("T")[0],
+      dataInicio: obterDataLocalHoje(),
       duracaoDias: 7,
       dosesPerdidas: 0,
       observacao: "",

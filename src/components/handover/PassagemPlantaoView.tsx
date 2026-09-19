@@ -16,6 +16,7 @@ import {
   formatarCirurgiaDPO,
   obterCirurgiasPaciente,
 } from "@/lib/antibiotic-engine";
+import { obterDataLocalHoje } from "@/lib/utils";
 import { ModalImpressaoSeletiva } from "./ModalImpressaoSeletiva";
 import {
   Stethoscope,
@@ -64,12 +65,12 @@ export function PassagemPlantaoView() {
   const [medDose, setMedDose] = useState("");
   const [medFreqHoras, setMedFreqHoras] = useState<number | "">(6);
   const [medHorario1aDose, setMedHorario1aDose] = useState("20:00");
-  const [medDataInicio, setMedDataInicio] = useState(new Date().toISOString().split("T")[0]);
+  const [medDataInicio, setMedDataInicio] = useState(() => obterDataLocalHoje());
   const [medDuracaoDias, setMedDuracaoDias] = useState<number>(7);
   const [medDataTermino, setMedDataTermino] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
-    return d.toISOString().split("T")[0];
+    return obterDataLocalHoje(d);
   });
   const [medDosesPerdidas, setMedDosesPerdidas] = useState<number>(0);
 
@@ -114,7 +115,7 @@ export function PassagemPlantaoView() {
       nome: "",
       leito: "",
       enfermaria: defaultEnf,
-      dataAdmissao: new Date().toISOString().split("T")[0],
+      dataAdmissao: obterDataLocalHoje(),
       dataNascimento: "",
       motivoInternamento: "",
       isCirurgico: false,
@@ -179,7 +180,7 @@ export function PassagemPlantaoView() {
     const novaCirurgia: CirurgiaProcedimento = {
       id: `cx-${Date.now()}`,
       tipoCirurgia: "",
-      dataCirurgia: new Date().toISOString().split("T")[0],
+      dataCirurgia: obterDataLocalHoje(),
       dpoManual: undefined,
     };
     const novasCirurgias = [...listaAtual, novaCirurgia];
@@ -241,7 +242,7 @@ export function PassagemPlantaoView() {
     setMedDose("");
     setMedFreqHoras(6);
     setMedHorario1aDose("20:00");
-    const hoje = new Date().toISOString().split("T")[0];
+    const hoje = obterDataLocalHoje();
     setMedDataInicio(hoje);
     setMedDuracaoDias(7);
 
@@ -249,10 +250,7 @@ export function PassagemPlantaoView() {
       const [ano, mes, dia] = hoje.split("-").map(Number);
       const d = new Date(ano, mes - 1, dia);
       d.setDate(d.getDate() + 7);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const dt = String(d.getDate()).padStart(2, "0");
-      setMedDataTermino(`${y}-${m}-${dt}`);
+      setMedDataTermino(obterDataLocalHoje(d));
     } catch {
       setMedDataTermino(hoje);
     }
@@ -266,21 +264,17 @@ export function PassagemPlantaoView() {
     setMedDose(atb.dose);
     setMedFreqHoras(atb.frequenciaHoras || 6);
     setMedHorario1aDose(atb.horarioPrimeiraDose || "20:00");
-    setMedDataInicio(atb.dataInicio || new Date().toISOString().split("T")[0]);
+    const dataIni = atb.dataInicio || obterDataLocalHoje();
+    setMedDataInicio(dataIni);
     setMedDuracaoDias(atb.duracaoDias || 7);
 
     try {
-      const [ano, mes, dia] = (atb.dataInicio || new Date().toISOString().split("T")[0])
-        .split("-")
-        .map(Number);
+      const [ano, mes, dia] = dataIni.split("-").map(Number);
       const d = new Date(ano, mes - 1, dia);
       d.setDate(d.getDate() + (atb.duracaoDias || 7));
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const dt = String(d.getDate()).padStart(2, "0");
-      setMedDataTermino(`${y}-${m}-${dt}`);
+      setMedDataTermino(obterDataLocalHoje(d));
     } catch {
-      setMedDataTermino(atb.dataInicio || "");
+      setMedDataTermino(dataIni);
     }
     setMedDosesPerdidas(atb.dosesPerdidas || 0);
   }

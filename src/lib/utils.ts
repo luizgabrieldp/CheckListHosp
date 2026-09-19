@@ -17,3 +17,14 @@ export function formatarDataBR(dataStr?: string): string {
     return dataStr;
   }
 }
+
+/**
+ * Retorna a data no formato YYYY-MM-DD respeitando o fuso horário local do dispositivo
+ * Evita o bug de toISOString() que pula para o dia seguinte a partir das 21:00 no Brasil (UTC-3)
+ */
+export function obterDataLocalHoje(d: Date = new Date()): string {
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}

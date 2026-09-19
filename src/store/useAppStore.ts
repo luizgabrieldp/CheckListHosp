@@ -13,6 +13,7 @@ import {
   WebSocketMessage,
 } from "@/types/hospital";
 import { sincronizarComFirestore } from "@/lib/firebase";
+import { obterDataLocalHoje } from "@/lib/utils";
 
 let socketInstance: WebSocket | null = null;
 
@@ -163,7 +164,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   altas: carregarItemLocalStorage<AltaPaciente[]>("checklist_altas", []),
   permanencia: carregarItemLocalStorage<DadosPermanencia>("checklist_permanencia", {
     id: "perm-init",
-    data: new Date().toISOString().split("T")[0],
+    data: obterDataLocalHoje(),
     equipe: { doutorandos: [], residentes: [], preceptores: [] },
     pendencias: [],
     createdAt: new Date().toISOString(),
@@ -190,7 +191,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   },
 
   aceitarTermoLgpd: () => {
-    const hoje = new Date().toISOString().split("T")[0];
+    const hoje = obterDataLocalHoje();
     set({ lgpdAcceptedDate: hoje });
     if (typeof window !== "undefined") {
       localStorage.setItem("checklist_lgpd_date", hoje);

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { AdmissaoPaciente, StatusAdmissao } from "@/types/hospital";
+import { obterDataLocalHoje } from "@/lib/utils";
 import {
   X,
   Save,
@@ -25,7 +26,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
   const [enfermaria, setEnfermaria] = useState(pacienteExistente?.enfermaria || "Cirurgia Geral 1");
   const [leito, setLeito] = useState(pacienteExistente?.leito || "");
   const [dataAdmissaoAgendada, setDataAdmissaoAgendada] = useState(
-    pacienteExistente?.dataAdmissaoAgendada || new Date().toISOString().split("T")[0]
+    pacienteExistente?.dataAdmissaoAgendada || obterDataLocalHoje()
   );
   const [dataNascimento, setDataNascimento] = useState(pacienteExistente?.dataNascimento || "");
   const [status, setStatus] = useState<StatusAdmissao>(pacienteExistente?.status || "Aguardando");

@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { AltaPaciente } from "@/types/hospital";
 import { comprimirImagemParaWebP, ResultadoCompressao } from "@/lib/image-compressor";
+import { obterDataLocalHoje } from "@/lib/utils";
 import {
   X,
   Save,
@@ -28,7 +29,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
   const [nomePaciente, setNomePaciente] = useState(altaExistente?.nomePaciente || "");
   const [tipoCirurgia, setTipoCirurgia] = useState(altaExistente?.tipoCirurgia || "PO 1 ");
   const [dataAlta, setDataAlta] = useState(
-    altaExistente?.dataAlta || new Date().toISOString().split("T")[0]
+    altaExistente?.dataAlta || obterDataLocalHoje()
   );
 
   // Parâmetros de recuperação
