@@ -140,9 +140,11 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
           {/* IDENTIFICAÇÃO BÁSICA */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Leito *
-              </label>
+              <div className="h-6 flex items-center mb-1">
+                <label className="text-xs font-semibold text-slate-300">
+                  Leito *
+                </label>
+              </div>
               <input
                 type="text"
                 required
@@ -151,18 +153,20 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={leito}
                 onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                 placeholder="Ex: 04"
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Enfermaria
-              </label>
+              <div className="h-6 flex items-center mb-1">
+                <label className="text-xs font-semibold text-slate-300">
+                  Enfermaria
+                </label>
+              </div>
               <select
                 value={enfermaria}
                 onChange={(e) => setEnfermaria(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none cursor-pointer"
               >
                 <option value="Cirurgia Geral 1">Cirurgia Geral 1</option>
                 <option value="Cirurgia Geral 2">Cirurgia Geral 2</option>
@@ -171,16 +175,18 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Nome do Paciente *
-              </label>
+              <div className="h-6 flex items-center mb-1">
+                <label className="text-xs font-semibold text-slate-300">
+                  Nome do Paciente *
+                </label>
+              </div>
               <input
                 type="text"
                 required
                 value={nomePaciente}
                 onChange={(e) => setNomePaciente(e.target.value)}
                 placeholder="Nome do paciente"
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
               />
             </div>
           </div>

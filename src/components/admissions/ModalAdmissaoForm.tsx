@@ -185,9 +185,11 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Nome Completo do Paciente *
-                  </label>
+                  <div className="h-6 flex items-center mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Nome Completo do Paciente *
+                    </label>
+                  </div>
                   <input
                     type="text"
                     required
@@ -195,35 +197,39 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Ex: João Carlos Silva Santos"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Data Agendada da Admissão * (Referência LGPD)
-                  </label>
+                  <div className="h-6 flex items-center mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300 truncate" title="Data Agendada da Admissão * (Referência LGPD)">
+                      Data Agendada da Admissão *
+                    </label>
+                  </div>
                   <input
                     type="date"
                     required
                     disabled={isBloqueado}
                     value={dataAdmissaoAgendada}
                     onChange={(e) => setDataAdmissaoAgendada(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Enfermaria
-                  </label>
+                  <div className="h-6 flex items-center mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Enfermaria
+                    </label>
+                  </div>
                   <select
                     disabled={isBloqueado}
                     value={enfermaria}
                     onChange={(e) => setEnfermaria(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60 cursor-pointer"
                   >
                     <option value="Cirurgia Geral 1">Cirurgia Geral 1</option>
                     <option value="Cirurgia Geral 2">Cirurgia Geral 2</option>
@@ -233,9 +239,11 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Leito
-                  </label>
+                  <div className="h-6 flex items-center mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Leito
+                    </label>
+                  </div>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -244,20 +252,22 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={leito}
                     onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                     placeholder="Ex: 03"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Data de Nascimento (Opcional)
-                  </label>
+                  <div className="h-6 flex items-center mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300 truncate">
+                      Data de Nascimento (Opcional)
+                    </label>
+                  </div>
                   <input
                     type="date"
                     disabled={isBloqueado}
                     value={dataNascimento}
                     onChange={(e) => setDataNascimento(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
                   />
                 </div>
               </div>

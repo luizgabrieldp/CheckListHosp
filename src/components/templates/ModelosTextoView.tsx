@@ -436,43 +436,45 @@ export function ModelosTextoView() {
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                 {/* TÍTULO DO MODELO */}
                 <div className="sm:col-span-7">
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Título do Modelo *
-                  </label>
+                  <div className="h-7 flex items-center mb-1.5">
+                    <label className="text-xs font-bold text-slate-700">
+                      Título do Modelo *
+                    </label>
+                  </div>
                   <input
                     type="text"
                     required
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ex: BARIÁTRICA, COLELAP, Padrão..."
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-emerald-500 focus:outline-none transition-all"
+                    className="w-full h-[42px] px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-emerald-500 focus:outline-none transition-all"
                   />
                 </div>
 
                 {/* CATEGORIA (MENU SUSPENSO COM DADOS DAS CONFIGURAÇÕES) */}
                 <div className="sm:col-span-5">
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-slate-700">
+                  <div className="h-7 flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-700">
                       Categoria *
                     </label>
                     <button
                       type="button"
                       onClick={() => setCriandoNovaCat(!criandoNovaCat)}
-                      className="min-h-[36px] px-2 py-1 text-[11px] text-emerald-700 hover:text-emerald-800 font-semibold cursor-pointer flex items-center"
+                      className="text-[11px] text-emerald-700 hover:text-emerald-800 font-semibold cursor-pointer hover:underline flex items-center gap-0.5"
                     >
                       {criandoNovaCat ? "Cancelar" : "+ Nova"}
                     </button>
                   </div>
 
                   {criandoNovaCat ? (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 h-[42px]">
                       <input
                         type="text"
                         autoFocus
                         value={novaCatNome}
                         onChange={(e) => setNovaCatNome(e.target.value)}
                         placeholder="Nova categoria..."
-                        className="flex-1 px-2.5 py-2 rounded-lg bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-emerald-500"
+                        className="flex-1 h-full px-3 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-emerald-500"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
@@ -483,7 +485,7 @@ export function ModelosTextoView() {
                       <button
                         type="button"
                         onClick={handleCriarNovaCategoria}
-                        className="min-h-[38px] px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer flex items-center justify-center"
+                        className="h-full px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer flex items-center justify-center shadow-xs"
                       >
                         OK
                       </button>
@@ -492,7 +494,7 @@ export function ModelosTextoView() {
                     <select
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold focus:bg-white focus:border-emerald-500 focus:outline-none transition-all cursor-pointer"
+                      className="w-full h-[42px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold focus:bg-white focus:border-emerald-500 focus:outline-none transition-all cursor-pointer"
                     >
                       {categoriasModelos.map((cat) => (
                         <option key={cat} value={cat}>

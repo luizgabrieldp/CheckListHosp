@@ -327,28 +327,32 @@ export function AmbulatorioView() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Especialidade
-                  </label>
+                  <div className="h-6 flex items-center mb-1">
+                    <label className="text-xs font-bold text-slate-700">
+                      Especialidade
+                    </label>
+                  </div>
                   <input
                     type="text"
                     value={especialidade}
                     onChange={(e) => setEspecialidade(e.target.value)}
                     placeholder="Ex: Cirurgia Geral"
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    className="w-full h-[42px] px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Consultório / Sala
-                  </label>
+                  <div className="h-6 flex items-center mb-1">
+                    <label className="text-xs font-bold text-slate-700">
+                      Consultório / Sala
+                    </label>
+                  </div>
                   <input
                     type="text"
                     value={sala}
                     onChange={(e) => setSala(e.target.value)}
                     placeholder="Ex: Consultório 103"
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    className="w-full h-[42px] px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
                   />
                 </div>
               </div>

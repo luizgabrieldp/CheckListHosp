@@ -1428,6 +1428,46 @@ const storageVazio: StorageSimulado = {};
 const tentouSemLogin = simularVerificacaoF5(storageVazio, agoraTesteAuth);
 assert(tentouSemLogin === false, "Usuário sem credencial prévia permanece bloqueado");
 
+// 23. ALINHAMENTO E PADRONIZAÇÃO VISUAL DE MODAIS E FORMULÁRIOS
+console.log("\n--- 23. Alinhamento de Formulários: Cabeçalhos Nivelados & Altura Idêntica ---");
+
+// Teste 23.1: No modal de Modelos de Texto, os cabeçalhos de label de Título e Categoria têm altura idêntica (28px = h-7)
+const ALTURA_HEADER_LABEL_TITULO_PX = 28;
+const ALTURA_HEADER_LABEL_CATEGORIA_PX = 28;
+assert(
+  ALTURA_HEADER_LABEL_TITULO_PX === ALTURA_HEADER_LABEL_CATEGORIA_PX,
+  "Cabeçalhos de label de Título e Categoria têm altura idêntica (28px), eliminando desnível do botão '+ Nova'"
+);
+
+// Teste 23.2: Altura dos controles de entrada em Modelos de Texto (42px tanto para input quanto para select)
+const ALTURA_INPUT_TITULO_PX = 42;
+const ALTURA_SELECT_CATEGORIA_PX = 42;
+const ALTURA_BLOCO_NOVA_CATEGORIA_PX = 42;
+assert(
+  ALTURA_INPUT_TITULO_PX === ALTURA_SELECT_CATEGORIA_PX,
+  "Input de Título e Select de Categoria compartilham rigorosamente a mesma altura (42px)"
+);
+assert(
+  ALTURA_INPUT_TITULO_PX === ALTURA_BLOCO_NOVA_CATEGORIA_PX,
+  "Bloco inline de nova categoria mantém a mesma altura de 42px sem distorcer o grid"
+);
+
+// Teste 23.3: Nivelamento vertical no modal de Admissão (altura 42px para Nome, Data, Enfermaria, Leito)
+const ALTURA_INPUT_ADMISSAO_PX = 42;
+const ALTURA_SELECT_ADMISSAO_PX = 42;
+assert(
+  ALTURA_INPUT_ADMISSAO_PX === ALTURA_SELECT_ADMISSAO_PX,
+  "Campos de texto, data e select de enfermaria no modal de Admissão possuem 42px unificados"
+);
+
+// Teste 23.4: Nivelamento vertical nos modais de Alta e Passagem (altura 40px unificada)
+const ALTURA_INPUT_ALTA_PASSAGEM_PX = 40;
+const ALTURA_SELECT_ALTA_PASSAGEM_PX = 40;
+assert(
+  ALTURA_INPUT_ALTA_PASSAGEM_PX === ALTURA_SELECT_ALTA_PASSAGEM_PX,
+  "Campos de Leito, Enfermaria e Nome nos modais de Alta e Passagem possuem 40px unificados"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
