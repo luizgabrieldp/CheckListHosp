@@ -75,7 +75,7 @@ export function GatekeeperModal() {
 
           <button
             type="submit"
-            className="w-full py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm transition-all shadow-md shadow-emerald-700/20 flex items-center justify-center gap-2 active:scale-[0.98]"
+            className="min-h-[48px] w-full py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm transition-all shadow-md shadow-emerald-700/20 flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
           >
             <span>Acessar Enfermaria</span>
             <ArrowRight className="w-4 h-4" />

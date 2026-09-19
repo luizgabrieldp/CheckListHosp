@@ -269,7 +269,7 @@ export function MetricasLgpdView() {
       {/* 1. SELETOR DE DATA NO TOPO (PADRÃO BASE44) */}
       <div className="flex items-center justify-between">
         <div className="relative inline-flex items-center">
-          <label className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 shadow-xs cursor-pointer hover:border-slate-300 transition-colors">
+          <label className="flex items-center gap-2 px-3.5 py-1.5 min-h-[40px] sm:min-h-[44px] rounded-xl bg-white border border-slate-200 shadow-xs cursor-pointer hover:border-slate-300 transition-colors">
             <Calendar className="w-4 h-4 text-slate-400" />
             <span className="text-xs font-semibold text-slate-700">{dataFormatadaBR}</span>
             <input
@@ -286,7 +286,7 @@ export function MetricasLgpdView() {
           onClick={handleForcarExpurgo}
           disabled={executandoExpurgo}
           title="Executar verificação manual de retenção LGPD"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-medium shadow-xs transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 min-h-[40px] sm:min-h-[44px] rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-medium shadow-xs transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 text-slate-400 ${executandoExpurgo ? "animate-spin" : ""}`} />
           <span className="hidden sm:inline">Auditoria LGPD</span>
@@ -558,15 +558,15 @@ export function MetricasLgpdView() {
       </div>
 
       {/* 5. SELETOR DE PERÍODO (PÍLULAS) */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 flex-wrap">
         {([7, 14, 30] as const).map((p) => (
           <button
             key={p}
             onClick={() => setPeriodo(p)}
-            className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
+            className={`px-4 py-2 min-h-[38px] inline-flex items-center justify-center rounded-full text-xs font-semibold transition-all ${
               periodo === p
                 ? "bg-teal-700 text-white shadow-xs"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 active:bg-slate-100"
             }`}
           >
             {p} dias

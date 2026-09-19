@@ -161,21 +161,22 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in no-print">
-      <div className="w-full max-w-3xl rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 shadow-2xl flex flex-col max-h-[92vh]">
+      <div className="w-full max-w-3xl rounded-2xl bg-white border border-slate-200 p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92vh]">
         {/* CABEÇALHO DO MODAL */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-200 shrink-0 gap-3">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Printer className="w-5 h-5 text-sky-600" />
-              <span>Impressão Seletiva de Passagem de Plantão</span>
+              <Printer className="w-5 h-5 text-sky-600 shrink-0" />
+              <span>Impressão Seletiva de Passagem</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Escolha as enfermarias, pacientes e seções clínicas que constarão na folha de passagem A4
+              Escolha as enfermarias, pacientes e seções clínicas para a folha A4
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            aria-label="Fechar modal"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -234,7 +235,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                         [item.id]: !(prev as any)[item.id],
                       }))
                     }
-                    className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer text-left ${
+                    className={`min-h-[44px] p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer text-left ${
                       ativo
                         ? "bg-sky-50 border-sky-300 text-sky-900 shadow-xs"
                         : "bg-white border-slate-200 text-slate-500 hover:bg-slate-100"
@@ -325,7 +326,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                           <div
                             key={p.id}
                             onClick={() => togglePaciente(p.id)}
-                            className={`p-2 rounded-lg border text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
+                            className={`min-h-[44px] p-2.5 rounded-lg border text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
                               isSel
                                 ? "bg-sky-50/50 border-sky-300 text-slate-900"
                                 : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
@@ -365,12 +366,12 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
           </div>
         </div>
 
-        {/* RODAPÉ DO MODAL */}
-        <div className="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
+        {/* RODAPÉ DO MODAL (SHRINK-0 E RESPONSIVO) */}
+        <div className="pt-4 border-t border-slate-200 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 transition-colors cursor-pointer"
+            className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 transition-colors cursor-pointer flex items-center justify-center"
           >
             Cancelar
           </button>
@@ -378,7 +379,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
             type="button"
             onClick={handleImprimir}
             disabled={totalSelecionados === 0}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+            className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span>Imprimir ({totalSelecionados} {totalSelecionados === 1 ? "Paciente" : "Pacientes"})</span>

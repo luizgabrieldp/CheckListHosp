@@ -100,11 +100,11 @@ export function ConfigView() {
             value={novaEnfermaria}
             onChange={(e) => setNovaEnfermaria(e.target.value)}
             placeholder="Nome da enfermaria..."
-            className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           />
           <button
             type="submit"
-            className="flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors cursor-pointer"
             title="Adicionar Enfermaria"
           >
             <Plus className="w-4 h-4" />
@@ -122,7 +122,7 @@ export function ConfigView() {
               <button
                 type="button"
                 onClick={() => handleRemoveEnfermaria(enf)}
-                className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                 title={`Excluir enfermaria ${enf}`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -153,11 +153,11 @@ export function ConfigView() {
             value={novaCategoria}
             onChange={(e) => setNovaCategoria(e.target.value)}
             placeholder="Nome da categoria..."
-            className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           />
           <button
             type="submit"
-            className="flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors cursor-pointer"
             title="Adicionar Categoria"
           >
             <Plus className="w-4 h-4" />
@@ -175,7 +175,7 @@ export function ConfigView() {
               <button
                 type="button"
                 onClick={() => handleRemoveCategoria(cat)}
-                className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                 title={`Excluir categoria ${cat}`}
               >
                 <Trash2 className="w-3.5 h-3.5" />

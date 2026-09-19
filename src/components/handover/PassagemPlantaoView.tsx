@@ -504,10 +504,10 @@ export function PassagemPlantaoView() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={() => setModalImpressaoAberto(true)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 transition-all shadow-xs cursor-pointer"
+            className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 transition-all shadow-xs cursor-pointer"
           >
             <Printer className="w-4 h-4 text-sky-600" />
             <span>Impressão Seletiva A4</span>
@@ -515,7 +515,7 @@ export function PassagemPlantaoView() {
 
           <button
             onClick={handleCriarNovoPaciente}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer shrink-0"
+            className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Novo Paciente</span>
@@ -591,7 +591,7 @@ export function PassagemPlantaoView() {
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => setEnfermariaFiltro("TODAS")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
                 enfermariaFiltro === "TODAS"
                   ? "bg-slate-900 text-white font-bold shadow-xs"
                   : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
@@ -606,7 +606,7 @@ export function PassagemPlantaoView() {
                 <button
                   key={enf}
                   onClick={() => setEnfermariaFiltro(enf)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
                     isAtiva
                       ? "bg-slate-900 text-white font-bold shadow-xs"
                       : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
@@ -619,7 +619,7 @@ export function PassagemPlantaoView() {
 
             <button
               onClick={() => setEnfermariaFiltro("SEM_ENFERMARIA")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
                 enfermariaFiltro === "SEM_ENFERMARIA"
                   ? "bg-slate-900 text-white font-bold shadow-xs"
                   : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
@@ -632,7 +632,7 @@ export function PassagemPlantaoView() {
           {/* BOTÃO NOVA ENFERMARIA */}
           <button
             onClick={() => setModalNovaEnfAberto(true)}
-            className="text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 shrink-0 px-2 py-1 rounded-lg hover:bg-sky-50 transition-colors cursor-pointer"
+            className="min-h-[40px] text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 shrink-0 px-2.5 py-2 rounded-lg hover:bg-sky-50 transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Nova Enfermaria</span>
@@ -708,7 +708,7 @@ export function PassagemPlantaoView() {
                               </span>
 
                               {/* NOME ANONIMIZADO */}
-                              <span className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+                              <span className="text-sm sm:text-base font-bold text-slate-900 tracking-tight break-words">
                                 {nomeExibicao}
                               </span>
 
@@ -751,7 +751,7 @@ export function PassagemPlantaoView() {
                                 </span>
                               )}
 
-                              <div className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                              <div className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
                                 {isExpandido ? (
                                   <ChevronUp className="w-4 h-4 text-sky-600" />
                                 ) : (
@@ -1588,7 +1588,7 @@ export function PassagemPlantaoView() {
                                           setPacienteAdicionandoMed(null);
                                           setMedEmEdicaoId(null);
                                         }}
-                                        className="px-4 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
+                                        className="min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer flex items-center justify-center"
                                       >
                                         Cancelar
                                       </button>
@@ -1596,7 +1596,7 @@ export function PassagemPlantaoView() {
                                         type="button"
                                         onClick={() => handleSalvarMedicacao(paciente)}
                                         disabled={!medNome.trim()}
-                                        className="px-5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                                        className="min-h-[44px] px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center justify-center"
                                       >
                                         {medEmEdicaoId ? "Salvar Alterações" : "Salvar"}
                                       </button>
@@ -1655,7 +1655,7 @@ export function PassagemPlantaoView() {
                                           </div>
 
                                           {/* DOSES PERDIDAS, BOTÃO EDITAR & BOTÃO REMOVER */}
-                                          <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                                          <div className="flex items-center gap-2.5 self-end sm:self-auto flex-wrap">
                                             <div className="flex items-center gap-1.5 text-xs">
                                               <span className="text-[11px] text-slate-500">Perdidas:</span>
                                               <div className="flex items-center gap-1">
@@ -1665,7 +1665,7 @@ export function PassagemPlantaoView() {
                                                     handleAjustarDosePerdida(paciente, atb.id, -1)
                                                   }
                                                   disabled={(atb.dosesPerdidas || 0) <= 0}
-                                                  className="w-5 h-5 rounded bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-30 text-xs font-bold flex items-center justify-center cursor-pointer"
+                                                  className="w-7 h-7 sm:w-6 sm:h-6 rounded bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-30 text-xs font-bold flex items-center justify-center cursor-pointer"
                                                 >
                                                   -
                                                 </button>
@@ -1677,7 +1677,7 @@ export function PassagemPlantaoView() {
                                                   onClick={() =>
                                                     handleAjustarDosePerdida(paciente, atb.id, 1)
                                                   }
-                                                  className="w-5 h-5 rounded bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-rose-600 flex items-center justify-center cursor-pointer"
+                                                  className="w-7 h-7 sm:w-6 sm:h-6 rounded bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-rose-600 flex items-center justify-center cursor-pointer"
                                                 >
                                                   +
                                                 </button>
@@ -1690,20 +1690,20 @@ export function PassagemPlantaoView() {
                                               onClick={() =>
                                                 abrirEdicaoSubPainelMed(paciente.id, atb)
                                               }
-                                              className="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
+                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
                                               title="Editar medicação"
                                             >
-                                              <Edit3 className="w-3.5 h-3.5" />
+                                              <Edit3 className="w-4 h-4" />
                                             </button>
 
                                             {/* BOTÃO EXCLUIR MEDICAÇÃO */}
                                             <button
                                               type="button"
                                               onClick={() => handleRemoverAtb(paciente, atb.id)}
-                                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                                               title="Remover medicação"
                                             >
-                                              <Trash2 className="w-3.5 h-3.5" />
+                                              <Trash2 className="w-4 h-4" />
                                             </button>
                                           </div>
                                         </div>
@@ -1780,7 +1780,7 @@ export function PassagemPlantaoView() {
                                             <button
                                               type="button"
                                               onClick={() => handleSalvarEdicaoPendencia(paciente)}
-                                              className="p-1 rounded hover:bg-sky-200 text-sky-700 transition-colors"
+                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 rounded hover:bg-sky-200 text-sky-700 transition-colors cursor-pointer"
                                               title="Salvar alteração"
                                             >
                                               <Check className="w-4 h-4" />
@@ -1788,7 +1788,7 @@ export function PassagemPlantaoView() {
                                             <button
                                               type="button"
                                               onClick={handleCancelarEdicaoPendencia}
-                                              className="p-1 rounded hover:bg-slate-200 text-slate-500 transition-colors"
+                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 rounded hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer"
                                               title="Cancelar edição"
                                             >
                                               <X className="w-4 h-4" />
@@ -1806,7 +1806,7 @@ export function PassagemPlantaoView() {
                                             onClick={() =>
                                               handleIniciarEdicaoPendencia(paciente.id, idx, pend)
                                             }
-                                            className="flex items-center gap-1.5 cursor-pointer flex-1"
+                                            className="flex items-center gap-1.5 cursor-pointer flex-1 min-h-[36px]"
                                             title="Clique para editar esta pendência"
                                           >
                                             <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 shrink-0" />
@@ -1820,7 +1820,7 @@ export function PassagemPlantaoView() {
                                               onClick={() =>
                                                 handleIniciarEdicaoPendencia(paciente.id, idx, pend)
                                               }
-                                              className="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-sky-600 transition-colors"
+                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-sky-600 transition-colors cursor-pointer"
                                               title="Editar pendência"
                                             >
                                               <Edit3 className="w-3.5 h-3.5" />
@@ -1828,7 +1828,7 @@ export function PassagemPlantaoView() {
                                             <button
                                               type="button"
                                               onClick={() => handleRemoverPendencia(paciente, idx)}
-                                              className="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-rose-600 transition-colors"
+                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                                               title="Remover pendência"
                                             >
                                               <X className="w-3.5 h-3.5" />
@@ -1852,7 +1852,7 @@ export function PassagemPlantaoView() {
                                           (e.target as HTMLInputElement).value = "";
                                         }
                                       }}
-                                      className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-dashed border-slate-300 text-slate-800 text-xs placeholder-slate-400 focus:bg-white focus:border-sky-500 focus:outline-none"
+                                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-dashed border-slate-300 text-slate-800 text-xs placeholder-slate-400 focus:bg-white focus:border-sky-500 focus:outline-none"
                                     />
                                   </div>
                                 </div>
@@ -1860,7 +1860,7 @@ export function PassagemPlantaoView() {
                             </div>
 
                             {/* RODAPÉ DO CARD EXPANDIDO */}
-                            <div className="flex items-center justify-between pt-2">
+                            <div className="flex items-center justify-between pt-2 border-t border-slate-100 flex-wrap gap-2">
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1874,18 +1874,18 @@ export function PassagemPlantaoView() {
                                     removerPaciente(paciente.id);
                                   }
                                 }}
-                                className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                                className="min-h-[44px] text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                                 <span>Excluir Paciente</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => toggleExpandido(paciente.id)}
-                                className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                                className="min-h-[44px] text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                               >
-                                <ChevronUp className="w-3.5 h-3.5" />
+                                <ChevronUp className="w-4 h-4" />
                                 <span>Recolher Detalhes</span>
                               </button>
                             </div>
@@ -1906,8 +1906,8 @@ export function PassagemPlantaoView() {
       ────────────────────────────────────────────────────────────── */}
       {modalNovaEnfAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 w-full max-w-sm shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 w-full max-w-sm shadow-xl space-y-4 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between shrink-0">
               <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                 <Building2 className="w-4 h-4 text-sky-600" />
                 <span>Nova Enfermaria</span>
@@ -1915,34 +1915,34 @@ export function PassagemPlantaoView() {
               <button
                 type="button"
                 onClick={() => setModalNovaEnfAberto(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSalvarNovaEnfermaria} className="space-y-3">
+            <form onSubmit={handleSalvarNovaEnfermaria} className="space-y-3 flex-1 overflow-y-auto">
               <input
                 type="text"
                 value={novaEnfNome}
                 onChange={(e) => setNovaEnfNome(e.target.value)}
                 placeholder="Ex: NEFRO, UTI, 5º ANDAR..."
                 autoFocus
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
+                className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
               />
 
-              <div className="flex items-center justify-end gap-2 pt-1">
+              <div className="flex items-center justify-end gap-2 pt-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setModalNovaEnfAberto(false)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                  className="min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 cursor-pointer flex items-center justify-center"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={!novaEnfNome.trim()}
-                  className="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs cursor-pointer"
+                  className="min-h-[44px] px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center"
                 >
                   Salvar
                 </button>
