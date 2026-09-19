@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { PacientePassagem } from "@/types/hospital";
 import { anonimizarNome } from "@/lib/lgpd";
 import {
@@ -11,6 +11,7 @@ import {
   obterCirurgiasPaciente,
 } from "@/lib/antibiotic-engine";
 import { formatarDataBR, obterDataLocalHoje } from "@/lib/utils";
+import { imprimirElementoIsolado } from "@/lib/printUtils";
 import {
   Printer,
   X,
@@ -27,6 +28,7 @@ import {
   ClipboardList,
   FileText,
   Compass,
+  Loader2,
 } from "lucide-react";
 
 interface Props {
@@ -35,6 +37,10 @@ interface Props {
 }
 
 export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
+  // Referência para extração isolada da folha A4 e controle de clique duplo
+  const folhaA4Ref = useRef<HTMLDivElement>(null);
+  const [isImprimindo, setIsImprimindo] = useState(false);
+
   // Pacientes selecionados (por padrão, todos)
   const [pacientesSelecionados, setPacientesSelecionados] = useState<string[]>(
     pacientes.map((p) => p.id)
@@ -140,9 +146,25 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
     });
   }
 
-  function handleImprimir() {
-    // Disparo síncrono imediato no gesto do usuário para abertura instantânea da folha de impressão
-    window.print();
+  async function handleImprimir() {
+    if (isImprimindo) return;
+    if (!folhaA4Ref.current) {
+      window.print();
+      return;
+    }
+
+    setIsImprimindo(true);
+    try {
+      await imprimirElementoIsolado(
+        folhaA4Ref.current,
+        `Passagem de Plantão — ${dataHojeFormatada}`
+      );
+    } catch (err) {
+      console.error("[ModalImpressaoSeletiva] Erro na impressão isolada:", err);
+      window.print();
+    } finally {
+      setIsImprimindo(false);
+    }
   }
 
   // Grupos filtrados apenas com pacientes selecionados para impressão
@@ -379,11 +401,20 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
           <button
             type="button"
             onClick={handleImprimir}
-            disabled={totalSelecionados === 0}
+            disabled={totalSelecionados === 0 || isImprimindo}
             className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
-            <Printer className="w-4 h-4" />
-            <span>Imprimir ({totalSelecionados} {totalSelecionados === 1 ? "Paciente" : "Pacientes"})</span>
+            {isImprimindo ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Abrindo Impressão...</span>
+              </>
+            ) : (
+              <>
+                <Printer className="w-4 h-4" />
+                <span>Imprimir ({totalSelecionados} {totalSelecionados === 1 ? "Paciente" : "Pacientes"})</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -396,7 +427,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
           - Cabeçalho ultra-compacto de 1 linha
           - Dividido por enfermaria e estritamente ordenado por leito
       ────────────────────────────────────────────────────────────── */}
-      <div className="hidden print:block print-container">
+      <div ref={folhaA4Ref} className="hidden print:block print-container">
         {/* CABEÇALHO ULTRA-COMPACTO DE 1 LINHA */}
         <div className="print-header flex items-center justify-between pb-1.5 mb-2.5 border-b-2 border-black text-xs font-bold uppercase tracking-wider text-black">
           <div className="flex items-center gap-2">

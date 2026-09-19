@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { AdmissaoPaciente } from "@/types/hospital";
 import {
@@ -9,6 +9,7 @@ import {
   obterEmojisStatusAdmissao,
 } from "@/lib/whatsapp";
 import { obterDataLocalHoje, obterNivelProgressoAdmissao } from "@/lib/utils";
+import { imprimirElementoIsolado } from "@/lib/printUtils";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -25,6 +26,7 @@ import {
   GripVertical,
   X,
   ArrowUpDown,
+  Loader2,
 } from "lucide-react";
 import {
   DndContext,
@@ -191,6 +193,10 @@ export function AdmissoesView() {
   // Lista ordenada manualmente para a folha A4
   const [ordemImpressaoPacientes, setOrdemImpressaoPacientes] = useState<AdmissaoPaciente[]>([]);
 
+  // Referência para extração isolada da folha A4 de Admissões e controle de impressão
+  const folhaA4AdmissoesRef = useRef<HTMLDivElement>(null);
+  const [isImprimindo, setIsImprimindo] = useState(false);
+
   // Form para novo paciente
   const [novoNome, setNovoNome] = useState("");
   const [novaEnfermaria, setNovaEnfermaria] = useState("SEM ENFERMARIA");
@@ -342,13 +348,25 @@ export function AdmissoesView() {
     }
   }
 
-  function handleConfirmarImpressao() {
-    setModalImpressaoAberto(false);
-    requestAnimationFrame(() => {
-      setTimeout(() => {
+  async function handleConfirmarImpressao() {
+    if (isImprimindo) return;
+    setIsImprimindo(true);
+    try {
+      if (folhaA4AdmissoesRef.current) {
+        await imprimirElementoIsolado(
+          folhaA4AdmissoesRef.current,
+          `Internamentos do Dia — ${dataFormatadaBR}`
+        );
+      } else {
         window.print();
-      }, 50);
-    });
+      }
+    } catch (err) {
+      console.error("[AdmissoesView] Erro na impressão isolada:", err);
+      window.print();
+    } finally {
+      setIsImprimindo(false);
+      setModalImpressaoAberto(false);
+    }
   }
 
   // Regra de etapas progressivas automáticas para os 4 status
@@ -946,10 +964,20 @@ export function AdmissoesView() {
               <button
                 type="button"
                 onClick={handleConfirmarImpressao}
-                className="min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                disabled={isImprimindo}
+                className="min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
               >
-                <Printer className="w-4 h-4" />
-                <span>Imprimir Lista Simples</span>
+                {isImprimindo ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Abrindo Impressão...</span>
+                  </>
+                ) : (
+                  <>
+                    <Printer className="w-4 h-4" />
+                    <span>Imprimir Lista Simples</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -958,7 +986,7 @@ export function AdmissoesView() {
       </div>
 
       {/* FOLHA A4 DE IMPRESSÃO LIMPA E ESTRITAMENTE NUMERADA */}
-      <div className="hidden print:block print-container w-full">
+      <div ref={folhaA4AdmissoesRef} className="hidden print:block print-container w-full">
         <div className="text-center pb-3 mb-4 border-b-2 border-black">
           <h1 className="text-lg font-bold uppercase tracking-wider text-black">
             INTERNAMENTOS DO DIA — {dataFormatadaBR}
