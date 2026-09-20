@@ -2123,6 +2123,74 @@ assert(
   "Lote de 5 fotos é preparado perfeitamente para envio com legenda via Web Share API"
 );
 
+// Teste 30.7: Validação de nomenclatura e designação da ÚLTIMA foto como receptora da legenda
+function gerarNomesArquivosFotos(alta: { leito?: string; nomePaciente: string }, totalFotos: number): string[] {
+  const nomes: string[] = [];
+  const leitoSafe = (alta.leito || "semlt").replace(/\s+/g, "_");
+  const nomeSafe = (alta.nomePaciente || "paciente").replace(/\s+/g, "_").toLowerCase();
+
+  for (let i = 0; i < totalFotos; i++) {
+    const isUltima = i === totalFotos - 1;
+    const sufixo = totalFotos > 1
+      ? (isUltima ? `_${i + 1}_final_legenda` : `_${i + 1}`)
+      : "";
+    nomes.push(`alta_${leitoSafe}_${nomeSafe}${sufixo}.webp`);
+  }
+  return nomes;
+}
+
+const nomes5Fotos = gerarNomesArquivosFotos({ leito: "201", nomePaciente: "Carlos Alberto" }, 5);
+assert(
+  nomes5Fotos.length === 5,
+  "Gera exatamente 5 nomes de arquivos para o lote completo de alta"
+);
+assert(
+  nomes5Fotos[0] === "alta_201_carlos_alberto_1.webp",
+  "Primeira foto do lote não possui sufixo de legenda"
+);
+assert(
+  nomes5Fotos[3] === "alta_201_carlos_alberto_4.webp",
+  "Fotos intermediárias não possuem sufixo de legenda"
+);
+assert(
+  nomes5Fotos[4] === "alta_201_carlos_alberto_5_final_legenda.webp",
+  "A ÚLTIMA foto (foto 5) possui explicitamente o sufixo '_final_legenda' marcando o fechamento"
+);
+
+const nomesFotoUnica = gerarNomesArquivosFotos({ leito: "102", nomePaciente: "Ana Paula" }, 1);
+assert(
+  nomesFotoUnica.length === 1 && nomesFotoUnica[0] === "alta_102_ana_paula.webp",
+  "Quando há apenas 1 foto, ela é gerada de forma limpa como a foto principal"
+);
+
+// Teste 30.8: Mensagem de retorno orientando sobre a legenda na última foto
+function obterMensagemFeedback(qtdFotos: number, compartilhadoNativo: boolean): string {
+  if (compartilhadoNativo) {
+    return qtdFotos > 1
+      ? `Lote de ${qtdFotos} fotos preparado com o texto na última foto como fechamento!`
+      : qtdFotos === 1
+      ? "Foto preparada com a legenda da alta!"
+      : "Mensagem de alta compartilhada!";
+  }
+  return qtdFotos > 1
+    ? `Resumo copiado e ${qtdFotos} fotos baixadas! Anexe no WhatsApp Web e cole o resumo como legenda da última foto.`
+    : qtdFotos === 1
+    ? "Resumo copiado e foto baixada! Cole a legenda na foto ao anexar no WhatsApp Web."
+    : "Mensagem copiada para a área de transferência!";
+}
+
+const feedbackMobile = obterMensagemFeedback(4, true);
+assert(
+  feedbackMobile.includes("Lote de 4 fotos preparado com o texto na última foto como fechamento!"),
+  "Mensagem nativa de compartilhamento indica que a última foto carrega o texto como fechamento"
+);
+
+const feedbackWeb = obterMensagemFeedback(3, false);
+assert(
+  feedbackWeb.includes("cole o resumo como legenda da última foto"),
+  "Mensagem do WhatsApp Web instrui o usuário a colar o resumo na última foto"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

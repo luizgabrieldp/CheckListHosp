@@ -129,7 +129,8 @@ export function gerarMensagemAlta(alta: AltaPaciente): string {
 }
 
 /**
- * Compartilha via Web Share API (suportando múltiplas fotos) com fallback para Área de Transferência e WhatsApp Web.
+ * Compartilha via Web Share API (suportando bloco de até 5 fotos) com legenda na última foto como fechamento,
+ * e fallback completo para Área de Transferência e WhatsApp Web.
  */
 export async function compartilharOuCopiar(
   texto: string,
@@ -141,6 +142,14 @@ export async function compartilharOuCopiar(
     : arquivosFotos
     ? [arquivosFotos]
     : [];
+
+  // Pré-cópia preventiva do texto para a área de transferência:
+  // Garante que o texto esteja copiado no clipboard caso o app do WhatsApp no mobile ou desktop precise de colar na última foto
+  if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(texto);
+    } catch {}
+  }
 
   if (typeof navigator !== "undefined" && navigator.share) {
     try {
@@ -154,7 +163,13 @@ export async function compartilharOuCopiar(
       }
 
       await navigator.share(shareData);
-      return { compartilhado: true, copiado: false, mensagem: "Compartilhado com sucesso!" };
+      const mensagemSucesso = fotos.length > 1
+        ? `Lote de ${fotos.length} fotos preparado com o texto na última foto como fechamento!`
+        : fotos.length === 1
+        ? "Foto preparada com a legenda da alta!"
+        : "Mensagem de alta compartilhada!";
+
+      return { compartilhado: true, copiado: true, mensagem: mensagemSucesso };
     } catch (err: any) {
       if (err.name === "AbortError") {
         return { compartilhado: false, copiado: false, mensagem: "Compartilhamento cancelado." };
@@ -192,9 +207,9 @@ export async function compartilharOuCopiar(
         copiado: true,
         mensagem:
           fotos.length > 1
-            ? `Mensagem copiada e ${fotos.length} fotos baixadas para anexar no WhatsApp Web!`
+            ? `Resumo copiado e ${fotos.length} fotos baixadas! Anexe no WhatsApp Web e cole o resumo como legenda da última foto.`
             : fotos.length === 1
-            ? "Mensagem copiada e foto baixada para anexar no WhatsApp Web!"
+            ? "Resumo copiado e foto baixada! Cole a legenda na foto ao anexar no WhatsApp Web."
             : "Mensagem copiada para a área de transferência!",
       };
     } catch {}

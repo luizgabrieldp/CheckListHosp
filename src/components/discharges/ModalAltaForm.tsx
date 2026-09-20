@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Trash2,
   Plus,
+  Info,
 } from "lucide-react";
 
 interface Props {
@@ -383,9 +384,15 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                       alt={`Foto ${idx + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-[10px] font-bold text-cyan-300">
-                      #{idx + 1}
-                    </span>
+                    {idx === fotosUrls.length - 1 && fotosUrls.length > 1 ? (
+                      <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-cyan-600/90 backdrop-blur-xs text-[9px] font-bold text-white shadow-xs">
+                        #{idx + 1} • Legenda
+                      </span>
+                    ) : (
+                      <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-[10px] font-bold text-cyan-300">
+                        #{idx + 1}
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleRemoverFoto(idx)}
@@ -396,6 +403,16 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* AVISO EXPLICATIVO DO ENVIO COM LEGENDA NA ÚLTIMA FOTO */}
+            {fotosUrls.length > 1 && (
+              <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/30 flex items-center gap-2 text-[11px] text-cyan-300">
+                <Info className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span>
+                  Ao compartilhar no WhatsApp, a <strong>foto #{fotosUrls.length}</strong> levará o relatório clínico da alta na legenda como fechamento da mensagem.
+                </span>
               </div>
             )}
 

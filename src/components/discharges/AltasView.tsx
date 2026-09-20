@@ -30,6 +30,7 @@ import {
   ArrowUpDown,
   AlertCircle,
   FileImage,
+  Info,
 } from "lucide-react";
 
 export function AltasView() {
@@ -139,7 +140,8 @@ export function AltasView() {
     setModalFotoIdx(0);
   }
 
-  // Compartilhar WhatsApp com suporte nativo a bloco de fotos (até 5) no mobile e download no desktop
+  // Compartilhar WhatsApp com suporte nativo a bloco de fotos (até 5) no mobile e download no desktop.
+  // A legenda com o relatório clínico da alta acompanha a última foto enviada como fechamento da mensagem.
   async function handleCompartilhar(alta: AltaPaciente) {
     const texto = gerarMensagemAlta(alta);
     const fotosList = (alta.fotosFeridaUrls && alta.fotosFeridaUrls.length > 0)
@@ -147,16 +149,21 @@ export function AltasView() {
       : (alta.fotoFeridaUrl ? [alta.fotoFeridaUrl] : []);
 
     const fotoFiles: File[] = [];
+    const totalFotos = fotosList.length;
 
-    for (let i = 0; i < fotosList.length; i++) {
+    for (let i = 0; i < totalFotos; i++) {
       const dataUrl = fotosList[i];
       if (dataUrl && dataUrl.startsWith("data:")) {
         try {
           const leitoSafe = (alta.leito || "semlt").replace(/\s+/g, "_");
           const nomeSafe = (alta.nomePaciente || "paciente").replace(/\s+/g, "_").toLowerCase();
+          const isUltima = i === totalFotos - 1;
+          const sufixo = totalFotos > 1
+            ? (isUltima ? `_${i + 1}_final_legenda` : `_${i + 1}`)
+            : "";
           const file = await dataUrlToFile(
             dataUrl,
-            `foto_${leitoSafe}_${nomeSafe}_${i + 1}.webp`
+            `alta_${leitoSafe}_${nomeSafe}${sufixo}.webp`
           );
           fotoFiles.push(file);
         } catch (err) {
@@ -909,13 +916,23 @@ export function AltasView() {
                                             <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                               <Maximize2 className="w-5 h-5 text-white drop-shadow-md" />
                                             </div>
-                                            <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-[10px] font-bold text-white">
-                                              #{idx + 1}
-                                            </span>
+                                            {idx === qtd - 1 && qtd > 1 ? (
+                                              <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-emerald-700/95 backdrop-blur-xs text-[9px] font-bold text-white shadow-xs flex items-center gap-1">
+                                                #{idx + 1} • Legenda
+                                              </span>
+                                            ) : (
+                                              <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-[10px] font-bold text-white">
+                                                #{idx + 1}
+                                              </span>
+                                            )}
                                           </div>
                                           <div className="flex items-center justify-between mt-1 px-1">
-                                            <span className="text-[10px] text-slate-500 font-medium truncate">
-                                              WebP pronta
+                                            <span className="text-[10px] font-medium truncate flex-1">
+                                              {idx === qtd - 1 && qtd > 1 ? (
+                                                <span className="text-emerald-700 font-bold">Com Legenda</span>
+                                              ) : (
+                                                <span className="text-slate-500">Foto {idx + 1}</span>
+                                              )}
                                             </span>
                                             <button
                                               type="button"
@@ -934,6 +951,21 @@ export function AltasView() {
                                       Nenhuma foto anexada. Tire fotos com a câmera ou selecione da galeria para enviar junto no WhatsApp (máximo de 5 fotos).
                                     </p>
                                   )}
+
+                                  {/* AVISO DO BLOCO DE FOTOS COM LEGENDA NA ÚLTIMA FOTO */}
+                                  {qtd > 1 ? (
+                                    <div className="p-2 rounded-lg bg-emerald-50/80 border border-emerald-200/80 flex items-center gap-2 text-[11px] text-emerald-800">
+                                      <Info className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                      <span>
+                                        O bloco de <strong>{qtd} fotos</strong> será enviado junto, e a <strong>última foto (#{qtd})</strong> levará o relatório clínico completo na legenda, finalizando a mensagem.
+                                      </span>
+                                    </div>
+                                  ) : qtd === 1 ? (
+                                    <div className="p-2 rounded-lg bg-emerald-50/80 border border-emerald-200/80 flex items-center gap-2 text-[11px] text-emerald-800">
+                                      <Info className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                      <span>A foto será enviada com a legenda contendo os dados clínicos da alta.</span>
+                                    </div>
+                                  ) : null}
                                 </div>
                               );
                             })()}
