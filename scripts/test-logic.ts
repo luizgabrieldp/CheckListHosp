@@ -1867,61 +1867,79 @@ assert(
   "Marcador de redimensionar manual tem folga de proteção de 16px, impedindo que a barra de rolagem o esconda"
 );
 
-// Teste 29.5: Suporte a rolagem vertical ao redimensionar para área reduzida
-function simularComportamentoTextarea(
-  scrollHeight: number,
+// Teste 29.5: Tamanho padrão fixo de 2 linhas (56px), rolagem vertical interna e scrollbar translúcida auto-hide
+function simularComportamentoTextareaClinico(
+  linhasConteudo: number,
   alturaManual: number | null,
-  userResized: boolean,
-  conteudoVazio: boolean
-): { alturaFinal: number; overflowY: "auto"; permiteScroll: boolean; manteveManual: boolean } {
-  const alturaMinima = 56;
-  let finalUserResized = userResized;
+  isScrolling: boolean
+): {
+  alturaFinal: number;
+  overflowY: "auto";
+  permiteScroll: boolean;
+  manteveManual: boolean;
+  scrollbarClass: "scrollbar-scrolling" | "scrollbar-idle";
+  scrollbarThumbOpacity: number;
+} {
+  const minRows = 2;
+  const alturaPadrao = Math.max(minRows * 20 + 16, 56); // 56px (2 linhas)
+  const scrollHeightEstimado = Math.max(linhasConteudo * 20 + 16, alturaPadrao);
 
-  if (conteudoVazio) {
-    finalUserResized = false;
+  let alturaFinal = alturaPadrao;
+  let manteveManual = false;
+
+  if (alturaManual !== null) {
+    alturaFinal = alturaManual;
+    manteveManual = true;
   }
 
-  if (finalUserResized && alturaManual !== null) {
-    return {
-      alturaFinal: alturaManual,
-      overflowY: "auto",
-      permiteScroll: alturaManual < scrollHeight,
-      manteveManual: true,
-    };
-  }
+  const permiteScroll = scrollHeightEstimado > alturaFinal;
+  const scrollbarClass = isScrolling ? "scrollbar-scrolling" : "scrollbar-idle";
+  const scrollbarThumbOpacity = isScrolling ? 0.45 : 0;
 
-  const alturaAuto = Math.max(scrollHeight, alturaMinima);
   return {
-    alturaFinal: alturaAuto,
+    alturaFinal,
     overflowY: "auto",
-    permiteScroll: false, // cabe perfeitamente
-    manteveManual: false,
+    permiteScroll,
+    manteveManual,
+    scrollbarClass,
+    scrollbarThumbOpacity,
   };
 }
 
-// Caso 1: Usuário encolheu um texto de 200px para 80px (área reduzida)
-const redimMenor = simularComportamentoTextarea(200, 80, true, false);
+// Caso 1: Texto longo (8 linhas) no tamanho padrão fixo de 2 linhas (56px) - Não auto-expande!
+const textoLongoFixo = simularComportamentoTextareaClinico(8, null, false);
 assert(
-  redimMenor.alturaFinal === 80 && redimMenor.overflowY === "auto" && redimMenor.permiteScroll === true,
-  "Ao redimensionar para campo menor (80px < 200px), overflowY é 'auto' e rolagem vertical fica ativa para ver todo o texto"
+  textoLongoFixo.alturaFinal === 56,
+  "Texto com múltiplas linhas mantém altura padrão compacta fixa de 56px (2 linhas), sem auto-expandir desnecessariamente"
 );
 assert(
-  redimMenor.manteveManual === true,
-  "Altura manual de 80px é preservada sem ser destruída por novos eventos de digitação"
+  textoLongoFixo.overflowY === "auto" && textoLongoFixo.permiteScroll === true,
+  "Texto longo dentro da caixa de 56px fica verticalizado e com rolagem interna ativa para navegar pelas informações"
 );
-
-// Caso 2: Campo sem redimensionamento manual expande normalmente
-const autoExpandNormal = simularComportamentoTextarea(150, null, false, false);
 assert(
-  autoExpandNormal.alturaFinal === 150 && autoExpandNormal.overflowY === "auto" && autoExpandNormal.manteveManual === false,
-  "Sem redimensionamento manual, campo auto-expande suavemente até 150px mantendo overflowY: auto"
+  textoLongoFixo.scrollbarClass === "scrollbar-idle" && textoLongoFixo.scrollbarThumbOpacity === 0,
+  "Quando parado sem rolar, a barra de rolagem fica oculta (auto-hide), mantendo o visual limpo e sem poluição"
 );
 
-// Caso 3: Limpar o conteúdo reseta a altura manual para a base
-const resetAoLimpar = simularComportamentoTextarea(20, 80, true, true);
+// Caso 2: Usuário rolando o texto - barra translúcida surge suavemente
+const textoRolando = simularComportamentoTextareaClinico(8, null, true);
 assert(
-  resetAoLimpar.alturaFinal === 56 && resetAoLimpar.manteveManual === false,
-  "Ao limpar o conteúdo, redimensionamento manual é resetado e campo volta à altura mínima base (56px)"
+  textoRolando.scrollbarClass === "scrollbar-scrolling" && textoRolando.scrollbarThumbOpacity === 0.45,
+  "Ao rolar verticalmente, a barra de rolagem surge com opacidade translúcida de 0.45 e sem tapar o marcador de redimensionamento"
+);
+
+// Caso 3: Usuário redimensiona manualmente para 140px
+const redimUsuario = simularComportamentoTextareaClinico(8, 140, false);
+assert(
+  redimUsuario.alturaFinal === 140 && redimUsuario.manteveManual === true,
+  "Se o usuário redimensionar manualmente para 140px, a altura escolhida é preservada e respeitada"
+);
+
+// Caso 4: Usuário reduz manualmente para 40px
+const redimMenorUsuario = simularComportamentoTextareaClinico(8, 40, true);
+assert(
+  redimMenorUsuario.alturaFinal === 40 && redimMenorUsuario.permiteScroll === true,
+  "Se o usuário encolher o campo para 40px, a rolagem interna continua 100% funcional para leitura completa do texto"
 );
 
 console.log(`\n==============================================`);

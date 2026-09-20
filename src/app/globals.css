@@ -106,6 +106,52 @@ body.app-background *::after {
   }
 }
 
+/* Scrollbar Translúcida com Auto-Hide para Textareas Clínicos */
+.scrollbar-translucent {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+.scrollbar-translucent.scrollbar-scrolling {
+  scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+}
+
+.scrollbar-translucent.scrollbar-idle {
+  scrollbar-color: transparent transparent;
+}
+
+.scrollbar-translucent::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background: transparent;
+}
+
+.scrollbar-translucent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-translucent::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.3s ease;
+}
+
+.scrollbar-translucent.scrollbar-scrolling::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.45);
+}
+
+.scrollbar-translucent.scrollbar-idle::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+.scrollbar-translucent::-webkit-scrollbar-thumb:hover,
+.scrollbar-translucent::-webkit-scrollbar-thumb:active,
+.scrollbar-translucent.scrollbar-idle::-webkit-scrollbar-thumb:hover,
+.scrollbar-translucent.scrollbar-idle::-webkit-scrollbar-thumb:active {
+  background-color: rgba(71, 85, 105, 0.7) !important;
+}
+
 /* Otimização Rigorosa para Impressão A4 (@media print) */
 @media print {
   @page {

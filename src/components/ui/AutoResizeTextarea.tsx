@@ -1,11 +1,11 @@
 "use client";
 
 import React, {
+  useState,
   useEffect,
   useRef,
   useImperativeHandle,
   forwardRef,
-  useCallback,
 } from "react";
 
 export interface AutoResizeTextareaProps
@@ -15,68 +15,43 @@ export interface AutoResizeTextareaProps
 }
 
 /**
- * Textarea com Auto-Ajuste de Altura Dinâmico e Suporte Completo à Rolagem ao Redimensionar
+ * Textarea Clínico com Altura Padrão Fixa (2 linhas), Rolagem Vertical Interna e Redimensionamento Manual Livre
  *
- * - Auto-expande suavemente conforme o texto cresce (digitado ou colado).
- * - Quando o usuário redimensiona manualmente para uma área menor, ativa
- *   rolagem vertical fluida (overflow-y: auto) para que todas as informações
- *   permaneçam 100% visíveis e acessíveis.
- * - Respeita a altura manual escolhida pelo usuário sem resetar ao digitar.
- * - Mantém o marcador de redimensionamento manual (resize: vertical) sempre visível
- *   e fácil de clicar, com padding inferior/direito de proteção.
+ * - Altura padrão compacta fixa (default: 2 linhas, ~56px) para evitar empurrar a tela ou desalinhar os cards clínicos.
+ * - Conforme o texto é digitado ou colado, ele fica contido e verticalizado, com rolagem interna fluida (overflow-y: auto).
+ * - Suporta redimensionamento manual vertical (resize: vertical) caso o usuário queira expandir ou reduzir a área livremente.
+ * - Barra de rolagem translúcida estilo iOS/macOS com auto-hide inteligente: surge durante o scroll e desaparece
+ *   automaticamente após 900ms de inatividade, preservando total visibilidade e usabilidade do marcador de redimensionamento manual.
  */
 export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaProps>(
-  ({ value, minRows = 2, maxHeight, onChange, onInput, onMouseUp, onPointerUp, className = "", style, ...props }, ref) => {
+  (
+    {
+      value,
+      minRows = 2,
+      maxHeight,
+      onChange,
+      onInput,
+      onScroll,
+      className = "",
+      style,
+      rows,
+      ...props
+    },
+    ref
+  ) => {
     const internalRef = useRef<HTMLTextAreaElement | null>(null);
-    const userResizedRef = useRef<boolean>(false);
-    const programmaticHeightRef = useRef<number | null>(null);
-    const valueRef = useRef(value);
-    valueRef.current = value;
+    const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const [isScrolling, setIsScrolling] = useState<boolean>(false);
+    const [manualHeight, setManualHeight] = useState<number | null>(null);
+    const isManualResizeRef = useRef<boolean>(false);
 
     useImperativeHandle(ref, () => internalRef.current as HTMLTextAreaElement);
 
-    const ajustarAltura = useCallback(() => {
-      const el = internalRef.current;
-      if (!el) return;
+    // Altura padrão compacta calculada a partir de minRows (default 2 linhas = 56px)
+    const baseRows = rows ? Number(rows) : minRows;
+    const alturaPadrao = Math.max(baseRows * 20 + 16, 56);
 
-      const valAtual = valueRef.current;
-
-      // Se o usuário limpou o texto por completo, reseta o redimensionamento manual
-      if ((valAtual === "" || valAtual === undefined || valAtual === null) && (!el.value || el.value.trim() === "")) {
-        userResizedRef.current = false;
-      }
-
-      // Se o usuário redimensionou manualmente para um tamanho específico,
-      // preservamos a altura escolhida por ele e garantimos a barra de rolagem ativa
-      if (userResizedRef.current) {
-        el.style.overflowY = "auto";
-        return;
-      }
-
-      // Sempre manter overflowY em "auto", permitindo scroll suave quando o conteúdo exceder a área
-      el.style.overflowY = "auto";
-
-      // Reset temporário para calcular o scrollHeight real do conteúdo
-      el.style.height = "auto";
-
-      // Altura das bordas verticais para compensar box-sizing: border-box
-      // (scrollHeight inclui padding mas não inclui bordas; height com border-box inclui bordas)
-      const bordasVerticais = Math.max(el.offsetHeight - el.clientHeight, 0);
-
-      // Altura mínima baseada em minRows (aprox 20px por linha + padding de 16px)
-      const alturaMinima = Math.max(minRows * 20 + 16, 44);
-      let novaAltura = Math.max(el.scrollHeight + bordasVerticais, alturaMinima);
-
-      if (maxHeight && novaAltura > maxHeight) {
-        novaAltura = maxHeight;
-      }
-
-      el.style.height = `${novaAltura}px`;
-      programmaticHeightRef.current = novaAltura;
-      el.style.overflowY = "auto";
-    }, [minRows, maxHeight]);
-
-    // Detectar redimensionamento manual via ResizeObserver
+    // Detectar redimensionamento manual realizado pelo usuário através do handle nativo
     useEffect(() => {
       const el = internalRef.current;
       if (!el || typeof ResizeObserver === "undefined") return;
@@ -86,82 +61,66 @@ export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeText
           const currentHeight = Math.round(
             entry.borderBoxSize?.[0]?.blockSize ?? el.getBoundingClientRect().height
           );
-          if (
-            programmaticHeightRef.current !== null &&
-            Math.abs(currentHeight - programmaticHeightRef.current) > 4
-          ) {
-            userResizedRef.current = true;
-            el.style.overflowY = "auto";
+          // Se o usuário arrastou o handle para uma altura diferente da base (tolerância de 4px)
+          if (Math.abs(currentHeight - alturaPadrao) > 4) {
+            isManualResizeRef.current = true;
+            setManualHeight(currentHeight);
           }
         }
       });
 
       observer.observe(el);
       return () => observer.disconnect();
+    }, [alturaPadrao]);
+
+    // Timer de auto-hide da barra de rolagem (desaparece suavemente após 900ms sem rolar)
+    const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+      setIsScrolling(true);
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
+      scrollTimerRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 900);
+
+      if (onScroll) {
+        onScroll(e);
+      }
+    };
+
+    // Limpar timer ao desmontar
+    useEffect(() => {
+      return () => {
+        if (scrollTimerRef.current) {
+          clearTimeout(scrollTimerRef.current);
+        }
+      };
     }, []);
 
-    // Ajusta a altura sempre que o valor externo mudar
-    useEffect(() => {
-      ajustarAltura();
-    }, [value, ajustarAltura]);
-
-    // Ajuste único no primeiro mount
-    useEffect(() => {
-      const timer = setTimeout(ajustarAltura, 20);
-      return () => clearTimeout(timer);
-    }, [ajustarAltura]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      ajustarAltura();
-      if (onChange) onChange(e);
-    };
-
-    const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
-      ajustarAltura();
-      if (onInput) onInput(e);
-    };
-
-    const handlePointerUpCapture = (e: React.PointerEvent<HTMLTextAreaElement>) => {
-      const el = internalRef.current;
-      if (el && programmaticHeightRef.current !== null) {
-        if (Math.abs(el.offsetHeight - programmaticHeightRef.current) > 4) {
-          userResizedRef.current = true;
-          el.style.overflowY = "auto";
-        }
-      }
-      if (onPointerUp) onPointerUp(e);
-    };
-
-    const handleMouseUpCapture = (e: React.MouseEvent<HTMLTextAreaElement>) => {
-      const el = internalRef.current;
-      if (el && programmaticHeightRef.current !== null) {
-        if (Math.abs(el.offsetHeight - programmaticHeightRef.current) > 4) {
-          userResizedRef.current = true;
-          el.style.overflowY = "auto";
-        }
-      }
-      if (onMouseUp) onMouseUp(e);
-    };
-
-    const alturaMinimaCalculada = Math.max(minRows * 20 + 16, 44);
+    // Determinar a altura a aplicar: se o usuário redimensionou manualmente, preserva a nova dimensão.
+    // Caso contrário, mantém a altura padrão fixa compacta (56px para 2 linhas).
+    const alturaAplicada = manualHeight !== null ? `${manualHeight}px` : `${alturaPadrao}px`;
 
     return (
       <div className="relative w-full">
         <textarea
           ref={internalRef}
           value={value}
-          onChange={handleChange}
-          onInput={handleInput}
-          onMouseUp={handleMouseUpCapture}
-          onPointerUp={handlePointerUpCapture}
-          rows={minRows}
+          onChange={onChange}
+          onInput={onInput}
+          onScroll={handleScroll}
+          rows={baseRows}
           style={{
             resize: "vertical",
             overflowY: "auto",
-            minHeight: `${alturaMinimaCalculada}px`,
+            minHeight: `${alturaPadrao}px`,
+            maxHeight: maxHeight ? `${maxHeight}px` : undefined,
+            height: alturaAplicada,
             ...style,
           }}
-          className={`w-full px-3 pt-2 pb-4 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-normal focus:bg-white focus:border-sky-500 focus:outline-none transition-colors leading-relaxed block overflow-y-auto ${className}`}
+          className={`w-full px-3 pt-2 pb-3 pr-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-normal focus:bg-white focus:border-sky-500 focus:outline-none transition-colors leading-relaxed block overflow-y-auto scrollbar-translucent ${
+            isScrolling ? "scrollbar-scrolling" : "scrollbar-idle"
+          } ${className}`}
           {...props}
         />
       </div>
