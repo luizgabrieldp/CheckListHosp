@@ -52,15 +52,15 @@ export function getFirebaseDb(): Firestore | null {
 const DOC_ID = "hospital_state_v1";
 
 /**
- * Salva uma foto de alta em uma coleção dedicada no Firestore.
- * Cada foto possui seu próprio documento, evitando estourar o limite de 1MB do documento principal.
+ * Salva as fotos de alta em uma coleção dedicada no Firestore (até 5 fotos WebP).
+ * Cada alta possui seu próprio documento dedicado, evitando estourar o limite de 1MB do documento principal.
  */
-export async function salvarFotoFirestore(
+export async function salvarFotosFirestore(
   altaId: string,
-  fotoDataUrl: string
+  fotosDataUrls: string[]
 ): Promise<boolean> {
   const db = getFirebaseDb();
-  if (!db || !altaId || !fotoDataUrl) return false;
+  if (!db || !altaId || !fotosDataUrls || fotosDataUrls.length === 0) return false;
 
   try {
     const fotoDocRef = doc(db, "hospital_fotos", `alta_${altaId}`);
@@ -68,36 +68,60 @@ export async function salvarFotoFirestore(
       fotoDocRef,
       {
         altaId,
-        fotoDataUrl,
+        fotosDataUrls,
+        fotoDataUrl: fotosDataUrls[0] || null, // retrocompatibilidade
         updatedAt: new Date().toISOString(),
       },
       { merge: true }
     );
     return true;
   } catch (err) {
-    console.warn("[Firebase] Falha ao salvar foto dedicada no Firestore:", err);
+    console.warn("[Firebase] Falha ao salvar fotos dedicadas no Firestore:", err);
     return false;
   }
 }
 
 /**
- * Obtém a foto dedicada de uma alta caso ela não esteja embutida
+ * Salva uma foto única de alta (mantido para retrocompatibilidade)
  */
-export async function obterFotoFirestore(altaId: string): Promise<string | null> {
+export async function salvarFotoFirestore(
+  altaId: string,
+  fotoDataUrl: string
+): Promise<boolean> {
+  return salvarFotosFirestore(altaId, [fotoDataUrl]);
+}
+
+/**
+ * Obtém a lista de fotos dedicada de uma alta caso elas não estejam embutidas no snapshot
+ */
+export async function obterFotosFirestore(altaId: string): Promise<string[]> {
   const db = getFirebaseDb();
-  if (!db || !altaId) return null;
+  if (!db || !altaId) return [];
 
   try {
     const fotoDocRef = doc(db, "hospital_fotos", `alta_${altaId}`);
     const snap = await getDoc(fotoDocRef);
     if (snap.exists()) {
       const data = snap.data();
-      return data.fotoDataUrl || null;
+      if (Array.isArray(data.fotosDataUrls) && data.fotosDataUrls.length > 0) {
+        return data.fotosDataUrls;
+      }
+      if (data.fotoDataUrl) {
+        return [data.fotoDataUrl];
+      }
     }
   } catch (err) {
-    console.warn("[Firebase] Erro ao carregar foto dedicada:", err);
+    console.warn("[Firebase] Erro ao carregar fotos dedicadas:", err);
   }
-  return null;
+  return [];
+}
+
+/**
+ * Obtém a foto dedicada de uma alta caso ela não esteja embutida (retrocompatibilidade)
+ */
+export async function obterFotoFirestore(altaId: string): Promise<string | null> {
+  const fotos = await obterFotosFirestore(altaId);
+  return fotos.length > 0 ? fotos[0] : null;
 }
 
 /**
@@ -115,8 +139,11 @@ export async function sincronizarComFirestore(
     // Se houver altas com fotos, garante o salvamento de cada foto em hospital_fotos
     if (dados.altas && Array.isArray(dados.altas)) {
       for (const a of dados.altas) {
-        if (a.id && a.fotoFeridaUrl && a.fotoFeridaUrl.startsWith("data:")) {
-          salvarFotoFirestore(a.id, a.fotoFeridaUrl).catch(() => {});
+        const listaFotos = (a.fotosFeridaUrls && a.fotosFeridaUrls.length > 0)
+          ? a.fotosFeridaUrls
+          : (a.fotoFeridaUrl ? [a.fotoFeridaUrl] : []);
+        if (a.id && listaFotos.length > 0) {
+          salvarFotosFirestore(a.id, listaFotos).catch(() => {});
         }
       }
     }

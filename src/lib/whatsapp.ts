@@ -106,7 +106,12 @@ export function gerarMensagemAlta(alta: AltaPaciente): string {
     queixaStr = alta.detalhesQueixas?.trim() || "queixa relatada";
   }
 
-  let msg = `LT ${alta.leito || "--"} - ${alta.nomePaciente || "Paciente"}\n`;
+  const leitoValido = alta.leito?.trim();
+  const cabecalho = leitoValido
+    ? `LT ${leitoValido} - ${alta.nomePaciente || "Paciente"}`
+    : `${alta.nomePaciente || "Paciente"}`;
+
+  let msg = `${cabecalho}\n`;
   msg += `${linhaPO}\n`;
   msg += `QUEIXAS: ${queixaStr}\n`;
   msg += `DIETA: ${alta.parametros.dieta ? "✅" : "❌"}\n`;
@@ -124,13 +129,19 @@ export function gerarMensagemAlta(alta: AltaPaciente): string {
 }
 
 /**
- * Compartilha via Web Share API com fallback para Área de Transferência e WhatsApp Web.
+ * Compartilha via Web Share API (suportando múltiplas fotos) com fallback para Área de Transferência e WhatsApp Web.
  */
 export async function compartilharOuCopiar(
   texto: string,
-  arquivoFoto?: File | null,
+  arquivosFotos?: File | File[] | null,
   titulo: string = "CheckList Hospitalar"
 ): Promise<{ compartilhado: boolean; copiado: boolean; mensagem: string }> {
+  const fotos: File[] = Array.isArray(arquivosFotos)
+    ? arquivosFotos.filter(Boolean)
+    : arquivosFotos
+    ? [arquivosFotos]
+    : [];
+
   if (typeof navigator !== "undefined" && navigator.share) {
     try {
       const shareData: ShareData = {
@@ -138,8 +149,8 @@ export async function compartilharOuCopiar(
         text: texto,
       };
 
-      if (arquivoFoto && navigator.canShare && navigator.canShare({ files: [arquivoFoto] })) {
-        shareData.files = [arquivoFoto];
+      if (fotos.length > 0 && navigator.canShare && navigator.canShare({ files: fotos })) {
+        shareData.files = fotos;
       }
 
       await navigator.share(shareData);
@@ -151,20 +162,24 @@ export async function compartilharOuCopiar(
     }
   }
 
-  // Fallback para Clipboard e WhatsApp Web
+  // Fallback para Clipboard e WhatsApp Web (Desktop)
   if (typeof navigator !== "undefined" && navigator.clipboard) {
     try {
       await navigator.clipboard.writeText(texto);
 
-      if (arquivoFoto && typeof window !== "undefined") {
-        const url = URL.createObjectURL(arquivoFoto);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = arquivoFoto.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+      if (fotos.length > 0 && typeof window !== "undefined") {
+        fotos.forEach((foto, idx) => {
+          setTimeout(() => {
+            const url = URL.createObjectURL(foto);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = foto.name || `foto_alta_${idx + 1}.webp`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          }, idx * 200);
+        });
       }
 
       const encoded = encodeURIComponent(texto);
@@ -175,9 +190,12 @@ export async function compartilharOuCopiar(
       return {
         compartilhado: false,
         copiado: true,
-        mensagem: arquivoFoto
-          ? "Mensagem copiada e foto baixada para anexar no WhatsApp Web!"
-          : "Mensagem copiada para a área de transferência!",
+        mensagem:
+          fotos.length > 1
+            ? `Mensagem copiada e ${fotos.length} fotos baixadas para anexar no WhatsApp Web!`
+            : fotos.length === 1
+            ? "Mensagem copiada e foto baixada para anexar no WhatsApp Web!"
+            : "Mensagem copiada para a área de transferência!",
       };
     } catch {}
   }

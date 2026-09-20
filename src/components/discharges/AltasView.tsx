@@ -6,8 +6,8 @@ import { AltaPaciente } from "@/types/hospital";
 import { gerarMensagemAlta, compartilharOuCopiar } from "@/lib/whatsapp";
 import { comprimirImagemParaWebP } from "@/lib/image-compressor";
 import {
-  salvarFotoFirestore,
-  obterFotoFirestore,
+  salvarFotosFirestore,
+  obterFotosFirestore,
   isFirebaseConfigured,
 } from "@/lib/firebase";
 import { obterDataLocalHoje } from "@/lib/utils";
@@ -18,6 +18,8 @@ import {
   Hospital,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Share2,
   Trash2,
   Camera,
@@ -47,7 +49,8 @@ export function AltasView() {
   const [ordenacao, setOrdenacao] = useState<"leito" | "nome">("leito");
   const [pacienteExpandidoId, setPacienteExpandidoId] = useState<string | null>(null);
   const [modalNovoPaciente, setModalNovoPaciente] = useState(false);
-  const [fotoModalUrl, setFotoModalUrl] = useState<string | null>(null);
+  const [modalFotos, setModalFotos] = useState<string[]>([]);
+  const [modalFotoIdx, setModalFotoIdx] = useState<number>(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Estados para adição rápida de nova enfermaria in-place
@@ -81,8 +84,8 @@ export function AltasView() {
       const termo = busca.toLowerCase();
       const bateTexto =
         a.nomePaciente.toLowerCase().includes(termo) ||
-        a.leito.toLowerCase().includes(termo) ||
-        (a.tipoCirurgia && a.tipoCirurgia.toLowerCase().includes(termo));
+        Boolean(a.leito && a.leito.toLowerCase().includes(termo)) ||
+        Boolean(a.tipoCirurgia && a.tipoCirurgia.toLowerCase().includes(termo));
       if (!bateTexto) return false;
 
       if (filtroEnfermaria === "TODAS") return true;
@@ -103,10 +106,12 @@ export function AltasView() {
     Object.keys(grupos).forEach((enf) => {
       grupos[enf].sort((a, b) => {
         if (ordenacao === "leito") {
-          const numA = parseInt(a.leito.replace(/\D/g, ""), 10) || 0;
-          const numB = parseInt(b.leito.replace(/\D/g, ""), 10) || 0;
+          const numA = parseInt((a.leito || "").replace(/\D/g, ""), 10) || 0;
+          const numB = parseInt((b.leito || "").replace(/\D/g, ""), 10) || 0;
+          if (numA === 0 && numB > 0) return 1; // Sem leito vai para o final
+          if (numB === 0 && numA > 0) return -1;
           if (numA !== numB) return numA - numB;
-          return a.leito.localeCompare(b.leito);
+          return a.nomePaciente.localeCompare(b.nomePaciente);
         }
         return a.nomePaciente.localeCompare(b.nomePaciente);
       });
@@ -122,72 +127,141 @@ export function AltasView() {
     return new File([blob], fileName, { type: blob.type || "image/webp" });
   }
 
-  // Compartilhar WhatsApp com suporte nativo a foto no mobile e download/cópia no desktop
+  // Visualização de foto ampliada
+  function abrirVisualizadorFoto(fotos: string[], index: number = 0) {
+    if (!fotos.length) return;
+    setModalFotos(fotos);
+    setModalFotoIdx(index);
+  }
+
+  function fecharVisualizadorFoto() {
+    setModalFotos([]);
+    setModalFotoIdx(0);
+  }
+
+  // Compartilhar WhatsApp com suporte nativo a bloco de fotos (até 5) no mobile e download no desktop
   async function handleCompartilhar(alta: AltaPaciente) {
     const texto = gerarMensagemAlta(alta);
-    let fotoFile: File | null = null;
+    const fotosList = (alta.fotosFeridaUrls && alta.fotosFeridaUrls.length > 0)
+      ? alta.fotosFeridaUrls
+      : (alta.fotoFeridaUrl ? [alta.fotoFeridaUrl] : []);
 
-    if (alta.fotoFeridaUrl && alta.fotoFeridaUrl.startsWith("data:")) {
-      try {
-        fotoFile = await dataUrlToFile(
-          alta.fotoFeridaUrl,
-          `foto_${alta.leito.replace(/\s+/g, "_")}_${alta.nomePaciente.replace(/\s+/g, "_")}.webp`
-        );
-      } catch (err) {
-        console.warn("Erro ao preparar arquivo de imagem para share:", err);
+    const fotoFiles: File[] = [];
+
+    for (let i = 0; i < fotosList.length; i++) {
+      const dataUrl = fotosList[i];
+      if (dataUrl && dataUrl.startsWith("data:")) {
+        try {
+          const leitoSafe = (alta.leito || "semlt").replace(/\s+/g, "_");
+          const nomeSafe = (alta.nomePaciente || "paciente").replace(/\s+/g, "_").toLowerCase();
+          const file = await dataUrlToFile(
+            dataUrl,
+            `foto_${leitoSafe}_${nomeSafe}_${i + 1}.webp`
+          );
+          fotoFiles.push(file);
+        } catch (err) {
+          console.warn("Erro ao preparar arquivo de imagem para share:", err);
+        }
       }
     }
 
+    const leitoValido = alta.leito?.trim();
+    const titulo = leitoValido
+      ? `Alta PO - LT ${leitoValido} (${alta.nomePaciente})`
+      : `Alta PO - ${alta.nomePaciente}`;
+
     const res = await compartilharOuCopiar(
       texto,
-      fotoFile,
-      `Alta PO - LT ${alta.leito} (${alta.nomePaciente})`
+      fotoFiles,
+      titulo
     );
     exibirToast(res.mensagem);
   }
 
-  // Recuperar fotos salvas de forma dedicada caso o dispositivo local ainda não a tenha em cache
+  // Recuperar fotos salvas de forma dedicada caso o dispositivo local ainda não as tenha em cache
   React.useEffect(() => {
     if (!isFirebaseConfigured()) return;
     altas.forEach(async (a) => {
-      if (!a.fotoFeridaUrl) {
-        const fotoSalva = await obterFotoFirestore(a.id);
-        if (fotoSalva) {
+      const temFotos = (a.fotosFeridaUrls && a.fotosFeridaUrls.length > 0) || Boolean(a.fotoFeridaUrl);
+      if (!temFotos) {
+        const fotosSalvas = await obterFotosFirestore(a.id);
+        if (fotosSalvas && fotosSalvas.length > 0) {
           salvarAlta({
             ...a,
-            fotoFeridaUrl: fotoSalva,
+            fotosFeridaUrls: fotosSalvas,
+            fotoFeridaUrl: fotosSalvas[0],
           });
         }
       }
     });
   }, [altas.length]);
 
-  // Upload e compressão de foto para WebP
-  async function handleUploadFoto(paciente: AltaPaciente, file: File) {
-    if (!file) return;
+  // Upload e compressão de múltiplas fotos para WebP (até 5 fotos)
+  async function handleUploadFotos(paciente: AltaPaciente, listaArquivos: FileList | File[]) {
+    const arquivos = Array.from(listaArquivos);
+    if (!arquivos.length) return;
+
+    const fotosAtuais = (paciente.fotosFeridaUrls && paciente.fotosFeridaUrls.length > 0)
+      ? [...paciente.fotosFeridaUrls]
+      : (paciente.fotoFeridaUrl ? [paciente.fotoFeridaUrl] : []);
+
+    if (fotosAtuais.length >= 5) {
+      exibirToast("Limite máximo de 5 fotos atingido para este paciente.");
+      return;
+    }
+
+    const vagas = 5 - fotosAtuais.length;
+    const aProcessar = arquivos.slice(0, vagas);
+
     try {
-      exibirToast("Comprimindo foto para WebP...");
-      const resultado = await comprimirImagemParaWebP(file);
+      exibirToast(`Comprimindo ${aProcessar.length} foto(s) para WebP...`);
+      const novasUrls: string[] = [];
+
+      for (const arq of aProcessar) {
+        const resultado = await comprimirImagemParaWebP(arq);
+        novasUrls.push(resultado.dataUrl);
+      }
+
+      const listaFinal = [...fotosAtuais, ...novasUrls];
       salvarAlta({
         ...paciente,
-        fotoFeridaUrl: resultado.dataUrl,
+        fotosFeridaUrls: listaFinal,
+        fotoFeridaUrl: listaFinal[0],
         updatedAt: new Date().toISOString(),
       });
-      salvarFotoFirestore(paciente.id, resultado.dataUrl).catch(() => {});
-      exibirToast(`Foto anexada e sincronizada (${resultado.tamanhoFormatado})!`);
+      salvarFotosFirestore(paciente.id, listaFinal).catch(() => {});
+      exibirToast(`${novasUrls.length} foto(s) anexada(s)! Total: ${listaFinal.length}/5`);
     } catch (err) {
-      exibirToast("Erro ao processar imagem.");
+      console.error("Erro no upload de fotos:", err);
+      exibirToast("Erro ao processar imagens.");
     }
   }
 
-  // Criação de novo paciente de alta
+  // Remover foto individual da galeria do paciente
+  function handleRemoverFoto(paciente: AltaPaciente, index: number) {
+    const fotosAtuais = (paciente.fotosFeridaUrls && paciente.fotosFeridaUrls.length > 0)
+      ? [...paciente.fotosFeridaUrls]
+      : (paciente.fotoFeridaUrl ? [paciente.fotoFeridaUrl] : []);
+
+    const listaFinal = fotosAtuais.filter((_, idx) => idx !== index);
+    salvarAlta({
+      ...paciente,
+      fotosFeridaUrls: listaFinal,
+      fotoFeridaUrl: listaFinal[0] || undefined,
+      updatedAt: new Date().toISOString(),
+    });
+    salvarFotosFirestore(paciente.id, listaFinal).catch(() => {});
+    exibirToast("Foto removida.");
+  }
+
+  // Criação de novo paciente de alta (leito opcional)
   function handleCriarPaciente(e: React.FormEvent) {
     e.preventDefault();
     if (!novoNome.trim()) return;
 
     const nova: AltaPaciente = {
       id: `alta-${Date.now()}`,
-      leito: novoLeito.trim() || "--",
+      leito: novoLeito.trim() || undefined,
       nomePaciente: novoNome.trim(),
       enfermaria: novaEnfermaria.trim() || "FGH",
       tipoCirurgia: novoPO.trim() || "",
@@ -384,21 +458,29 @@ export function AltasView() {
                                 {paciente.nomePaciente}
                               </h3>
                               <span className="text-xs text-slate-500 font-medium">
-                                LT {paciente.leito || "--"} · {paciente.enfermaria}
+                                {paciente.leito?.trim() ? `LT ${paciente.leito.trim()} · ` : ""}
+                                {paciente.enfermaria}
                                 {paciente.tipoCirurgia ? ` · ${paciente.tipoCirurgia}` : ""}
                               </span>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-2">
-                            {paciente.fotoFeridaUrl && (
-                              <span
-                                className="p-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-bold flex items-center gap-1 border border-emerald-200/60"
-                                title="Foto da ferida anexada"
-                              >
-                                <Camera className="w-3 h-3" /> Foto
-                              </span>
-                            )}
+                            {(() => {
+                              const qtdFotos = (paciente.fotosFeridaUrls && paciente.fotosFeridaUrls.length > 0)
+                                ? paciente.fotosFeridaUrls.length
+                                : (paciente.fotoFeridaUrl ? 1 : 0);
+                              if (qtdFotos === 0) return null;
+                              return (
+                                <span
+                                  className="p-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-bold flex items-center gap-1 border border-emerald-200/60"
+                                  title={`${qtdFotos} foto(s) da ferida anexada(s)`}
+                                >
+                                  <Camera className="w-3 h-3" />
+                                  {qtdFotos === 1 ? "1 Foto" : `${qtdFotos} Fotos`}
+                                </span>
+                              );
+                            })()}
                             {paciente.temQueixas ? (
                               <span className="text-[11px] font-semibold text-amber-600 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
                                 Com queixa
@@ -418,17 +500,17 @@ export function AltasView() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                               <div>
                                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                  Leito
+                                  Leito (Opcional)
                                 </label>
                                 <input
                                   type="text"
                                   inputMode="numeric"
                                   pattern="[0-9]*"
-                                  value={paciente.leito}
+                                  value={paciente.leito || ""}
                                   onChange={(e) => {
                                     salvarAlta({
                                       ...paciente,
-                                      leito: e.target.value.replace(/\D/g, ""),
+                                      leito: e.target.value.replace(/\D/g, "") || undefined,
                                       updatedAt: new Date().toISOString(),
                                     });
                                   }}
@@ -739,112 +821,122 @@ export function AltasView() {
                               </div>
                             </div>
 
-                            {/* LINHA 6: FOTO DA FERIDA OPERATÓRIA / PACIENTE */}
-                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                                  <Camera className="w-3.5 h-3.5 text-emerald-700" />
-                                  Foto da Ferida / Paciente
-                                </span>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <button
-                                    type="button"
-                                    onClick={() => cameraInputRefs.current[paciente.id]?.click()}
-                                    className="min-h-[44px] px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer"
-                                    title="Tirar foto com a câmera"
-                                  >
-                                    <Camera className="w-4 h-4 text-emerald-600" /> Câmera
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => fileInputRefs.current[paciente.id]?.click()}
-                                    className="min-h-[44px] px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer"
-                                    title="Carregar foto da galeria ou arquivo"
-                                  >
-                                    <Upload className="w-4 h-4 text-emerald-600" /> Galeria
-                                  </button>
-                                </div>
-                              </div>
+                            {/* LINHA 6: FOTOS DA FERIDA CIRÚRGICA / PACIENTE (ATÉ 5 FOTOS) */}
+                            {(() => {
+                              const fotosDoPaciente = (paciente.fotosFeridaUrls && paciente.fotosFeridaUrls.length > 0)
+                                ? paciente.fotosFeridaUrls
+                                : (paciente.fotoFeridaUrl ? [paciente.fotoFeridaUrl] : []);
+                              const qtd = fotosDoPaciente.length;
 
-                              {/* INPUTS OCULTOS DE CÂMERA E ARQUIVO */}
-                              <input
-                                ref={(el) => {
-                                  cameraInputRefs.current[paciente.id] = el;
-                                }}
-                                type="file"
-                                accept="image/*"
-                                capture="environment"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const f = e.target.files?.[0];
-                                  if (f) handleUploadFoto(paciente, f);
-                                }}
-                              />
-                              <input
-                                ref={(el) => {
-                                  fileInputRefs.current[paciente.id] = el;
-                                }}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const f = e.target.files?.[0];
-                                  if (f) handleUploadFoto(paciente, f);
-                                }}
-                              />
+                              return (
+                                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                                  <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                                      <Camera className="w-3.5 h-3.5 text-emerald-700" />
+                                      Fotos da Ferida / Incisão ({qtd}/5)
+                                    </span>
+                                    {qtd < 5 ? (
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <button
+                                          type="button"
+                                          onClick={() => cameraInputRefs.current[paciente.id]?.click()}
+                                          className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                          title="Tirar foto com a câmera"
+                                        >
+                                          <Camera className="w-4 h-4 text-emerald-600" /> Câmera
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => fileInputRefs.current[paciente.id]?.click()}
+                                          className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                          title="Carregar fotos da galeria (múltiplas)"
+                                        >
+                                          <Upload className="w-4 h-4 text-emerald-600" /> Galeria (Múltiplas)
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                                        Limite de 5 fotos atingido
+                                      </span>
+                                    )}
+                                  </div>
 
-                              {/* PRÉVIA DA FOTO ANEXADA */}
-                              {paciente.fotoFeridaUrl ? (
-                                <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-white p-2 flex items-center justify-between gap-3">
-                                  <div className="flex items-center gap-2.5">
-                                    <img
-                                      src={paciente.fotoFeridaUrl}
-                                      alt="Ferida"
-                                      className="w-14 h-14 object-cover rounded-lg border border-slate-200 cursor-pointer"
-                                      onClick={() => setFotoModalUrl(paciente.fotoFeridaUrl || null)}
-                                    />
-                                    <div>
-                                      <span className="text-xs font-bold text-slate-800 block">
-                                        Foto anexada (WebP)
-                                      </span>
-                                      <span className="text-[11px] text-slate-500">
-                                        Pronta para envio no WhatsApp
-                                      </span>
+                                  {/* INPUTS OCULTOS DE CÂMERA E ARQUIVO */}
+                                  <input
+                                    ref={(el) => {
+                                      cameraInputRefs.current[paciente.id] = el;
+                                    }}
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      if (e.target.files) handleUploadFotos(paciente, e.target.files);
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                  <input
+                                    ref={(el) => {
+                                      fileInputRefs.current[paciente.id] = el;
+                                    }}
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      if (e.target.files) handleUploadFotos(paciente, e.target.files);
+                                      e.target.value = "";
+                                    }}
+                                  />
+
+                                  {/* GRADE DE FOTOS ANEXADAS */}
+                                  {qtd > 0 ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+                                      {fotosDoPaciente.map((url, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="relative rounded-xl overflow-hidden border border-slate-200 bg-white p-1 flex flex-col group shadow-2xs"
+                                        >
+                                          <div
+                                            className="relative aspect-square w-full rounded-lg overflow-hidden cursor-pointer bg-slate-100"
+                                            onClick={() => abrirVisualizadorFoto(fotosDoPaciente, idx)}
+                                          >
+                                            <img
+                                              src={url}
+                                              alt={`Ferida ${idx + 1}`}
+                                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                            />
+                                            <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                              <Maximize2 className="w-5 h-5 text-white drop-shadow-md" />
+                                            </div>
+                                            <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-[10px] font-bold text-white">
+                                              #{idx + 1}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between mt-1 px-1">
+                                            <span className="text-[10px] text-slate-500 font-medium truncate">
+                                              WebP pronta
+                                            </span>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoverFoto(paciente, idx)}
+                                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
+                                              title="Excluir esta foto"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
                                     </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-1">
-                                    <button
-                                      type="button"
-                                      onClick={() => setFotoModalUrl(paciente.fotoFeridaUrl || null)}
-                                      className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer"
-                                      title="Visualizar em tamanho real"
-                                    >
-                                      <Maximize2 className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        salvarAlta({
-                                          ...paciente,
-                                          fotoFeridaUrl: undefined,
-                                          updatedAt: new Date().toISOString(),
-                                        });
-                                        exibirToast("Foto removida.");
-                                      }}
-                                      className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 cursor-pointer"
-                                      title="Remover foto"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  </div>
+                                  ) : (
+                                    <p className="text-[11px] text-slate-400 italic">
+                                      Nenhuma foto anexada. Tire fotos com a câmera ou selecione da galeria para enviar junto no WhatsApp (máximo de 5 fotos).
+                                    </p>
+                                  )}
                                 </div>
-                              ) : (
-                                <p className="text-[11px] text-slate-400 italic">
-                                  Nenhuma foto anexada. Tire uma foto ou carregue da galeria para enviar junto no WhatsApp.
-                                </p>
-                              )}
-                            </div>
+                              );
+                            })()}
 
                             {/* LINHA 7: BOTÃO GERAR MENSAGEM WHATSAPP & EXCLUIR */}
                             <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
@@ -924,11 +1016,10 @@ export function AltasView() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Leito *
+                    Leito (Opcional)
                   </label>
                   <input
                     type="text"
-                    required
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={novoLeito}
@@ -1026,28 +1117,64 @@ export function AltasView() {
         </div>
       )}
 
-      {/* MODAL VISUALIZADOR DE FOTO EM TAMANHO REAL */}
-      {fotoModalUrl && (
+      {/* MODAL VISUALIZADOR DE FOTOS EM TAMANHO REAL (COM NAVEGAÇÃO MULTIFOTO) */}
+      {modalFotos.length > 0 && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs p-4 animate-in fade-in"
-          onClick={() => setFotoModalUrl(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xs p-4 animate-in fade-in select-none"
+          onClick={fecharVisualizadorFoto}
         >
           <div
-            className="relative max-w-2xl w-full max-h-[90vh] flex flex-col items-center justify-center"
+            className="relative max-w-2xl w-full max-h-[92vh] flex flex-col items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* BOTÃO FECHAR */}
             <button
-              onClick={() => setFotoModalUrl(null)}
-              className="absolute top-2 right-2 z-20 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/90 shadow-lg cursor-pointer"
+              onClick={fecharVisualizadorFoto}
+              className="absolute top-2 right-2 z-30 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-black/75 text-white hover:bg-black/95 shadow-lg cursor-pointer"
               title="Fechar visualização"
             >
               <X className="w-5 h-5" />
             </button>
+
+            {/* BOTÕES DE NAVEGAÇÃO ANTERIOR / PRÓXIMA */}
+            {modalFotos.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setModalFotoIdx((prev) => (prev > 0 ? prev - 1 : modalFotos.length - 1))
+                  }
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-30 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-black/70 hover:bg-black/95 text-white shadow-lg cursor-pointer transition-colors"
+                  title="Foto anterior"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setModalFotoIdx((prev) => (prev < modalFotos.length - 1 ? prev + 1 : 0))
+                  }
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-30 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-black/70 hover:bg-black/95 text-white shadow-lg cursor-pointer transition-colors"
+                  title="Próxima foto"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
+
+            {/* FOTO ATUAL */}
             <img
-              src={fotoModalUrl}
-              alt="Foto da Ferida Ampliada"
-              className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/20"
+              src={modalFotos[modalFotoIdx]}
+              alt={`Foto da Ferida Ampliada ${modalFotoIdx + 1}`}
+              className="max-h-[82vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/20"
             />
+
+            {/* CONTADOR DE FOTOS */}
+            {modalFotos.length > 1 && (
+              <div className="mt-3 px-3.5 py-1 rounded-full bg-black/75 text-white text-xs font-bold tracking-wide">
+                Foto {modalFotoIdx + 1} de {modalFotos.length}
+              </div>
+            )}
           </div>
         </div>
       )}

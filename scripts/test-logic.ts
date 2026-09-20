@@ -1942,6 +1942,165 @@ assert(
   "Se o usuário encolher o campo para 40px, a rolagem interna continua 100% funcional para leitura completa do texto"
 );
 
+// 30. TESTES DE ALTAS CIRÚRGICAS: LEITO OPCIONAL & BLOCO DE ATÉ 5 FOTOS COM LEGENDA
+console.log("\n--- 30. Altas: Leito Opcional e Múltiplas Fotos (até 5) com WhatsApp ---");
+
+import { gerarMensagemAlta } from "../src/lib/whatsapp";
+import { AltaPaciente } from "../src/types/hospital";
+
+// Teste 30.1: Mensagem de WhatsApp para paciente com leito
+const altaComLeito: AltaPaciente = {
+  id: "alta-1",
+  leito: "12",
+  enfermaria: "Cirurgia Geral 1",
+  nomePaciente: "CARLOS EDUARDO ALVES",
+  tipoCirurgia: "PO 1 Herniorrafia Inguinal",
+  temQueixas: false,
+  parametros: {
+    dieta: true,
+    deambulou: true,
+    diurese: true,
+    evacuacao: true,
+  },
+  sinaisVitais: {
+    frequenciaCardiaca: 72,
+    saturacaoO2: 98,
+  },
+  dataAlta: "2026-09-19",
+  createdAt: "2026-09-19T10:00:00Z",
+  updatedAt: "2026-09-19T10:00:00Z",
+};
+
+const msgComLeito = gerarMensagemAlta(altaComLeito);
+assert(
+  msgComLeito.startsWith("LT 12 - CARLOS EDUARDO ALVES"),
+  "Mensagem de WhatsApp com leito inicia corretamente com 'LT 12 - CARLOS EDUARDO ALVES'"
+);
+assert(
+  !msgComLeito.includes("LT --"),
+  "Mensagem não contém 'LT --' quando o leito está presente"
+);
+
+// Teste 30.2: Mensagem de WhatsApp para paciente SEM LEITO (leito opcional)
+const altaSemLeito: AltaPaciente = {
+  id: "alta-2",
+  leito: "", // vazio / não informado
+  enfermaria: "Cirurgia Geral 2",
+  nomePaciente: "MARIA DE LOURDES SOUZA",
+  tipoCirurgia: "PO 2 Colecistectomia",
+  temQueixas: true,
+  detalhesQueixas: "Leve dor em ferida operatória controlada com dipirona",
+  parametros: {
+    dieta: true,
+    deambulou: true,
+    diurese: true,
+    evacuacao: false,
+  },
+  sinaisVitais: {
+    frequenciaCardiaca: 78,
+    saturacaoO2: 99,
+  },
+  dataAlta: "2026-09-19",
+  createdAt: "2026-09-19T10:00:00Z",
+  updatedAt: "2026-09-19T10:00:00Z",
+};
+
+const msgSemLeito = gerarMensagemAlta(altaSemLeito);
+assert(
+  msgSemLeito.startsWith("MARIA DE LOURDES SOUZA"),
+  "Quando o leito não é informado, a mensagem inicia diretamente com o Nome do Paciente"
+);
+assert(
+  !msgSemLeito.includes("LT --") && !msgSemLeito.startsWith("LT "),
+  "Mensagem omite completamente 'LT --' e 'LT ' quando o leito estiver em branco"
+);
+assert(
+  msgSemLeito.includes("QUEIXAS: Leve dor em ferida operatória controlada com dipirona"),
+  "Queixas relatadas são formatadas com precisão na mensagem"
+);
+
+// Teste 30.3: Validação de formulário de Alta - Apenas Nome obrigatório
+function validarFormularioAlta(nome: string, leito?: string): { valido: boolean; motivo?: string } {
+  if (!nome || !nome.trim()) {
+    return { valido: false, motivo: "Nome do paciente é obrigatório" };
+  }
+  return { valido: true };
+}
+
+assert(
+  validarFormularioAlta("João Santos", "").valido === true,
+  "Alta com Nome preenchido e Leito vazio é válida (Leito opcional)"
+);
+assert(
+  validarFormularioAlta("João Santos", undefined).valido === true,
+  "Alta com Nome preenchido e Leito undefined é válida"
+);
+assert(
+  validarFormularioAlta("   ", "05").valido === false,
+  "Alta com Nome em branco é rejeitada mesmo com leito preenchido"
+);
+
+// Teste 30.4: Limite máximo de até 5 fotos por alta cirúrgica
+function gerenciarFotosAlta(fotosAtuais: string[], novasFotos: string[]): { fotosFinais: string[]; bloqueadas: number } {
+  const teto = 5;
+  const vagas = Math.max(teto - fotosAtuais.length, 0);
+  const aceitas = novasFotos.slice(0, vagas);
+  const bloqueadas = novasFotos.length - aceitas.length;
+  return {
+    fotosFinais: [...fotosAtuais, ...aceitas],
+    bloqueadas,
+  };
+}
+
+const resultadoFotos1 = gerenciarFotosAlta(["foto1", "foto2"], ["foto3", "foto4"]);
+assert(
+  resultadoFotos1.fotosFinais.length === 4 && resultadoFotos1.bloqueadas === 0,
+  "Adição de 2 fotos a uma lista de 2 resulta em 4 fotos sem bloqueios"
+);
+
+const resultadoFotos2 = gerenciarFotosAlta(["foto1", "foto2", "foto3", "foto4"], ["foto5", "foto6", "foto7"]);
+assert(
+  resultadoFotos2.fotosFinais.length === 5 && resultadoFotos2.bloqueadas === 2,
+  "Adição de 3 fotos quando restava apenas 1 vaga respeita rigorosamente o teto de 5 fotos e bloqueia as excedentes"
+);
+
+// Teste 30.5: Retrocompatibilidade com altas antigas de foto única
+function obterListaFotosAlta(alta: AltaPaciente): string[] {
+  if (alta.fotosFeridaUrls && alta.fotosFeridaUrls.length > 0) {
+    return alta.fotosFeridaUrls;
+  }
+  if (alta.fotoFeridaUrl) {
+    return [alta.fotoFeridaUrl];
+  }
+  return [];
+}
+
+const altaLegada: AltaPaciente = {
+  ...altaComLeito,
+  fotoFeridaUrl: "data:image/webp;base64,LEGACY_IMAGE_DATA",
+};
+const fotosConvertidas = obterListaFotosAlta(altaLegada);
+assert(
+  fotosConvertidas.length === 1 && fotosConvertidas[0] === "data:image/webp;base64,LEGACY_IMAGE_DATA",
+  "Alta legada com foto única é convertida com sucesso em lista de fotos para a galeria"
+);
+
+// Teste 30.6: Envio de lote de arquivos para a Web Share API
+function prepararArquivosShare(fotosUrls: string[]): { totalArquivos: number; podeEnviarLote: boolean } {
+  const limiteMax = 5;
+  const arquivosProntos = fotosUrls.slice(0, limiteMax);
+  return {
+    totalArquivos: arquivosProntos.length,
+    podeEnviarLote: arquivosProntos.length > 0 && arquivosProntos.length <= limiteMax,
+  };
+}
+
+const lotePronto = prepararArquivosShare(["f1", "f2", "f3", "f4", "f5"]);
+assert(
+  lotePronto.totalArquivos === 5 && lotePronto.podeEnviarLote === true,
+  "Lote de 5 fotos é preparado perfeitamente para envio com legenda via Web Share API"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

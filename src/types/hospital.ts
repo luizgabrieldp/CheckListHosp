@@ -56,7 +56,7 @@ export interface SinaisVitaisAlta {
 
 export interface AltaPaciente {
   id: string;
-  leito: string;
+  leito?: string;
   enfermaria: string;
   nomePaciente: string;
   tipoCirurgia: string; // PO
@@ -64,7 +64,8 @@ export interface AltaPaciente {
   detalhesQueixas?: string;
   parametros: ParametrosAlta;
   sinaisVitais: SinaisVitaisAlta;
-  fotoFeridaUrl?: string; // Base64 ou URL WebP
+  fotoFeridaUrl?: string; // Base64 ou URL WebP (mantido para retrocompatibilidade)
+  fotosFeridaUrls?: string[]; // Suporte a até 5 fotos da ferida cirúrgica
   dataAlta: string;
   createdAt: string;
   updatedAt: string;

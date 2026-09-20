@@ -9,17 +9,16 @@ import {
   Save,
   Camera,
   Upload,
-  AlertCircle,
   Activity,
   Heart,
   CheckCircle2,
-  FileImage,
-  Sparkles,
+  Trash2,
+  Plus,
 } from "lucide-react";
 
 interface Props {
   altaExistente?: AltaPaciente | null;
-  onSalvar: (alta: AltaPaciente, fotoFile?: File | null) => void;
+  onSalvar: (alta: AltaPaciente, fotosFiles?: File[]) => void;
   onClose: () => void;
 }
 
@@ -47,42 +46,74 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
   const [temQueixas, setTemQueixas] = useState(altaExistente?.temQueixas ?? false);
   const [detalhesQueixas, setDetalhesQueixas] = useState(altaExistente?.detalhesQueixas || "");
 
-  // Foto da ferida
-  const [fotoUrl, setFotoUrl] = useState<string | undefined>(altaExistente?.fotoFeridaUrl);
-  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  // Fotos da ferida cirúrgica (suporte a até 5 fotos)
+  const [fotosUrls, setFotosUrls] = useState<string[]>(() => {
+    if (altaExistente?.fotosFeridaUrls && altaExistente.fotosFeridaUrls.length > 0) {
+      return [...altaExistente.fotosFeridaUrls];
+    }
+    if (altaExistente?.fotoFeridaUrl) {
+      return [altaExistente.fotoFeridaUrl];
+    }
+    return [];
+  });
+  const [fotosFiles, setFotosFiles] = useState<File[]>([]);
   const [compressaoInfo, setCompressaoInfo] = useState<string | null>(null);
   const [processandoFoto, setProcessandoFoto] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
-  async function handleSelecionarArquivo(file: File) {
-    if (!file) return;
+  async function handleSelecionarArquivos(lista: FileList | File[]) {
+    const arquivos = Array.from(lista);
+    if (!arquivos.length) return;
+
+    if (fotosUrls.length >= 5) {
+      alert("Limite máximo de 5 fotos atingido para este paciente.");
+      return;
+    }
+
+    const vagas = 5 - fotosUrls.length;
+    const aProcessar = arquivos.slice(0, vagas);
+
     setProcessandoFoto(true);
+    setCompressaoInfo(`Comprimindo ${aProcessar.length} foto(s) para WebP...`);
+
+    const novasUrls: string[] = [];
+    const novosFiles: File[] = [];
+
     try {
-      const res: ResultadoCompressao = await comprimirImagemParaWebP(file);
-      setFotoUrl(res.dataUrl);
-      setFotoFile(res.arquivo);
+      for (const arq of aProcessar) {
+        const res: ResultadoCompressao = await comprimirImagemParaWebP(arq);
+        novasUrls.push(res.dataUrl);
+        novosFiles.push(res.arquivo);
+      }
+
+      setFotosUrls((prev) => [...prev, ...novasUrls]);
+      setFotosFiles((prev) => [...prev, ...novosFiles]);
       setCompressaoInfo(
-        `Comprimido para WebP: ${res.tamanhoFormatado} (original: ${Math.round(
-          res.tamanhoOriginalBytes / 1024
-        )} KB)`
+        `${novasUrls.length} foto(s) WebP pronta(s)! Total: ${fotosUrls.length + novasUrls.length}/5`
       );
     } catch (err) {
       console.error("Erro na compressão:", err);
-      alert("Não foi possível processar a imagem.");
+      alert("Não foi possível processar algumas imagens.");
     } finally {
       setProcessandoFoto(false);
     }
   }
 
+  function handleRemoverFoto(index: number) {
+    setFotosUrls((prev) => prev.filter((_, i) => i !== index));
+    setFotosFiles((prev) => prev.filter((_, i) => i !== index));
+    setCompressaoInfo(null);
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!leito.trim() || !nomePaciente.trim()) return;
+    if (!nomePaciente.trim()) return;
 
     const novaAlta: AltaPaciente = {
       id: altaExistente?.id || `alta-${Date.now()}`,
-      leito: leito.trim(),
+      leito: leito.trim() || undefined,
       enfermaria,
       nomePaciente: nomePaciente.trim(),
       tipoCirurgia: tipoCirurgia.trim(),
@@ -99,13 +130,14 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
         saturacaoO2: parseInt(satO2, 10) || 98,
         pressaoArterial: pa.trim(),
       },
-      fotoFeridaUrl: fotoUrl,
+      fotoFeridaUrl: fotosUrls[0] || undefined,
+      fotosFeridaUrls: fotosUrls,
       dataAlta,
       createdAt: altaExistente?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    onSalvar(novaAlta, fotoFile);
+    onSalvar(novaAlta, fotosFiles);
     onClose();
   }
 
@@ -123,13 +155,13 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 {altaExistente ? "Editar Alta / Evolução PO" : "Nova Alta / Avaliação de Ferida"}
               </h3>
               <p className="text-xs text-slate-400">
-                Parâmetros pós-operatórios, sinais vitais e registro de incisão cirúrgica
+                Parâmetros pós-operatórios, sinais vitais e até 5 fotos da ferida cirúrgica
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -142,12 +174,11 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             <div>
               <div className="h-6 flex items-center mb-1">
                 <label className="text-xs font-semibold text-slate-300">
-                  Leito *
+                  Leito (Opcional)
                 </label>
               </div>
               <input
                 type="text"
-                required
                 inputMode="numeric"
                 pattern="[0-9]*"
                 value={leito}
@@ -193,11 +224,10 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1">
-              Procedimento / Cirurgia Realizada (PO) *
+              Procedimento / Cirurgia Realizada (PO)
             </label>
             <input
               type="text"
-              required
               value={tipoCirurgia}
               onChange={(e) => setTipoCirurgia(e.target.value)}
               placeholder="Ex: PO 1 Colecistectomia Videolaparoscópica"
@@ -221,7 +251,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                   type="button"
                   key={item.label}
                   onClick={() => item.set(!item.val)}
-                  className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                  className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
                     item.val
                       ? "bg-emerald-950/40 border-emerald-500/50 text-emerald-300"
                       : "bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700"
@@ -303,7 +333,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
               <button
                 type="button"
                 onClick={() => setTemQueixas(!temQueixas)}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   temQueixas
                     ? "bg-rose-500 text-white shadow-sm shadow-rose-500/30"
                     : "bg-slate-800 text-slate-400 hover:text-white"
@@ -324,63 +354,79 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             )}
           </div>
 
-          {/* UPLOAD E COMPRESSÃO DE FOTO DA FERIDA CIRÚRGICA */}
+          {/* UPLOAD E GALERIA DE ATÉ 5 FOTOS DA FERIDA CIRÚRGICA */}
           <div className="p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Camera className="w-4 h-4 text-cyan-400" />
                 <span className="text-xs font-bold text-cyan-300">
-                  Foto da Ferida Cirúrgica (Otimizada WebP &lt; 1MB)
+                  Fotos da Ferida Cirúrgica ({fotosUrls.length}/5)
                 </span>
               </div>
               {processandoFoto && (
                 <span className="text-[11px] text-cyan-400 animate-pulse font-medium">
-                  Comprimindo imagem...
+                  Comprimindo fotos...
                 </span>
               )}
             </div>
 
-            {/* PREVIEW SE EXISTIR FOTO */}
-            {fotoUrl ? (
-              <div className="relative rounded-xl overflow-hidden border border-cyan-500/40 bg-slate-950 max-h-48 flex items-center justify-center group">
-                <img
-                  src={fotoUrl}
-                  alt="Ferida cirúrgica"
-                  className="max-h-48 object-contain rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFotoUrl(undefined);
-                    setFotoFile(null);
-                    setCompressaoInfo(null);
-                  }}
-                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 hover:bg-rose-600 text-white text-xs transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+            {/* GRADE DE MINIATURAS DAS FOTOS */}
+            {fotosUrls.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+                {fotosUrls.map((url, idx) => (
+                  <div
+                    key={idx}
+                    className="relative rounded-xl overflow-hidden border border-cyan-500/40 bg-slate-950 aspect-square flex items-center justify-center group"
+                  >
+                    <img
+                      src={url}
+                      alt={`Foto ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-[10px] font-bold text-cyan-300">
+                      #{idx + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoverFoto(idx)}
+                      className="absolute top-1 right-1 p-1.5 rounded-lg bg-black/75 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                      title="Excluir esta foto"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
               </div>
-            ) : (
+            )}
+
+            {/* BOTÕES DE ADICIONAR FOTO (SE MENOR QUE 5) */}
+            {fotosUrls.length < 5 ? (
               <div className="grid grid-cols-2 gap-2">
                 {/* BOTÃO CÂMERA MOBILE */}
                 <button
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="py-3 px-2 rounded-xl bg-slate-900 border border-dashed border-cyan-500/40 hover:border-cyan-400 text-cyan-300 text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all"
+                  className="py-2.5 px-2 rounded-xl bg-slate-900 border border-dashed border-cyan-500/40 hover:border-cyan-400 text-cyan-300 text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
                 >
-                  <Camera className="w-5 h-5 text-cyan-400" />
+                  <Camera className="w-4 h-4 text-cyan-400" />
                   <span>Tirar Foto (Câmera)</span>
                 </button>
 
-                {/* BOTÃO ARQUIVO / GALERIA */}
+                {/* BOTÃO ARQUIVO / GALERIA MÚLTIPLA */}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="py-3 px-2 rounded-xl bg-slate-900 border border-dashed border-slate-700 hover:border-slate-500 text-slate-300 text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all"
+                  className="py-2.5 px-2 rounded-xl bg-slate-900 border border-dashed border-slate-700 hover:border-slate-500 text-slate-300 text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
                 >
-                  <Upload className="w-5 h-5 text-slate-400" />
-                  <span>Escolher da Galeria</span>
+                  <Upload className="w-4 h-4 text-slate-400" />
+                  <span>Galeria (Múltiplas)</span>
                 </button>
+              </div>
+            ) : (
+              <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/30 text-center">
+                <span className="text-xs text-cyan-300 font-medium">
+                  Limite máximo de 5 fotos atingido. Para trocar, remova uma das fotos acima.
+                </span>
               </div>
             )}
 
@@ -392,16 +438,19 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
               capture="environment"
               className="hidden"
               onChange={(e) => {
-                if (e.target.files?.[0]) handleSelecionarArquivo(e.target.files[0]);
+                if (e.target.files) handleSelecionarArquivos(e.target.files);
+                e.target.value = "";
               }}
             />
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               onChange={(e) => {
-                if (e.target.files?.[0]) handleSelecionarArquivo(e.target.files[0]);
+                if (e.target.files) handleSelecionarArquivos(e.target.files);
+                e.target.value = "";
               }}
             />
 
