@@ -1009,15 +1009,17 @@ export function AltasView() {
                   value={novoNome}
                   onChange={(e) => setNovoNome(e.target.value)}
                   placeholder="Ex: Renata Camila"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full h-[42px] px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 box-border"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 items-start">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Leito (Opcional)
-                  </label>
+                  <div className="h-7 flex items-center mb-1">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Leito (Opcional)
+                    </label>
+                  </div>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -1025,12 +1027,12 @@ export function AltasView() {
                     value={novoLeito}
                     onChange={(e) => setNovoLeito(e.target.value.replace(/\D/g, ""))}
                     placeholder="Ex: 15"
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full h-[42px] px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 box-border"
                   />
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="h-7 flex items-center justify-between mb-1">
                     <label className="block text-xs font-semibold text-slate-700">
                       Enfermaria
                     </label>
@@ -1040,7 +1042,7 @@ export function AltasView() {
                         setAdicionandoEnfModal(!adicionandoEnfModal);
                         setNomeNovaEnfModal("");
                       }}
-                      className="min-h-[36px] px-2 py-1 text-[11px] text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-0.5 cursor-pointer"
+                      className="h-6 px-2 py-0.5 text-[11px] text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-0.5 cursor-pointer rounded-lg hover:bg-emerald-50 transition-colors"
                       title="Cadastrar nova enfermaria"
                     >
                       <Plus className="w-3.5 h-3.5" /> Nova
@@ -1048,14 +1050,14 @@ export function AltasView() {
                   </div>
 
                   {adicionandoEnfModal ? (
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 h-[42px] items-center">
                       <input
                         type="text"
                         autoFocus
                         value={nomeNovaEnfModal}
                         onChange={(e) => setNomeNovaEnfModal(e.target.value)}
                         placeholder="Nome..."
-                        className="flex-1 px-2.5 py-2 rounded-lg border border-emerald-500 text-xs text-slate-900 focus:outline-none"
+                        className="flex-1 h-[42px] px-2.5 py-2 rounded-xl border border-emerald-500 text-xs text-slate-900 bg-white focus:outline-none box-border"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") handleSalvarNovaEnfermariaModal(e);
                         }}
@@ -1063,7 +1065,7 @@ export function AltasView() {
                       <button
                         type="button"
                         onClick={handleSalvarNovaEnfermariaModal}
-                        className="min-h-[40px] px-3 py-2 rounded-lg bg-emerald-700 text-white text-xs font-bold cursor-pointer"
+                        className="h-[42px] px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold cursor-pointer transition-colors shrink-0"
                       >
                         OK
                       </button>
@@ -1072,7 +1074,7 @@ export function AltasView() {
                     <select
                       value={novaEnfermaria}
                       onChange={(e) => setNovaEnfermaria(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      className="w-full h-[42px] px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer box-border"
                     >
                       {enfermarias.map((enf) => (
                         <option key={enf} value={enf}>
@@ -1093,7 +1095,7 @@ export function AltasView() {
                   value={novoPO}
                   onChange={(e) => setNovoPO(e.target.value)}
                   placeholder="Ex: HIB+Hu"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full h-[42px] px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 box-border"
                 />
               </div>
 

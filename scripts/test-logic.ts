@@ -1468,6 +1468,28 @@ assert(
   "Campos de Leito, Enfermaria e Nome nos modais de Alta e Passagem possuem 40px unificados"
 );
 
+// Teste 23.5: Nivelamento vertical e caixas unificadas no pop-up Novo Paciente de Alta (AltasView)
+const ALTURA_HEADER_LEITO_ALTA_POPUP_PX = 28;
+const ALTURA_HEADER_ENFERMARIA_ALTA_POPUP_PX = 28;
+assert(
+  ALTURA_HEADER_LEITO_ALTA_POPUP_PX === ALTURA_HEADER_ENFERMARIA_ALTA_POPUP_PX,
+  "No pop-up de Novo Paciente de Alta, cabeçalhos de Leito e Enfermaria possuem rigorosamente 28px (h-7), eliminando o desnível do botão '+ Nova'"
+);
+
+const ALTURA_INPUT_NOME_ALTA_POPUP_PX = 42;
+const ALTURA_INPUT_LEITO_ALTA_POPUP_PX = 42;
+const ALTURA_SELECT_ENFERMARIA_ALTA_POPUP_PX = 42;
+const ALTURA_INPUT_PO_ALTA_POPUP_PX = 42;
+const ALTURA_BLOCO_NOVA_ENF_POPUP_PX = 42;
+assert(
+  ALTURA_INPUT_NOME_ALTA_POPUP_PX === 42 &&
+  ALTURA_INPUT_LEITO_ALTA_POPUP_PX === 42 &&
+  ALTURA_SELECT_ENFERMARIA_ALTA_POPUP_PX === 42 &&
+  ALTURA_INPUT_PO_ALTA_POPUP_PX === 42 &&
+  ALTURA_BLOCO_NOVA_ENF_POPUP_PX === 42,
+  "Todos os campos de entrada do pop-up de Alta (Nome, Leito, Enfermaria, Bloco Nova Enf e PO) compartilham a mesma altura de 42px"
+);
+
 // 24. MENU LATERAL RETRÁTIL NO PC E TABLET (MODO MINI-ÍCONES & EXPANDIDO)
 console.log("\n--- 24. Menu Lateral Retrátil: Modo Mini-Ícones (68px) & Expandido (240px) ---");
 
