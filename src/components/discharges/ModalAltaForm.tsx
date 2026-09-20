@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { AltaPaciente } from "@/types/hospital";
+import { useAppStore } from "@/store/useAppStore";
 import { comprimirImagemParaWebP, ResultadoCompressao } from "@/lib/image-compressor";
 import { obterDataLocalHoje } from "@/lib/utils";
 import {
@@ -24,8 +25,9 @@ interface Props {
 }
 
 export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
+  const enfermarias = useAppStore((s) => s.enfermarias);
   const [leito, setLeito] = useState(altaExistente?.leito || "");
-  const [enfermaria, setEnfermaria] = useState(altaExistente?.enfermaria || "Cirurgia Geral 1");
+  const [enfermaria, setEnfermaria] = useState(altaExistente?.enfermaria || "");
   const [nomePaciente, setNomePaciente] = useState(altaExistente?.nomePaciente || "");
   const [tipoCirurgia, setTipoCirurgia] = useState(altaExistente?.tipoCirurgia || "PO 1 ");
   const [dataAlta, setDataAlta] = useState(
@@ -115,7 +117,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
     const novaAlta: AltaPaciente = {
       id: altaExistente?.id || `alta-${Date.now()}`,
       leito: leito.trim() || undefined,
-      enfermaria,
+      enfermaria: enfermaria.trim(),
       nomePaciente: nomePaciente.trim(),
       tipoCirurgia: tipoCirurgia.trim(),
       temQueixas,
@@ -200,9 +202,14 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 onChange={(e) => setEnfermaria(e.target.value)}
                 className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none cursor-pointer"
               >
-                <option value="Cirurgia Geral 1">Cirurgia Geral 1</option>
-                <option value="Cirurgia Geral 2">Cirurgia Geral 2</option>
-                <option value="Enfermaria Especialidades">Enfermaria Especialidades</option>
+                <option value="">Sem enfermaria</option>
+                {enfermarias
+                  .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+                  .map((enf) => (
+                    <option key={enf} value={enf}>
+                      {enf}
+                    </option>
+                  ))}
               </select>
             </div>
 

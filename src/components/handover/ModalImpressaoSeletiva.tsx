@@ -65,11 +65,12 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
   const gruposEnfermarias = useMemo(() => {
     const map = new Map<string, PacientePassagem[]>();
     pacientes.forEach((p) => {
-      const enf = p.enfermaria?.trim() || "Sem Enfermaria";
-      if (!map.has(enf)) {
-        map.set(enf, []);
+      const enf = p.enfermaria?.trim() || "";
+      const nomeEnf = !enf || enf.toLowerCase() === "sem enfermaria" ? "Sem Enfermaria" : enf;
+      if (!map.has(nomeEnf)) {
+        map.set(nomeEnf, []);
       }
-      map.get(enf)!.push(p);
+      map.get(nomeEnf)!.push(p);
     });
 
     // Ordenação natural de leitos em cada enfermaria (ex: 1, 2, 8, 10, 25, 305-B)
@@ -82,7 +83,14 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
       );
     });
 
-    return Array.from(map.entries()).map(([nome, lista]) => ({
+    // Ordenação dos grupos: "Sem Enfermaria" no topo
+    const entradasOrdenadas = Array.from(map.entries()).sort(([nomeA], [nomeB]) => {
+      if (nomeA === "Sem Enfermaria") return -1;
+      if (nomeB === "Sem Enfermaria") return 1;
+      return nomeA.localeCompare(nomeB, "pt-BR");
+    });
+
+    return entradasOrdenadas.map(([nome, lista]) => ({
       nome,
       pacientes: lista,
     }));

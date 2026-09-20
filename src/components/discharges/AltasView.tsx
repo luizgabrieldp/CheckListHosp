@@ -63,7 +63,7 @@ export function AltasView() {
   // Estado do form para novo paciente de alta
   const [novoLeito, setNovoLeito] = useState("");
   const [novoNome, setNovoNome] = useState("");
-  const [novaEnfermaria, setNovaEnfermaria] = useState("FGH");
+  const [novaEnfermaria, setNovaEnfermaria] = useState("");
   const [novoPO, setNovoPO] = useState("");
 
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -90,18 +90,23 @@ export function AltasView() {
       if (!bateTexto) return false;
 
       if (filtroEnfermaria === "TODAS") return true;
+      if (filtroEnfermaria === "SEM_ENFERMARIA") {
+        const enf = a.enfermaria?.trim() || "";
+        return !enf || enf.toLowerCase() === "sem enfermaria";
+      }
       return a.enfermaria.trim().toLowerCase() === filtroEnfermaria.trim().toLowerCase();
     });
   }, [altasDaData, busca, filtroEnfermaria]);
 
-  // Agrupamento por enfermaria com ordenação (Leito ou Nome)
+  // Agrupamento por enfermaria com ordenação (Leito ou Nome) e "Sem Enfermaria" no topo
   const altasAgrupadas = useMemo(() => {
     const grupos: Record<string, AltaPaciente[]> = {};
 
     altasFiltradas.forEach((p) => {
-      const enf = p.enfermaria?.trim() || "SEM ENFERMARIA";
-      if (!grupos[enf]) grupos[enf] = [];
-      grupos[enf].push(p);
+      const enf = p.enfermaria?.trim() || "";
+      const nomeGrupo = !enf || enf.toLowerCase() === "sem enfermaria" ? "Sem Enfermaria" : enf;
+      if (!grupos[nomeGrupo]) grupos[nomeGrupo] = [];
+      grupos[nomeGrupo].push(p);
     });
 
     Object.keys(grupos).forEach((enf) => {
@@ -118,7 +123,19 @@ export function AltasView() {
       });
     });
 
-    return grupos;
+    // Ordenar grupos: "Sem Enfermaria" SEMPRE NO TOPO (em 1º lugar)
+    const chavesOrdenadas = Object.keys(grupos).sort((a, b) => {
+      if (a === "Sem Enfermaria") return -1;
+      if (b === "Sem Enfermaria") return 1;
+      return a.localeCompare(b, "pt-BR");
+    });
+
+    const ordenado: Record<string, AltaPaciente[]> = {};
+    chavesOrdenadas.forEach((k) => {
+      ordenado[k] = grupos[k];
+    });
+
+    return ordenado;
   }, [altasFiltradas, ordenacao]);
 
   // Converter dataUrl para File para Web Share API
@@ -270,7 +287,7 @@ export function AltasView() {
       id: `alta-${Date.now()}`,
       leito: novoLeito.trim() || undefined,
       nomePaciente: novoNome.trim(),
-      enfermaria: novaEnfermaria.trim() || "FGH",
+      enfermaria: novaEnfermaria.trim(),
       tipoCirurgia: novoPO.trim() || "",
       temQueixas: false,
       detalhesQueixas: "",
@@ -398,19 +415,31 @@ export function AltasView() {
           >
             Todas
           </button>
-          {enfermarias.map((enf) => (
-            <button
-              key={enf}
-              onClick={() => setFiltroEnfermaria(enf)}
-              className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
-                filtroEnfermaria.toLowerCase() === enf.toLowerCase()
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/60"
-              }`}
-            >
-              {enf}
-            </button>
-          ))}
+          <button
+            onClick={() => setFiltroEnfermaria("SEM_ENFERMARIA")}
+            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
+              filtroEnfermaria === "SEM_ENFERMARIA"
+                ? "bg-emerald-700 text-white shadow-xs"
+                : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/60"
+            }`}
+          >
+            Sem Enfermaria
+          </button>
+          {enfermarias
+            .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+            .map((enf) => (
+              <button
+                key={enf}
+                onClick={() => setFiltroEnfermaria(enf)}
+                className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
+                  filtroEnfermaria.toLowerCase() === enf.toLowerCase()
+                    ? "bg-emerald-700 text-white shadow-xs"
+                    : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/60"
+                }`}
+              >
+                {enf}
+              </button>
+            ))}
         </div>
       </div>
 
@@ -466,7 +495,7 @@ export function AltasView() {
                               </h3>
                               <span className="text-xs text-slate-500 font-medium">
                                 {paciente.leito?.trim() ? `LT ${paciente.leito.trim()} · ` : ""}
-                                {paciente.enfermaria}
+                                {paciente.enfermaria?.trim() || "Sem Enfermaria"}
                                 {paciente.tipoCirurgia ? ` · ${paciente.tipoCirurgia}` : ""}
                               </span>
                             </div>
@@ -578,7 +607,7 @@ export function AltasView() {
                                   </div>
                                 ) : (
                                   <select
-                                    value={paciente.enfermaria}
+                                    value={paciente.enfermaria || ""}
                                     onChange={(e) => {
                                       salvarAlta({
                                         ...paciente,
@@ -588,11 +617,14 @@ export function AltasView() {
                                     }}
                                     className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                                   >
-                                    {enfermarias.map((enf) => (
-                                      <option key={enf} value={enf}>
-                                        {enf}
-                                      </option>
-                                    ))}
+                                    <option value="">Sem enfermaria</option>
+                                    {enfermarias
+                                      .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+                                      .map((enf) => (
+                                        <option key={enf} value={enf}>
+                                          {enf}
+                                        </option>
+                                      ))}
                                   </select>
                                 )}
                               </div>
@@ -1108,11 +1140,14 @@ export function AltasView() {
                       onChange={(e) => setNovaEnfermaria(e.target.value)}
                       className="w-full h-[42px] px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer box-border"
                     >
-                      {enfermarias.map((enf) => (
-                        <option key={enf} value={enf}>
-                          {enf}
-                        </option>
-                      ))}
+                      <option value="">Sem enfermaria</option>
+                      {enfermarias
+                        .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+                        .map((enf) => (
+                          <option key={enf} value={enf}>
+                            {enf}
+                          </option>
+                        ))}
                     </select>
                   )}
                 </div>

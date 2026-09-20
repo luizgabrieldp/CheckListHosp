@@ -108,7 +108,7 @@ export function PassagemPlantaoView() {
     const defaultEnf =
       enfermariaFiltro !== "TODAS" && enfermariaFiltro !== "SEM_ENFERMARIA"
         ? enfermariaFiltro
-        : enfermarias[0] || "Cirurgia Geral";
+        : "";
 
     const novoId = `pass-${Date.now()}`;
     const novo: PacientePassagem = {
@@ -443,7 +443,8 @@ export function PassagemPlantaoView() {
   const pacientesFiltrados = useMemo(() => {
     return passagem.filter((p) => {
       if (enfermariaFiltro === "SEM_ENFERMARIA") {
-        if (p.enfermaria && p.enfermaria.trim() !== "") return false;
+        const enf = p.enfermaria?.trim() || "";
+        if (enf !== "" && enf.toLowerCase() !== "sem enfermaria") return false;
       } else if (enfermariaFiltro !== "TODAS") {
         if (p.enfermaria?.toLowerCase() !== enfermariaFiltro.toLowerCase()) return false;
       }
@@ -470,13 +471,17 @@ export function PassagemPlantaoView() {
   const gruposEnfermarias = useMemo(() => {
     const setEnfs = new Set<string>();
     pacientesFiltrados.forEach((p) => {
-      const nomeEnf = p.enfermaria?.trim();
-      setEnfs.add(nomeEnf || "Sem Enfermaria");
+      const enf = p.enfermaria?.trim() || "";
+      if (!enf || enf.toLowerCase() === "sem enfermaria") {
+        setEnfs.add("Sem Enfermaria");
+      } else {
+        setEnfs.add(enf);
+      }
     });
 
     const ordenadas = Array.from(setEnfs).sort((a, b) => {
-      if (a === "Sem Enfermaria") return 1;
-      if (b === "Sem Enfermaria") return -1;
+      if (a === "Sem Enfermaria") return -1; // Sem Enfermaria no topo prioritário
+      if (b === "Sem Enfermaria") return 1;
       return a.localeCompare(b, "pt-BR");
     });
 
@@ -599,23 +604,6 @@ export function PassagemPlantaoView() {
               Todas
             </button>
 
-            {enfermarias.map((enf) => {
-              const isAtiva = enfermariaFiltro === enf;
-              return (
-                <button
-                  key={enf}
-                  onClick={() => setEnfermariaFiltro(enf)}
-                  className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
-                    isAtiva
-                      ? "bg-slate-900 text-white font-bold shadow-xs"
-                      : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {enf}
-                </button>
-              );
-            })}
-
             <button
               onClick={() => setEnfermariaFiltro("SEM_ENFERMARIA")}
               className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
@@ -626,6 +614,25 @@ export function PassagemPlantaoView() {
             >
               Sem Enfermaria
             </button>
+
+            {enfermarias
+              .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+              .map((enf) => {
+                const isAtiva = enfermariaFiltro.toLowerCase() === enf.toLowerCase();
+                return (
+                  <button
+                    key={enf}
+                    onClick={() => setEnfermariaFiltro(enf)}
+                    className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
+                      isAtiva
+                        ? "bg-slate-900 text-white font-bold shadow-xs"
+                        : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    {enf}
+                  </button>
+                );
+              })}
           </div>
 
           {/* BOTÃO NOVA ENFERMARIA */}
@@ -656,8 +663,9 @@ export function PassagemPlantaoView() {
         <div className="space-y-6">
           {gruposEnfermarias.map((grupoNome) => {
             const pacientesDoGrupo = pacientesFiltrados.filter((p) => {
-              const enf = p.enfermaria?.trim() || "Sem Enfermaria";
-              return enf.toLowerCase() === grupoNome.toLowerCase();
+              const enf = p.enfermaria?.trim() || "";
+              const enfNormalizada = !enf || enf.toLowerCase() === "sem enfermaria" ? "Sem Enfermaria" : enf;
+              return enfNormalizada.toLowerCase() === grupoNome.toLowerCase();
             });
 
             if (pacientesDoGrupo.length === 0) return null;
@@ -703,7 +711,7 @@ export function PassagemPlantaoView() {
 
                               {/* ENFERMARIA */}
                               <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
-                                {paciente.enfermaria || "Sem Enf."}
+                                {paciente.enfermaria?.trim() || "Sem Enfermaria"}
                               </span>
 
                               {/* NOME ANONIMIZADO */}
@@ -930,18 +938,20 @@ export function PassagemPlantaoView() {
                                     <span>Enfermaria</span>
                                   </label>
                                   <select
-                                    value={paciente.enfermaria}
+                                    value={paciente.enfermaria || ""}
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "enfermaria", e.target.value)
                                     }
                                     className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                                   >
                                     <option value="">Sem enfermaria</option>
-                                    {enfermarias.map((enf) => (
-                                      <option key={enf} value={enf}>
-                                        {enf}
-                                      </option>
-                                    ))}
+                                    {enfermarias
+                                      .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+                                      .map((enf) => (
+                                        <option key={enf} value={enf}>
+                                          {enf}
+                                        </option>
+                                      ))}
                                   </select>
                                 </div>
                               </div>

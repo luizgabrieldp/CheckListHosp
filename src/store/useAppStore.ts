@@ -46,8 +46,7 @@ function sincronizarMutation(chave: keyof DatabaseState, payload: any, wsType: s
   }
 }
 
-const ENFERMARIAS_PADRAO = [
-  "SEM ENFERMARIA",
+export const ENFERMARIAS_PADRAO = [
   "FGH",
   "IMIP",
   "NEFRO",
@@ -66,13 +65,28 @@ const CATEGORIAS_MODELOS_PADRAO = [
   "Receituário",
 ];
 
+export function normalizarEnfermariaPaciente<T extends { enfermaria?: string }>(item: T): T {
+  if (!item.enfermaria || item.enfermaria.trim().toLowerCase() === "sem enfermaria") {
+    return { ...item, enfermaria: "" };
+  }
+  return item;
+}
+
 function carregarListaLocalStorage(chave: string, padrao: string[]): string[] {
   if (typeof window !== "undefined") {
     try {
       const salvo = localStorage.getItem(chave);
       if (salvo) {
         const parsed = JSON.parse(salvo);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const filtrado = parsed.filter(
+            (item: any) =>
+              typeof item === "string" &&
+              item.trim().toLowerCase() !== "sem enfermaria" &&
+              item.trim().toLowerCase() !== "sem enfermaria / indefinida"
+          );
+          return filtrado.length > 0 ? filtrado : padrao;
+        }
       }
     } catch {}
   }
@@ -185,8 +199,8 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     }
   },
 
-  admissoes: carregarItemLocalStorage<AdmissaoPaciente[]>("checklist_admissoes", []),
-  altas: carregarItemLocalStorage<AltaPaciente[]>("checklist_altas", []),
+  admissoes: carregarItemLocalStorage<AdmissaoPaciente[]>("checklist_admissoes", []).map(normalizarEnfermariaPaciente),
+  altas: carregarItemLocalStorage<AltaPaciente[]>("checklist_altas", []).map(normalizarEnfermariaPaciente),
   permanencia: carregarItemLocalStorage<DadosPermanencia>("checklist_permanencia", {
     id: "perm-init",
     data: obterDataLocalHoje(),
@@ -195,7 +209,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }),
-  passagem: carregarItemLocalStorage<PacientePassagem[]>("checklist_passagem", []),
+  passagem: carregarItemLocalStorage<PacientePassagem[]>("checklist_passagem", []).map(normalizarEnfermariaPaciente),
   ambulantes: carregarItemLocalStorage<MedicoAmbulatorio[]>("checklist_ambulantes", []),
   modelos: carregarItemLocalStorage<ModeloTexto[]>("checklist_modelos", []),
   metricas: carregarItemLocalStorage<MetricasHistoricasDiarias[]>("checklist_metricas", []),
@@ -246,18 +260,19 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   syncFullState: (state) => {
     set((prev) => ({
       ...prev,
-      admissoes: state.admissoes || prev.admissoes,
+      admissoes: state.admissoes ? state.admissoes.map(normalizarEnfermariaPaciente) : prev.admissoes,
       altas: state.altas
         ? state.altas.map((nova) => {
             const anterior = prev.altas.find((a) => a.id === nova.id);
-            if (!nova.fotoFeridaUrl && anterior?.fotoFeridaUrl) {
-              return { ...nova, fotoFeridaUrl: anterior.fotoFeridaUrl };
+            const atualizada = normalizarEnfermariaPaciente(nova);
+            if (!atualizada.fotoFeridaUrl && anterior?.fotoFeridaUrl) {
+              return { ...atualizada, fotoFeridaUrl: anterior.fotoFeridaUrl };
             }
-            return nova;
+            return atualizada;
           })
         : prev.altas,
       permanencia: state.permanencia || prev.permanencia,
-      passagem: state.passagem || prev.passagem,
+      passagem: state.passagem ? state.passagem.map(normalizarEnfermariaPaciente) : prev.passagem,
       ambulantes: state.ambulantes || prev.ambulantes,
       modelos: state.modelos || prev.modelos,
       metricas: state.metricas || prev.metricas,
@@ -426,6 +441,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   adicionarEnfermaria: (nome) => {
     const limpo = nome.trim();
     if (!limpo) return;
+    if (limpo.toLowerCase() === "sem enfermaria" || limpo.toLowerCase() === "sem enfermaria / indefinida") return;
     const prev = get().enfermarias;
     if (prev.some((e) => e.toLowerCase() === limpo.toLowerCase())) return;
     const updated = [...prev, limpo];

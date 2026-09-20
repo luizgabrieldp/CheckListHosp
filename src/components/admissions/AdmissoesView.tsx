@@ -199,7 +199,7 @@ export function AdmissoesView() {
 
   // Form para novo paciente
   const [novoNome, setNovoNome] = useState("");
-  const [novaEnfermaria, setNovaEnfermaria] = useState("SEM ENFERMARIA");
+  const [novaEnfermaria, setNovaEnfermaria] = useState("");
 
   // Estados para adição rápida in-place de enfermaria
   const [adicionandoEnfModal, setAdicionandoEnfModal] = useState(false);
@@ -296,14 +296,15 @@ export function AdmissoesView() {
     });
   }, [admissoesDaData, busca, filtroStatus]);
 
-  // Agrupar por enfermaria
+  // Agrupar por enfermaria com "Sem Enfermaria" no topo
   const pacientesAgrupadosPorEnfermaria = useMemo(() => {
     const grupos: Record<string, AdmissaoPaciente[]> = {};
 
     pacientesFiltrados.forEach((p) => {
-      const enf = p.enfermaria?.trim() || "SEM ENFERMARIA";
-      if (!grupos[enf]) grupos[enf] = [];
-      grupos[enf].push(p);
+      const enf = p.enfermaria?.trim() || "";
+      const nomeGrupo = !enf || enf.toLowerCase() === "sem enfermaria" ? "Sem Enfermaria" : enf;
+      if (!grupos[nomeGrupo]) grupos[nomeGrupo] = [];
+      grupos[nomeGrupo].push(p);
     });
 
     // Ordenar pacientes: 1º por status (quem ainda não chegou primeiro ➔ Chegou ➔ Internou ➔ AIH ➔ Alta/ADM por último) com desempate alfabético
@@ -318,7 +319,19 @@ export function AdmissoesView() {
       });
     });
 
-    return grupos;
+    // Ordenar grupos: "Sem Enfermaria" SEMPRE NO TOPO (em 1º lugar)
+    const chavesOrdenadas = Object.keys(grupos).sort((a, b) => {
+      if (a === "Sem Enfermaria") return -1;
+      if (b === "Sem Enfermaria") return 1;
+      return a.localeCompare(b, "pt-BR");
+    });
+
+    const ordenado: Record<string, AdmissaoPaciente[]> = {};
+    chavesOrdenadas.forEach((k) => {
+      ordenado[k] = grupos[k];
+    });
+
+    return ordenado;
   }, [pacientesFiltrados]);
 
   // Abertura do modal de impressão com os pacientes ativos do dia
@@ -429,7 +442,7 @@ export function AdmissoesView() {
     const novo: AdmissaoPaciente = {
       id: `adm-${Date.now()}`,
       nome: novoNome.trim(),
-      enfermaria: novaEnfermaria.trim() || "SEM ENFERMARIA",
+      enfermaria: novaEnfermaria.trim(),
       dataAdmissaoAgendada: dataSelecionada,
       status: "Aguardando",
       chegou: false,
@@ -647,7 +660,7 @@ export function AdmissoesView() {
                                 {paciente.nome}
                               </span>
                               <span className="text-[11px] text-slate-400">
-                                {paciente.enfermaria}
+                                {paciente.enfermaria?.trim() || "Sem Enfermaria"}
                               </span>
                             </div>
                           </div>
@@ -745,7 +758,7 @@ export function AdmissoesView() {
                                   </div>
                                 ) : (
                                   <select
-                                    value={paciente.enfermaria}
+                                    value={paciente.enfermaria || ""}
                                     onChange={(e) => {
                                       salvarAdmissao({
                                         ...paciente,
@@ -755,11 +768,14 @@ export function AdmissoesView() {
                                     }}
                                     className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                                   >
-                                    {enfermarias.map((enf) => (
-                                      <option key={enf} value={enf}>
-                                        {enf}
-                                      </option>
-                                    ))}
+                                    <option value="">Sem enfermaria</option>
+                                    {enfermarias
+                                      .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+                                      .map((enf) => (
+                                        <option key={enf} value={enf}>
+                                          {enf}
+                                        </option>
+                                      ))}
                                   </select>
                                 )}
                               </div>
@@ -1012,7 +1028,7 @@ export function AdmissoesView() {
               </div>
               <div className="text-xs font-semibold text-gray-800 flex items-center gap-2 shrink-0">
                 <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-300">
-                  {p.enfermaria}
+                  {p.enfermaria?.trim() || "Sem Enfermaria"}
                 </span>
                 {p.leito && (
                   <span className="font-bold">
@@ -1115,13 +1131,16 @@ export function AdmissoesView() {
                   <select
                     value={novaEnfermaria}
                     onChange={(e) => setNovaEnfermaria(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
                   >
-                    {enfermarias.map((enf) => (
-                      <option key={enf} value={enf}>
-                        {enf}
-                      </option>
-                    ))}
+                    <option value="">Sem enfermaria</option>
+                    {enfermarias
+                      .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+                      .map((enf) => (
+                        <option key={enf} value={enf}>
+                          {enf}
+                        </option>
+                      ))}
                   </select>
                 )}
               </div>

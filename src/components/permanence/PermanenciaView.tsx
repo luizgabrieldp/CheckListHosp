@@ -772,7 +772,9 @@ export function PermanenciaView() {
                       className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
                     >
                       <option value="">Sem enfermaria</option>
-                      {enfermarias.map((enf) => (
+                      {enfermarias
+                        .filter((enf) => enf.trim().toLowerCase() !== "sem enfermaria")
+                        .map((enf) => (
                         <option key={enf} value={enf}>
                           {enf}
                         </option>
@@ -1197,10 +1199,12 @@ export function PermanenciaView() {
                               className="w-full px-2.5 py-1.5 min-h-[44px] rounded-lg bg-white border border-slate-200 text-slate-800 text-xs focus:border-sky-500 focus:outline-none"
                             >
                               <option value="">Sem enfermaria</option>
-                              {enfermarias.map((enf) => (
-                                <option key={enf} value={enf}>
-                                  {enf}
-                                </option>
+                              {enfermarias
+                                .filter((enf) => enf.trim().toLowerCase() !== "sem enfermaria")
+                                .map((enf) => (
+                                 <option key={enf} value={enf}>
+                                   {enf}
+                                 </option>
                               ))}
                             </select>
                           )}

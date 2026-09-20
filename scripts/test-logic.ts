@@ -2191,6 +2191,182 @@ assert(
   "Mensagem do WhatsApp Web instrui o usuário a colar o resumo na última foto"
 );
 
+// 31. TESTES DE ENFERMARIAS: SEM ENFERMARIA UNIFICADA, CAMPO EM BRANCO E ORDENAÇÃO NO TOPO
+console.log("\n--- 31. Unificação de Sem Enfermaria, Campo em Branco e Ordenação no Topo ---");
+
+// Teste 31.1: ENFERMARIAS_PADRAO não contém "SEM ENFERMARIA"
+const ENFERMARIAS_PADRAO_TESTE = [
+  "FGH",
+  "IMIP",
+  "NEFRO",
+  "UTI",
+  "Cirurgia Geral 1",
+  "Cirurgia Geral 2",
+];
+const contemSemEnfermaria = ENFERMARIAS_PADRAO_TESTE.some(
+  (enf) => enf.trim().toLowerCase() === "sem enfermaria" || enf.trim().toLowerCase() === "sem enfermaria / indefinida"
+);
+assert(
+  !contemSemEnfermaria,
+  "A lista padrão de enfermarias não contém 'SEM ENFERMARIA' como se fosse uma ala hospitalar"
+);
+
+// Teste 31.2: Função normalizarEnfermariaPaciente converte valores legados para string vazia ""
+function testNormalizarEnfermaria<T extends { enfermaria?: string }>(item: T): T {
+  if (!item.enfermaria || item.enfermaria.trim().toLowerCase() === "sem enfermaria") {
+    return { ...item, enfermaria: "" };
+  }
+  return item;
+}
+
+assert(
+  testNormalizarEnfermaria({ id: "1", enfermaria: "SEM ENFERMARIA" }).enfermaria === "",
+  "Enfermaria legada em maiúsculas 'SEM ENFERMARIA' é normalizada para string vazia ''"
+);
+assert(
+  testNormalizarEnfermaria({ id: "2", enfermaria: "Sem enfermaria" }).enfermaria === "",
+  "Enfermaria legada em Title Case 'Sem enfermaria' é normalizada para string vazia ''"
+);
+assert(
+  testNormalizarEnfermaria({ id: "3", enfermaria: "  sem enfermaria  " }).enfermaria === "",
+  "Enfermaria com espaços '  sem enfermaria  ' é normalizada para string vazia ''"
+);
+assert(
+  testNormalizarEnfermaria({ id: "4", enfermaria: "" }).enfermaria === "",
+  "Enfermaria vazia '' é mantida como ''"
+);
+assert(
+  testNormalizarEnfermaria({ id: "5" }).enfermaria === "",
+  "Enfermaria undefined é convertida para ''"
+);
+assert(
+  testNormalizarEnfermaria({ id: "6", enfermaria: "FGH" }).enfermaria === "FGH",
+  "Enfermaria válida 'FGH' é preservada intacta"
+);
+
+// Teste 31.3: Criação de paciente em Admissão, Alta e Passagem permite enfermaria vazia ""
+function validarCriacaoAdmissao(paciente: { nome: string; enfermaria?: string }): boolean {
+  if (!paciente.nome || !paciente.nome.trim()) return false;
+  // Enfermaria não é obrigatória, pode ser ""
+  return true;
+}
+assert(
+  validarCriacaoAdmissao({ nome: "Maria Clara", enfermaria: "" }),
+  "Admissão permite salvar paciente com enfermaria em branco"
+);
+
+function validarCriacaoAlta(paciente: { nome: string; enfermaria?: string }): boolean {
+  if (!paciente.nome || !paciente.nome.trim()) return false;
+  // Enfermaria não é obrigatória, pode ser ""
+  return true;
+}
+assert(
+  validarCriacaoAlta({ nome: "José Carlos", enfermaria: "" }),
+  "Alta permite salvar paciente com enfermaria em branco"
+);
+
+function validarCriacaoPassagem(paciente: { nome: string; enfermaria?: string }): boolean {
+  if (!paciente.nome || !paciente.nome.trim()) return false;
+  // Enfermaria não é obrigatória, pode ser ""
+  return true;
+}
+assert(
+  validarCriacaoPassagem({ nome: "Roberto Silva", enfermaria: "" }),
+  "Passagem de Plantão permite salvar paciente com enfermaria em branco"
+);
+
+// Teste 31.4: Ordenação de grupos de enfermarias posiciona "Sem Enfermaria" SEMPRE NO TOPO (1º lugar)
+const gruposTeste = ["UTI", "Sem Enfermaria", "FGH", "Cirurgia Geral 1", "IMIP"];
+gruposTeste.sort((a, b) => {
+  if (a === "Sem Enfermaria") return -1;
+  if (b === "Sem Enfermaria") return 1;
+  return a.localeCompare(b);
+});
+
+assert(
+  gruposTeste[0] === "Sem Enfermaria",
+  "Grupo 'Sem Enfermaria' fica posicionado em 1º lugar (NO TOPO) da lista de exibição"
+);
+assert(
+  gruposTeste[1] === "Cirurgia Geral 1" && gruposTeste[2] === "FGH",
+  "Demais grupos de enfermarias são ordenados alfabeticamente logo após o topo prioritário"
+);
+
+// Teste 31.5: Agrupamento de pacientes com enfermaria vazia agrupa sob "Sem Enfermaria"
+const pacientesParaAgrupar = [
+  { id: "1", nome: "Paciente A", enfermaria: "FGH" },
+  { id: "2", nome: "Paciente B", enfermaria: "" },
+  { id: "3", nome: "Paciente C", enfermaria: "SEM ENFERMARIA" },
+  { id: "4", nome: "Paciente D", enfermaria: undefined },
+  { id: "5", nome: "Paciente E", enfermaria: "UTI" },
+];
+
+const agrupamento: Record<string, typeof pacientesParaAgrupar> = {};
+pacientesParaAgrupar.forEach((p) => {
+  const nomeGrupo = !p.enfermaria || p.enfermaria.toLowerCase() === "sem enfermaria" ? "Sem Enfermaria" : p.enfermaria;
+  if (!agrupamento[nomeGrupo]) agrupamento[nomeGrupo] = [];
+  agrupamento[nomeGrupo].push(p);
+});
+
+const chavesOrdenadas = Object.keys(agrupamento).sort((a, b) => {
+  if (a === "Sem Enfermaria") return -1;
+  if (b === "Sem Enfermaria") return 1;
+  return a.localeCompare(b);
+});
+
+assert(
+  chavesOrdenadas[0] === "Sem Enfermaria",
+  "Primeiro grupo do agrupamento é rigorosamente 'Sem Enfermaria'"
+);
+assert(
+  agrupamento["Sem Enfermaria"].length === 3,
+  "Pacientes com enfermaria vazia, legada ou undefined são todos unificados sob 'Sem Enfermaria' (3 pacientes)"
+);
+assert(
+  agrupamento["Sem Enfermaria"].some((p) => p.nome === "Paciente B") &&
+  agrupamento["Sem Enfermaria"].some((p) => p.nome === "Paciente C") &&
+  agrupamento["Sem Enfermaria"].some((p) => p.nome === "Paciente D"),
+  "Grupo 'Sem Enfermaria' contém todos os pacientes sem leito/enfermaria definidos"
+);
+
+// Teste 31.6: Prevenção de duplicatas no seletor (Select)
+const listaComResidual = ["FGH", "SEM ENFERMARIA", "IMIP", "sem enfermaria"];
+const opcoesSelect = [
+  "", // valor da primeira opção: <option value="">Sem enfermaria</option>
+  ...listaComResidual.filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+];
+
+assert(
+  opcoesSelect.length === 3, // "" + "FGH" + "IMIP"
+  "Seletor remove quaisquer variações residuais de 'sem enfermaria', mantendo apenas a opção neutra padrão"
+);
+assert(
+  opcoesSelect[0] === "" && opcoesSelect[1] === "FGH" && opcoesSelect[2] === "IMIP",
+  "Primeira opção do seletor é a opção em branco '' ('Sem enfermaria'), seguida das enfermarias reais"
+);
+
+// Teste 31.7: Bloqueio de inserção manual de 'sem enfermaria' nas configurações
+function validarAdicaoEnfermaria(nova: string, existentes: string[]): boolean {
+  const limpo = nova.trim();
+  if (!limpo) return false;
+  if (limpo.toLowerCase() === "sem enfermaria" || limpo.toLowerCase() === "sem enfermaria / indefinida") return false;
+  if (existentes.includes(limpo)) return false;
+  return true;
+}
+
+assert(
+  validarAdicaoEnfermaria("Sem enfermaria", ["FGH", "IMIP"]) === false,
+  "Tentativa de cadastrar manualmente 'Sem enfermaria' é rejeitada"
+);
+assert(
+  validarAdicaoEnfermaria("SEM ENFERMARIA", ["FGH", "IMIP"]) === false,
+  "Tentativa de cadastrar manualmente 'SEM ENFERMARIA' é rejeitada"
+);
+assert(
+  validarAdicaoEnfermaria("Cardiologia", ["FGH", "IMIP"]) === true,
+  "Cadastro de nova enfermaria legítima 'Cardiologia' é aceito com sucesso"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

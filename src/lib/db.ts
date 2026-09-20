@@ -205,7 +205,7 @@ const INITIAL_STATE: DatabaseState = {
     {
       id: "adm-1",
       nome: "RENATA CAMILA ROCHA DA SILVA",
-      enfermaria: "SEM ENFERMARIA",
+      enfermaria: "",
       leito: "Leito 01",
       dataAdmissaoAgendada: hojeIso,
       status: "Chegou",
