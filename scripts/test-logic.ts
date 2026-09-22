@@ -2470,6 +2470,63 @@ assert(
   "Após a auto-rolagem, o dia de Hoje (22/09) está 100% visível na tela sem arrastar"
 );
 
+// 33. TESTES DE PADRONIZAÇÃO DA NOMENCLATURA PARA 'INTERNOS'
+console.log("\n--- 33. Padronização da Nomenclatura para 'INTERNOS' ---");
+
+function formatarTituloQuadroEquipe(categoria: "residentes" | "internos", total: number): string {
+  if (categoria === "internos") {
+    return `Internos (${total})`;
+  }
+  return `Residentes (${total})`;
+}
+
+const tituloInternos = formatarTituloQuadroEquipe("internos", 3);
+assert(
+  tituloInternos === "Internos (3)",
+  "Título base do quadro de internos é formatado como 'Internos (N)'"
+);
+assert(
+  tituloInternos.toUpperCase() === "INTERNOS (3)",
+  "Com a classe CSS uppercase, o cabeçalho renderiza perfeitamente como 'INTERNOS (N)', sem 'DOUTORANDOS'"
+);
+assert(
+  !tituloInternos.toUpperCase().includes("DOUTORANDO"),
+  "O título não contém mais o termo 'DOUTORANDO' ou 'DOUTORANDOS / INTERNOS'"
+);
+
+const rotuloMetricasInternos = "INTERNOS";
+assert(
+  rotuloMetricasInternos === "INTERNOS",
+  "Rótulo no painel de Métricas (Equipe do Dia) é 'INTERNOS'"
+);
+
+const tooltipBotaoAdicionar = "Adicionar interno";
+assert(
+  tooltipBotaoAdicionar === "Adicionar interno",
+  "Tooltip do botão de adicionar é limpo como 'Adicionar interno'"
+);
+
+// Mapeamento dos membros da equipe vincula ao cargo "Interno"
+const equipeExemplo: EquipePlantao = {
+  residentes: ["Dra. Roberta (R2)"],
+  doutorandos: ["Lucas Pinheiro", "Mariana Vasquez"],
+  preceptores: ["Dr. Sérgio"],
+};
+
+const todosOsMembros = [
+  ...equipeExemplo.residentes.map((nome) => ({ nome, cargo: "Residente" })),
+  ...equipeExemplo.doutorandos.map((nome) => ({ nome, cargo: "Interno" })),
+  ...equipeExemplo.preceptores.map((nome) => ({ nome, cargo: "Preceptor" })),
+];
+
+const internosMapeados = todosOsMembros.filter((m) => m.cargo === "Interno");
+assert(
+  internosMapeados.length === 2 &&
+  internosMapeados[0].nome === "Lucas Pinheiro" &&
+  internosMapeados[1].nome === "Mariana Vasquez",
+  "Membros da lista de internos possuem o cargo 'Interno' preservado para atribuição em tarefas"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

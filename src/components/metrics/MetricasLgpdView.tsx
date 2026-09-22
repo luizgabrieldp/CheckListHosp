@@ -501,11 +501,11 @@ export function MetricasLgpdView() {
         </div>
 
         <div className="space-y-3">
-          {/* DOUTORANDOS */}
+          {/* INTERNOS */}
           {(equipe.doutorandos || []).length > 0 && (
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
-                DOUTORANDOS
+                INTERNOS
               </span>
               <div className="flex items-center gap-2 flex-wrap">
                 {equipe.doutorandos.map((nome, i) => (

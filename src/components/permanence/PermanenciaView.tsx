@@ -544,13 +544,13 @@ export function PermanenciaView() {
             </div>
           </div>
 
-          {/* DOUTORANDOS / INTERNOS */}
+          {/* INTERNOS */}
           <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/70 border border-slate-200 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-teal-800 uppercase tracking-wider">
                   <GraduationCap className="w-4 h-4 text-teal-600" />
-                  <span>Doutorandos / Internos ({equipe.doutorandos?.length || 0})</span>
+                  <span>Internos ({equipe.doutorandos?.length || 0})</span>
                 </div>
                 {categoriaAdicionando !== "doutorandos" && (
                   <button
@@ -559,7 +559,7 @@ export function PermanenciaView() {
                       setNomeMembroInline("");
                     }}
                     className="w-8 h-8 rounded-full flex items-center justify-center text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-colors cursor-pointer"
-                    title="Adicionar doutorando/interno"
+                    title="Adicionar interno"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
