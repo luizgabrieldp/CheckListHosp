@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { formatarDataBR, obterDataLocalHoje, atingiuEtapaAdmissao } from "@/lib/utils";
 import {
@@ -42,6 +42,30 @@ export function MetricasLgpdView() {
     altas: number;
     canceladas: number;
   } | null>(null);
+
+  // Referência para o container de rolagem horizontal do gráfico
+  const scrollGraficoRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-posicionar o gráfico no dia de 'Hoje' (extremo direito) na carga inicial e ao alternar períodos
+  useEffect(() => {
+    const el = scrollGraficoRef.current;
+    if (!el) return;
+
+    const rolarParaHoje = () => {
+      if (el) {
+        el.scrollLeft = el.scrollWidth;
+      }
+    };
+
+    rolarParaHoje();
+    const frameId = requestAnimationFrame(() => {
+      rolarParaHoje();
+      const timer = setTimeout(rolarParaHoje, 80);
+      return () => clearTimeout(timer);
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [periodo, dataFiltro]);
 
   // Formatar data para exibição no picker (DD/MM/AAAA)
   const partesData = dataFiltro.split("-");
@@ -703,7 +727,11 @@ export function MetricasLgpdView() {
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto">
+        <div
+          ref={scrollGraficoRef}
+          className="w-full overflow-x-auto"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           <div className="min-w-[640px] relative">
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}

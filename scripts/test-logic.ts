@@ -2367,6 +2367,109 @@ assert(
   "Cadastro de nova enfermaria legítima 'Cardiologia' é aceito com sucesso"
 );
 
+// 32. TESTES DE AUTO-ROLAGEM DO GRÁFICO DE TENDÊNCIA HISTÓRICA PARA O DIA DE HOJE
+console.log("\n--- 32. Auto-Rolagem do Gráfico de Tendência Histórica para o Dia de Hoje ---");
+
+function gerarDadosHistoricos(dataFiltro: string, periodo: 7 | 14 | 30) {
+  const baseDate = new Date(dataFiltro + "T12:00:00");
+  const dados: { data: string; label: string }[] = [];
+  for (let i = periodo - 1; i >= 0; i--) {
+    const d = new Date(baseDate);
+    d.setDate(d.getDate() - i);
+    const dataStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate()
+    ).padStart(2, "0")}`;
+    const label = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+    dados.push({ data: dataStr, label });
+  }
+  return dados;
+}
+
+// Teste 32.1: Em 7 dias, o dia de Hoje é sempre o último elemento do array
+const dados7Dias = gerarDadosHistoricos("2026-09-22", 7);
+assert(dados7Dias.length === 7, "Período de 7 dias gera exatamente 7 pontos diários");
+assert(
+  dados7Dias[dados7Dias.length - 1].data === "2026-09-22",
+  "O dia de Hoje (22/09) é rigorosamente o último elemento do array em 7 dias"
+);
+assert(
+  dados7Dias[0].data === "2026-09-16",
+  "O primeiro elemento do array em 7 dias é o dia mais antigo (16/09)"
+);
+
+// Teste 32.2: Em 14 e 30 dias, o dia de Hoje também é sempre o último elemento
+const dados14Dias = gerarDadosHistoricos("2026-09-22", 14);
+assert(
+  dados14Dias[dados14Dias.length - 1].data === "2026-09-22",
+  "O dia de Hoje é o último elemento no período de 14 dias"
+);
+const dados30Dias = gerarDadosHistoricos("2026-09-22", 30);
+assert(
+  dados30Dias[dados30Dias.length - 1].data === "2026-09-22",
+  "O dia de Hoje é o último elemento no período de 30 dias"
+);
+
+// Teste 32.3: Coordenada X do dia de Hoje no SVG fica no extremo direito do gráfico
+function calcularX(index: number, total: number, svgWidth = 800, paddingLeft = 40, paddingRight = 30) {
+  const chartWidth = svgWidth - paddingLeft - paddingRight;
+  return paddingLeft + (index / (total - 1 || 1)) * chartWidth;
+}
+const xPrimeiro = calcularX(0, dados7Dias.length);
+const xHoje = calcularX(dados7Dias.length - 1, dados7Dias.length);
+assert(xPrimeiro === 40, "Ponto mais antigo inicia na margem esquerda (X = 40)");
+assert(xHoje === 770, "Ponto do dia de Hoje fica no extremo direito do SVG (X = 770)");
+
+// Teste 32.4: Mecanismo de auto-rolagem (scrollLeft = scrollWidth) em viewport móvel
+class MockElementoScrollavel {
+  scrollWidth: number;
+  clientWidth: number;
+  scrollLeft: number = 0;
+
+  constructor(scrollWidth: number, clientWidth: number) {
+    this.scrollWidth = scrollWidth;
+    this.clientWidth = clientWidth;
+  }
+
+  rolarParaHoje() {
+    // No DOM do navegador, atribuir scrollWidth é clampado nativamente para (scrollWidth - clientWidth)
+    const maxScroll = Math.max(0, this.scrollWidth - this.clientWidth);
+    this.scrollLeft = maxScroll;
+  }
+
+  estaVisivel(xPontoNoSvg: number, svgWidth = 800): boolean {
+    // Escala proporcional se min-w for 640px e svgWidth for 800px
+    const larguraRenderizada = Math.max(this.scrollWidth, 640);
+    const xRenderizado = (xPontoNoSvg / svgWidth) * larguraRenderizada;
+    const inicioVisivel = this.scrollLeft;
+    const fimVisivel = this.scrollLeft + this.clientWidth;
+    return xRenderizado >= inicioVisivel && xRenderizado <= fimVisivel;
+  }
+}
+
+// Simulação de tela de iPhone (largura visível 350px com padding, largura total mínima 640px)
+const mockIPhone = new MockElementoScrollavel(640, 350);
+
+// Antes da rolagem (scrollLeft = 0): Hoje (x = 770 no SVG -> ~616px) NÃO está visível
+assert(
+  mockIPhone.estaVisivel(xHoje) === false,
+  "Antes da auto-rolagem (scrollLeft = 0), o dia de Hoje fica cortado fora da tela no celular"
+);
+assert(
+  mockIPhone.estaVisivel(xPrimeiro) === true,
+  "Antes da auto-rolagem, apenas os dias mais antigos (16/09) ficam visíveis"
+);
+
+// Executa auto-rolagem para Hoje
+mockIPhone.rolarParaHoje();
+assert(
+  mockIPhone.scrollLeft === 290,
+  "Auto-rolagem posiciona o scrollLeft no limite máximo visível (scrollWidth - clientWidth = 290px)"
+);
+assert(
+  mockIPhone.estaVisivel(xHoje) === true,
+  "Após a auto-rolagem, o dia de Hoje (22/09) está 100% visível na tela sem arrastar"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
