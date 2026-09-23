@@ -12,6 +12,7 @@ import {
 } from "@/lib/antibiotic-engine";
 import { formatarDataBR, obterDataLocalHoje } from "@/lib/utils";
 import { imprimirElementoIsolado } from "@/lib/printUtils";
+import { classificarIMC, calcularVariacaoPeso, obterUltimaAntropometria } from "@/lib/imc";
 import {
   Printer,
   X,
@@ -702,7 +703,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                       )}
 
                       {/* LINHA 5: SINAIS VITAIS / EXAME CLÍNICO */}
-                      {categorias.sinaisVitais && p.sinaisVitais && (
+                      {categorias.sinaisVitais && (p.sinaisVitais || (p.antropometria?.ativo && p.antropometria.historico?.length > 0)) && (
                         <div style={{ display: "block", marginBottom: "4px" }}>
                           <div
                             style={{
@@ -730,8 +731,25 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                             }}
                             className="bg-gray-50 border border-gray-300 px-2.5 py-1 rounded text-xs text-gray-900 font-medium"
                           >
-                            FC: {p.sinaisVitais.fc || "-"} bpm | SatO2: {p.sinaisVitais.satO2 || "-"}% | PA: {p.sinaisVitais.pa || "-"}
-                            {p.sinaisVitais.tax ? ` | Tax: ${p.sinaisVitais.tax}ºC` : ""}
+                            {p.sinaisVitais && (
+                              <div>
+                                FC: {p.sinaisVitais.fc || "-"} bpm | SatO2: {p.sinaisVitais.satO2 || "-"}% | PA: {p.sinaisVitais.pa || "-"}
+                                {p.sinaisVitais.tax ? ` | Tax: ${p.sinaisVitais.tax}ºC` : ""}
+                              </div>
+                            )}
+                            {(() => {
+                              if (!p.antropometria?.ativo) return null;
+                              const ultima = obterUltimaAntropometria(p.antropometria);
+                              if (!ultima) return null;
+                              const c = classificarIMC(ultima.imc);
+                              const v = calcularVariacaoPeso(p.antropometria.historico || []);
+                              return (
+                                <div style={{ marginTop: p.sinaisVitais ? "3px" : "0px", fontWeight: "600", color: "#0f766e" }}>
+                                  PESO &amp; IMC: {ultima.peso} kg | Altura: {ultima.altura} m | IMC: {ultima.imc} kg/m² ({c.categoria})
+                                  {v.tipo !== "unico" ? ` | Variação: ${v.textoFormatado}` : ""}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       )}

@@ -3,6 +3,16 @@ import { calcularDDayAntibiotico, calcularIdade, calcularTempoInternacao, calcul
 import { AdmissaoPaciente, AltaPaciente, PrescricaoAntibiotico, Pendencia, EquipePlantao, StatusPendencia, PacientePassagem } from "../src/types/hospital";
 import { gerarMensagemWhatsAppAdmissoes, gerarMensagemAlta } from "../src/lib/whatsapp";
 import { obterNivelProgressoAdmissao, atingiuEtapaAdmissao } from "../src/lib/utils";
+import {
+  calcularIMC,
+  normalizarAltura,
+  normalizarPeso,
+  classificarIMC,
+  calcularVariacaoPeso,
+  ordenarHistoricoCronologico,
+  obterUltimaAntropometria,
+} from "../src/lib/imc";
+import { RegistroAntropometria, ControleAntropometrico } from "../src/types/hospital";
 
 let passed = 0;
 let failed = 0;
@@ -2526,6 +2536,81 @@ assert(
   internosMapeados[1].nome === "Mariana Vasquez",
   "Membros da lista de internos possuem o cargo 'Interno' preservado para atribuição em tarefas"
 );
+
+// 34. TESTES DE CONTROLE DE PESO, ALTURA, CÁLCULO DE IMC E EVOLUÇÃO PRÉ-BARIÁTRICA
+console.log("\n--- 34. Controle de Peso, Altura, IMC e Evolução Pré-Bariátrica ---");
+
+// Teste 34.1: Normalização de altura (metros e centímetros)
+assert(normalizarAltura("1,70") === 1.7, "Normaliza altura com vírgula '1,70' para 1.7m");
+assert(normalizarAltura("1.70") === 1.7, "Normaliza altura com ponto '1.70' para 1.7m");
+assert(normalizarAltura("170") === 1.7, "Normaliza altura em centímetros '170' para 1.7m");
+assert(normalizarAltura(165) === 1.65, "Normaliza número 165 para 1.65m");
+assert(normalizarAltura(1.65) === 1.65, "Preserva número 1.65m");
+assert(normalizarAltura(0) === 0, "Trata altura inválida como 0");
+
+// Teste 34.2: Normalização de peso
+assert(normalizarPeso("112,5") === 112.5, "Normaliza peso com vírgula '112,5' para 112.5 kg");
+assert(normalizarPeso("112.5") === 112.5, "Normaliza peso com ponto '112.5' para 112.5 kg");
+assert(normalizarPeso(112.5) === 112.5, "Preserva peso numérico 112.5 kg");
+
+// Teste 34.3: Cálculo do IMC
+const imcBariatrica = calcularIMC(112.5, 1.70);
+assert(
+  imcBariatrica === 38.9,
+  `Cálculo IMC pré-bariátrica: 112.5 kg com 1.70m deve resultar em 38.9 kg/m² (obtido: ${imcBariatrica})`
+);
+
+const imcNormal = calcularIMC(70, 1.75);
+assert(
+  imcNormal === 22.9,
+  `Cálculo IMC eutrofia: 70 kg com 1.75m deve resultar em 22.9 kg/m² (obtido: ${imcNormal})`
+);
+
+const imcMorbida = calcularIMC(130, 1.65);
+assert(
+  imcMorbida === 47.8,
+  `Cálculo IMC obesidade grau III: 130 kg com 1.65m deve resultar em 47.8 kg/m² (obtido: ${imcMorbida})`
+);
+
+// Teste 34.4: Classificação segundo faixas da OMS
+assert(classificarIMC(17.2).categoria === "Abaixo do peso", "IMC 17.2 classificado como Abaixo do peso");
+assert(classificarIMC(23.4).categoria === "Eutrofia (Peso normal)", "IMC 23.4 classificado como Eutrofia (Peso normal)");
+assert(classificarIMC(27.8).categoria === "Sobrepeso", "IMC 27.8 classificado como Sobrepeso");
+assert(classificarIMC(32.1).categoria === "Obesidade Grau I" && classificarIMC(32.1).grau === 1, "IMC 32.1 classificado como Obesidade Grau I");
+assert(classificarIMC(38.9).categoria === "Obesidade Grau II" && classificarIMC(38.9).grau === 2, "IMC 38.9 classificado como Obesidade Grau II");
+assert(classificarIMC(44.5).categoria === "Obesidade Grau III (Mórbida)" && classificarIMC(44.5).grau === 3, "IMC 44.5 classificado como Obesidade Grau III (Mórbida)");
+
+// Teste 34.5: Ordenação cronológica e cálculo da variação de peso (perda na pré-bariátrica)
+const historicoDesordenado: RegistroAntropometria[] = [
+  { id: "3", data: "2026-09-23", peso: 112.5, altura: 1.70, imc: 38.9 },
+  { id: "1", data: "2026-08-10", peso: 120.0, altura: 1.70, imc: 41.5 },
+  { id: "2", data: "2026-09-01", peso: 115.0, altura: 1.70, imc: 39.8 },
+];
+
+const ordenado = ordenarHistoricoCronologico(historicoDesordenado);
+assert(ordenado[0].data === "2026-08-10", "Primeira pesagem do histórico ordenado é 10/08 (mais antiga)");
+assert(ordenado[2].data === "2026-09-23", "Última pesagem do histórico ordenado é 23/09 (mais recente)");
+
+const variacao = calcularVariacaoPeso(historicoDesordenado);
+assert(
+  variacao.tipo === "perda" && variacao.deltaKg === -7.5,
+  `Variação calcula perda acumulada de 7.5 kg (-7.5 kg) no acompanhamento pré-bariátrico`
+);
+assert(
+  variacao.deltaImc === -2.6,
+  `Variação de IMC calcula redução de 2.6 kg/m²`
+);
+
+const ultima = obterUltimaAntropometria({ ativo: true, historico: historicoDesordenado });
+assert(
+  ultima?.peso === 112.5 && ultima?.data === "2026-09-23",
+  "obterUltimaAntropometria retorna o registro mais recente do paciente"
+);
+
+// Teste 34.6: Paciente com apenas 1 pesagem ou vazio
+const variacaoUnica = calcularVariacaoPeso([{ id: "1", data: "2026-09-23", peso: 112.5, altura: 1.70, imc: 38.9 }]);
+assert(variacaoUnica.tipo === "unico" && variacaoUnica.deltaKg === 0, "Histórico com 1 pesagem retorna tipo 'unico'");
+assert(obterUltimaAntropometria(undefined) === undefined, "Paciente sem antropometria retorna undefined");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);

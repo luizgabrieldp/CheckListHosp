@@ -6,6 +6,7 @@ import {
   PacientePassagem,
   PrescricaoAntibiotico,
   CirurgiaProcedimento,
+  ControleAntropometrico,
 } from "@/types/hospital";
 import { anonimizarNome } from "@/lib/lgpd";
 import {
@@ -17,7 +18,9 @@ import {
   obterCirurgiasPaciente,
 } from "@/lib/antibiotic-engine";
 import { obterDataLocalHoje } from "@/lib/utils";
+import { classificarIMC, calcularVariacaoPeso, obterUltimaAntropometria } from "@/lib/imc";
 import { ModalImpressaoSeletiva } from "./ModalImpressaoSeletiva";
+import { ControlePesoImc } from "./ControlePesoImc";
 import { AutoResizeTextarea } from "@/components/ui/AutoResizeTextarea";
 import {
   Stethoscope,
@@ -43,6 +46,7 @@ import {
   Edit3,
   ClipboardList,
   Check,
+  Scale,
 } from "lucide-react";
 
 export function PassagemPlantaoView() {
@@ -173,6 +177,14 @@ export function PassagemPlantaoView() {
       [campo]: valor,
     };
     handleSalvarCampo(paciente, "sinaisVitais", sinaisVitais);
+  }
+
+  // Atualização dos dados antropométricos (Peso, Altura, IMC, Histórico)
+  function handleSalvarAntropometria(
+    paciente: PacientePassagem,
+    antropometria: ControleAntropometrico
+  ) {
+    handleSalvarCampo(paciente, "antropometria", antropometria);
   }
 
   // 4. Gestão de Múltiplas Cirurgias / Reoperações
@@ -860,6 +872,30 @@ export function PassagemPlantaoView() {
                                 </span>
                               </>
                             )}
+
+                            {/* RESUMO COMPACTO DE PESO & IMC (SE ATIVO E HOUVER PESAGEM) */}
+                            {(() => {
+                              if (!paciente.antropometria?.ativo) return null;
+                              const ultima = obterUltimaAntropometria(paciente.antropometria);
+                              if (!ultima) return null;
+                              const c = classificarIMC(ultima.imc);
+                              const v = calcularVariacaoPeso(paciente.antropometria.historico || []);
+                              return (
+                                <>
+                                  <span className="text-slate-300">•</span>
+                                  <span
+                                    className={`inline-flex items-center gap-1 font-semibold text-[11px] px-2 py-0.5 rounded-full border ${c.corBg} ${c.corTexto} ${c.corBorda}`}
+                                    title={`Altura: ${ultima.altura}m | IMC: ${ultima.imc} (${c.categoria})${v.tipo !== "unico" ? ` | Variação: ${v.textoFormatado}` : ""}`}
+                                  >
+                                    <Scale className="w-3 h-3" />
+                                    <span>
+                                      {ultima.peso} kg • IMC {ultima.imc}
+                                      {v.tipo === "perda" ? ` (${v.deltaKg} kg)` : v.tipo === "ganho" ? ` (+${v.deltaKg} kg)` : ""}
+                                    </span>
+                                  </span>
+                                </>
+                              );
+                            })()}
                           </div>
 
                           {/* LINHA 5: PENDÊNCIAS DO LEITO (VISÍVEL SOMENTE SE HOUVER PENDÊNCIAS) */}
@@ -1260,10 +1296,32 @@ export function PassagemPlantaoView() {
 
                               {/* 5. SINAIS VITAIS (EXAME FÍSICO) - POSICIONADO LOGO ABAIXO DA EVOLUÇÃO */}
                               <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
-                                <h5 className="text-[11px] font-bold text-slate-700 mb-2 flex items-center gap-1.5">
-                                  <Activity className="w-3.5 h-3.5 text-sky-600" />
-                                  <span>Sinais Vitais (Exame Físico)</span>
-                                </h5>
+                                <div className="flex items-center justify-between gap-2 mb-2">
+                                  <h5 className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                                    <Activity className="w-3.5 h-3.5 text-sky-600" />
+                                    <span>Sinais Vitais (Exame Físico)</span>
+                                  </h5>
+
+                                  {/* BOTÃO DISCRETO PARA ATIVAR PESO & IMC */}
+                                  {(!paciente.antropometria || !paciente.antropometria.ativo) && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleSalvarAntropometria(paciente, {
+                                          ativo: true,
+                                          alturaPadrao: paciente.antropometria?.alturaPadrao,
+                                          historico: paciente.antropometria?.historico || [],
+                                        })
+                                      }
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-colors cursor-pointer"
+                                      title="Ativar controle de Peso, Altura e IMC pré-bariátrica para este paciente"
+                                    >
+                                      <Scale className="w-3 h-3 text-teal-600" />
+                                      <span>+ Controle de Peso / IMC</span>
+                                    </button>
+                                  )}
+                                </div>
+
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                                   <div>
                                     <label className="block text-[10px] font-bold text-slate-500 mb-1">
@@ -1350,6 +1408,14 @@ export function PassagemPlantaoView() {
                                     />
                                   </div>
                                 </div>
+
+                                {/* BLOCO INTERATIVO DE PESO, ALTURA, IMC E GRÁFICO (PRÉ-BARIÁTRICA) */}
+                                {paciente.antropometria?.ativo && (
+                                  <ControlePesoImc
+                                    paciente={paciente}
+                                    onSalvarAntropometria={handleSalvarAntropometria}
+                                  />
+                                )}
                               </div>
 
                               {/* 6. PRINCIPAIS EXAMES REALIZADOS */}

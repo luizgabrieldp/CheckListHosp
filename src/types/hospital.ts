@@ -152,9 +152,25 @@ export interface PacientePassagem {
     pa?: string;
     tax?: number;
   };
+  antropometria?: ControleAntropometrico;
   conduta: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RegistroAntropometria {
+  id: string;
+  data: string; // YYYY-MM-DD
+  peso: number; // em kg (ex: 112.5)
+  altura: number; // em metros (ex: 1.70)
+  imc: number; // calculado (ex: 38.9)
+  observacao?: string;
+}
+
+export interface ControleAntropometrico {
+  ativo?: boolean;
+  alturaPadrao?: number; // em metros
+  historico: RegistroAntropometria[];
 }
 
 export type DiaSemana = 'Segunda' | 'Terça' | 'Quarta' | 'Quinta' | 'Sexta';
