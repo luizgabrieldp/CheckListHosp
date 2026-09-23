@@ -210,11 +210,17 @@ export function AltasView() {
       if (!temFotos) {
         const fotosSalvas = await obterFotosFirestore(a.id);
         if (fotosSalvas && fotosSalvas.length > 0) {
-          salvarAlta({
-            ...a,
-            fotosFeridaUrls: fotosSalvas,
-            fotoFeridaUrl: fotosSalvas[0],
-          });
+          useAppStore.setState((prev) => ({
+            altas: prev.altas.map((item) =>
+              item.id === a.id
+                ? {
+                    ...item,
+                    fotosFeridaUrls: fotosSalvas,
+                    fotoFeridaUrl: fotosSalvas[0],
+                  }
+                : item
+            ),
+          }));
         }
       }
     });
@@ -312,6 +318,10 @@ export function AltasView() {
     setNovoPO("");
     setModalNovoPaciente(false);
     setPacienteExpandidoId(nova.id);
+    if (busca) setBusca("");
+    if (filtroEnfermaria !== "TODAS") {
+      setFiltroEnfermaria("TODAS");
+    }
     exibirToast("Paciente de alta adicionado com sucesso!");
   }
 

@@ -136,7 +136,8 @@ export async function sincronizarComFirestore(
   if (!db) return false;
 
   try {
-    // Se houver altas com fotos, garante o salvamento de cada foto em hospital_fotos
+    // Se houver altas com fotos, garante o salvamento de cada foto na coleção dedicada hospital_fotos
+    let altasParaSincronizar = dados.altas;
     if (dados.altas && Array.isArray(dados.altas)) {
       for (const a of dados.altas) {
         const listaFotos = (a.fotosFeridaUrls && a.fotosFeridaUrls.length > 0)
@@ -146,6 +147,18 @@ export async function sincronizarComFirestore(
           salvarFotosFirestore(a.id, listaFotos).catch(() => {});
         }
       }
+
+      // CRÍTICO: Remover base64 pesados do payload antes de salvar no documento principal hospital_state_v1!
+      // O documento principal hospital_state_v1 possui limite máximo estrito de 1MB (1.048.576 bytes) no Firestore.
+      // As fotos ficam armazenadas com total segurança na coleção dedicada hospital_fotos (1 documento por alta).
+      altasParaSincronizar = dados.altas.map((a) => {
+        const { fotoFeridaUrl, fotosFeridaUrls, ...resto } = a;
+        return {
+          ...resto,
+          temFoto: Boolean((fotosFeridaUrls && fotosFeridaUrls.length > 0) || fotoFeridaUrl),
+          fotosCount: fotosFeridaUrls ? fotosFeridaUrls.length : (fotoFeridaUrl ? 1 : 0),
+        };
+      });
     }
 
     const docRef = doc(db, "hospital_data", DOC_ID);
@@ -153,6 +166,7 @@ export async function sincronizarComFirestore(
     const payloadSanitizado = JSON.parse(
       JSON.stringify({
         ...dados,
+        ...(altasParaSincronizar ? { altas: altasParaSincronizar } : {}),
         updatedAt: new Date().toISOString(),
       })
     );

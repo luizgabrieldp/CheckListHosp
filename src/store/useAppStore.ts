@@ -265,10 +265,21 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
         ? state.altas.map((nova) => {
             const anterior = prev.altas.find((a) => a.id === nova.id);
             const atualizada = normalizarEnfermariaPaciente(nova);
-            if (!atualizada.fotoFeridaUrl && anterior?.fotoFeridaUrl) {
-              return { ...atualizada, fotoFeridaUrl: anterior.fotoFeridaUrl };
-            }
-            return atualizada;
+            const fotosFeridaUrls =
+              (anterior?.fotosFeridaUrls && anterior.fotosFeridaUrls.length > 0)
+                ? anterior.fotosFeridaUrls
+                : (atualizada.fotosFeridaUrls && atualizada.fotosFeridaUrls.length > 0
+                    ? atualizada.fotosFeridaUrls
+                    : undefined);
+            const fotoFeridaUrl =
+              anterior?.fotoFeridaUrl ||
+              atualizada.fotoFeridaUrl ||
+              (fotosFeridaUrls && fotosFeridaUrls[0] ? fotosFeridaUrls[0] : undefined);
+            return {
+              ...atualizada,
+              fotosFeridaUrls,
+              fotoFeridaUrl,
+            };
           })
         : prev.altas,
       permanencia: state.permanencia || prev.permanencia,

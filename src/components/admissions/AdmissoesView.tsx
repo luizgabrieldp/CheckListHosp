@@ -460,6 +460,10 @@ export function AdmissoesView() {
     setNovoNome("");
     setModalNovoPaciente(false);
     setPacienteExpandidoId(novo.id);
+    if (busca) setBusca("");
+    if (filtroStatus !== "TODOS" && filtroStatus !== "AGUARDANDO") {
+      setFiltroStatus("TODOS");
+    }
     exibirToast("Paciente adicionado com sucesso!");
   }
 

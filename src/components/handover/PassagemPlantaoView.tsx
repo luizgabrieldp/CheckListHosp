@@ -150,6 +150,7 @@ export function PassagemPlantaoView() {
     };
 
     salvarPaciente(novo);
+    if (termoBusca) setTermoBusca("");
     setExpandidos((prev) => ({ ...prev, [novoId]: true }));
   }
 

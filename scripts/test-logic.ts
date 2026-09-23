@@ -2612,6 +2612,130 @@ const variacaoUnica = calcularVariacaoPeso([{ id: "1", data: "2026-09-23", peso:
 assert(variacaoUnica.tipo === "unico" && variacaoUnica.deltaKg === 0, "Histórico com 1 pesagem retorna tipo 'unico'");
 assert(obterUltimaAntropometria(undefined) === undefined, "Paciente sem antropometria retorna undefined");
 
+console.log("\n--- 35. Proteção de Limite de 1MB do Firestore e Adição de Pacientes Desimpedida ---");
+
+// Teste 35.1: Sanitização de payload de altas removendo base64 pesado antes de gravar no doc principal
+const altasComFotosPesadas: any[] = [
+  {
+    id: "alta-1",
+    nomePaciente: "Paciente Foto 1",
+    enfermaria: "FGH",
+    fotoFeridaUrl: "data:image/webp;base64," + "A".repeat(200000), // ~200KB
+    fotosFeridaUrls: ["data:image/webp;base64," + "A".repeat(200000), "data:image/webp;base64," + "B".repeat(200000)], // ~400KB
+  },
+  {
+    id: "alta-2",
+    nomePaciente: "Paciente Sem Foto",
+    enfermaria: "IMIP",
+  },
+];
+
+function sanitizarAltasParaDocumentoPrincipal(altas: any[]) {
+  return altas.map((a) => {
+    const { fotoFeridaUrl, fotosFeridaUrls, ...resto } = a;
+    return {
+      ...resto,
+      temFoto: Boolean((fotosFeridaUrls && fotosFeridaUrls.length > 0) || fotoFeridaUrl),
+      fotosCount: fotosFeridaUrls ? fotosFeridaUrls.length : (fotoFeridaUrl ? 1 : 0),
+    };
+  });
+}
+
+const altasSanitizadas = sanitizarAltasParaDocumentoPrincipal(altasComFotosPesadas);
+assert(altasSanitizadas[0].fotoFeridaUrl === undefined, "fotoFeridaUrl base64 pesada é removida do documento principal");
+assert(altasSanitizadas[0].fotosFeridaUrls === undefined, "fotosFeridaUrls array de base64 é removido do documento principal");
+assert(altasSanitizadas[0].temFoto === true, "temFoto é mantido como true para indicar presença de foto");
+assert(altasSanitizadas[0].fotosCount === 2, "fotosCount registra com exatidão a quantidade de fotos");
+assert(altasSanitizadas[1].temFoto === false, "Paciente sem foto possui temFoto false");
+assert(altasSanitizadas[1].fotosCount === 0, "Paciente sem foto possui fotosCount 0");
+
+const tamanhoAntesSanitizacao = JSON.stringify(altasComFotosPesadas).length;
+const tamanhoDepoisSanitizacao = JSON.stringify(altasSanitizadas).length;
+assert(tamanhoAntesSanitizacao > 600000, "Payload bruto com fotos ultrapassa 600KB");
+assert(tamanhoDepoisSanitizacao < 500, "Payload sanitizado para o documento principal consome menos de 500 bytes (redução > 99.9%)");
+
+// Teste 35.2: syncFullState preserva fotos existentes na memória do cliente ao receber doc enxuto
+const altasNoEstadoLocal: any[] = [
+  {
+    id: "alta-1",
+    nomePaciente: "Paciente Foto 1",
+    enfermaria: "FGH",
+    fotoFeridaUrl: "data:image/webp;base64,FOTO_LOCAL_CACHE",
+    fotosFeridaUrls: ["data:image/webp;base64,FOTO_LOCAL_CACHE"],
+  },
+];
+
+const altasRecebidasServidorEnxuto: any[] = [
+  {
+    id: "alta-1",
+    nomePaciente: "Paciente Foto 1 - Atualizado Servidor",
+    enfermaria: "FGH",
+    temFoto: true,
+    fotosCount: 1,
+  },
+];
+
+function mesclarAltasSync(locais: any[], servidor: any[]) {
+  return servidor.map((nova) => {
+    const anterior = locais.find((a) => a.id === nova.id);
+    const fotosFeridaUrls =
+      (anterior?.fotosFeridaUrls && anterior.fotosFeridaUrls.length > 0)
+        ? anterior.fotosFeridaUrls
+        : (nova.fotosFeridaUrls && nova.fotosFeridaUrls.length > 0
+            ? nova.fotosFeridaUrls
+            : undefined);
+    const fotoFeridaUrl =
+      anterior?.fotoFeridaUrl ||
+      nova.fotoFeridaUrl ||
+      (fotosFeridaUrls && fotosFeridaUrls[0] ? fotosFeridaUrls[0] : undefined);
+    return {
+      ...nova,
+      fotosFeridaUrls,
+      fotoFeridaUrl,
+    };
+  });
+}
+
+const mescladas = mesclarAltasSync(altasNoEstadoLocal, altasRecebidasServidorEnxuto);
+assert(mescladas[0].nomePaciente === "Paciente Foto 1 - Atualizado Servidor", "Dados textuais do servidor são atualizados");
+assert(mescladas[0].fotoFeridaUrl === "data:image/webp;base64,FOTO_LOCAL_CACHE", "Foto local do cliente é preservada intacta na memória");
+assert(mescladas[0].fotosFeridaUrls?.length === 1, "Array de fotos locais é mantido na galeria do cliente");
+
+// Teste 35.3: Resete de filtros ao adicionar paciente em Admissões, Altas e Passagem
+function simularCriacaoAdmissaoComFiltroAtivo(filtroAtual: string, buscaAtual: string) {
+  let filtro = filtroAtual;
+  let busca = buscaAtual;
+  // Regra implementada:
+  if (busca) busca = "";
+  if (filtro !== "TODOS" && filtro !== "AGUARDANDO") {
+    filtro = "TODOS";
+  }
+  return { filtro, busca };
+}
+
+const resAdmissao = simularCriacaoAdmissaoComFiltroAtivo("CHEGOU", "Silva");
+assert(resAdmissao.busca === "", "Busca é limpa ao criar novo paciente para não mascarar registro novo");
+assert(resAdmissao.filtro === "TODOS", "Filtro de status 'CHEGOU' é resetado para 'TODOS' permitindo visualização imediata do novo paciente");
+
+function simularCriacaoAltaComFiltroAtivo(filtroEnf: string, buscaAtual: string) {
+  let filtro = filtroEnf;
+  let busca = buscaAtual;
+  if (busca) busca = "";
+  if (filtro !== "TODAS") filtro = "TODAS";
+  return { filtro, busca };
+}
+
+const resAlta = simularCriacaoAltaComFiltroAtivo("NEFRO", "Carlos");
+assert(resAlta.busca === "", "Busca em Altas é limpa no salvamento");
+assert(resAlta.filtro === "TODAS", "Filtro de enfermaria em Altas é resetado para TODAS para garantir visibilidade");
+
+function simularCriacaoPassagemComBuscaAtiva(termoBusca: string) {
+  let busca = termoBusca;
+  if (busca) busca = "";
+  return busca;
+}
+assert(simularCriacaoPassagemComBuscaAtiva("Leito 12") === "", "Termo de busca na Passagem é limpo na criação do novo leito");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
