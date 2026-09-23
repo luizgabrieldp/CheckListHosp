@@ -12,8 +12,12 @@ import {
   Pendencia,
   WebSocketMessage,
 } from "@/types/hospital";
-import { sincronizarComFirestore } from "@/lib/firebase";
+import { sincronizarComFirestore, apagarFotosFirestore } from "@/lib/firebase";
 import { obterDataLocalHoje } from "@/lib/utils";
+import {
+  executarExpurgoAutomaticoCliente,
+  ResultadoExpurgoAutomatico,
+} from "@/lib/lgpd";
 
 let socketInstance: WebSocket | null = null;
 
@@ -170,6 +174,9 @@ interface AppStoreState {
 
   salvarModelo: (modelo: ModeloTexto) => void;
   removerModelo: (id: string) => void;
+
+  // Rotina de Expurgo LGPD Automático (48h após a data do evento)
+  executarExpurgoAutomatico: () => ResultadoExpurgoAutomatico;
 }
 
 export const useAppStore = create<AppStoreState>((set, get) => ({
@@ -488,5 +495,51 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     if (typeof window !== "undefined") {
       localStorage.setItem("checklist_categorias_modelos", JSON.stringify(updated));
     }
+  },
+
+  // EXPURGO AUTOMÁTICO LGPD (48 horas pós-data do evento)
+  executarExpurgoAutomatico: () => {
+    const estado = {
+      admissoes: get().admissoes,
+      altas: get().altas,
+      permanencia: get().permanencia,
+      metricas: get().metricas,
+    };
+
+    const resultado = executarExpurgoAutomaticoCliente(estado, new Date(), obterDataLocalHoje);
+    if (!resultado.houveExpurgo) {
+      return resultado;
+    }
+
+    // 1. Atualiza estado em memória
+    set({
+      admissoes: resultado.novasAdmissoes,
+      altas: resultado.novasAltas,
+      permanencia: resultado.novaPermanencia,
+      metricas: resultado.metricasAtualizadas,
+    });
+
+    // 2. Sincroniza mutações no Firestore, WebSocket e LocalStorage
+    if (resultado.expurgadasAdmissoes > 0) {
+      sincronizarMutation("admissoes", resultado.novasAdmissoes, "UPDATE_ADMISSOES");
+    }
+
+    if (resultado.expurgadasAltas > 0) {
+      sincronizarMutation("altas", resultado.novasAltas, "UPDATE_ALTAS");
+      // Deletar fotos no Firestore para descarte seguro e liberação de espaço
+      for (const altaId of resultado.altasIdsParaRemoverFotos) {
+        apagarFotosFirestore(altaId).catch(() => {});
+      }
+    }
+
+    if (resultado.expurgadasPermanencia) {
+      sincronizarMutation("permanencia", resultado.novaPermanencia, "UPDATE_PERMANENCIA");
+    }
+
+    if (resultado.metricasAtualizadas !== estado.metricas) {
+      sincronizarMutation("metricas", resultado.metricasAtualizadas, "UPDATE_METRICAS");
+    }
+
+    return resultado;
   },
 }));

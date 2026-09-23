@@ -10,7 +10,6 @@ import {
   Calendar,
   CheckCircle2,
   TrendingUp,
-  RefreshCw,
   FileCheck,
   ClipboardList,
   CheckSquare,
@@ -32,8 +31,6 @@ export function MetricasLgpdView() {
   const [dataFiltro, setDataFiltro] = useState(() => obterDataLocalHoje());
 
   const [periodo, setPeriodo] = useState<7 | 14 | 30>(7);
-  const [executandoExpurgo, setExecutandoExpurgo] = useState(false);
-  const [statusExpurgo, setStatusExpurgo] = useState<string | null>(null);
   const [hoverPonto, setHoverPonto] = useState<{
     x: number;
     y: number;
@@ -321,25 +318,6 @@ export function MetricasLgpdView() {
   const dCurvaAltas = gerarCaminhoCurvaSuave(pontosAltas);
   const dCurvaCanceladas = gerarCaminhoCurvaSuave(pontosCanceladas);
 
-  // Disparo manual de expurgo
-  async function handleForcarExpurgo() {
-    setExecutandoExpurgo(true);
-    setStatusExpurgo(null);
-    try {
-      const res = await fetch("/api/expurgo-lgpd", { method: "POST" });
-      const data = await res.json();
-      if (data.ok) {
-        setStatusExpurgo(
-          `Varredura concluída: ${data.resultado.expurgadasAdmissoes} admissão(ões) e ${data.resultado.expurgadasAltas || 0} alta(s) arquivadas em métricas anônimas com sucesso.`
-        );
-      }
-    } catch {
-      setStatusExpurgo("Não foi possível conectar ao motor de expurgo no momento.");
-    } finally {
-      setExecutandoExpurgo(false);
-    }
-  }
-
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* 1. SELETOR DE DATA NO TOPO (PADRÃO BASE44) */}
@@ -356,26 +334,7 @@ export function MetricasLgpdView() {
             />
           </label>
         </div>
-
-        {/* BOTÃO DE AUDITORIA MANUAL LGPD */}
-        <button
-          onClick={handleForcarExpurgo}
-          disabled={executandoExpurgo}
-          title="Executar verificação manual de retenção LGPD"
-          className="flex items-center gap-1.5 px-3.5 py-1.5 min-h-[40px] sm:min-h-[44px] rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-medium shadow-xs transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-slate-400 ${executandoExpurgo ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">Auditoria LGPD</span>
-        </button>
       </div>
-
-      {/* FEEDBACK DO EXPURGO */}
-      {statusExpurgo && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>{statusExpurgo}</span>
-        </div>
-      )}
 
       {/* 2. OS 4 CARDS SUPERIORES (2x2 NO MOBILE, 4x1 NO DESKTOP) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">

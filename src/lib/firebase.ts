@@ -4,6 +4,7 @@ import {
   doc,
   setDoc,
   getDoc,
+  deleteDoc,
   onSnapshot,
   Firestore,
   DocumentSnapshot,
@@ -122,6 +123,23 @@ export async function obterFotosFirestore(altaId: string): Promise<string[]> {
 export async function obterFotoFirestore(altaId: string): Promise<string | null> {
   const fotos = await obterFotosFirestore(altaId);
   return fotos.length > 0 ? fotos[0] : null;
+}
+
+/**
+ * Apaga definitivamente as fotos de uma alta na coleção hospital_fotos após expurgo LGPD (48h)
+ */
+export async function apagarFotosFirestore(altaId: string): Promise<boolean> {
+  const db = getFirebaseDb();
+  if (!db || !altaId) return false;
+
+  try {
+    const fotoDocRef = doc(db, "hospital_fotos", `alta_${altaId}`);
+    await deleteDoc(fotoDocRef);
+    return true;
+  } catch (err) {
+    console.warn("[Firebase] Erro ao apagar fotos de alta expurgada:", err);
+    return false;
+  }
 }
 
 /**

@@ -1,4 +1,10 @@
-import { anonimizarNome, deveExpurgarAdmissao, deveExpurgarAlta, deveExpurgarPermanencia } from "../src/lib/lgpd";
+import {
+  anonimizarNome,
+  deveExpurgarAdmissao,
+  deveExpurgarAlta,
+  deveExpurgarPermanencia,
+  executarExpurgoAutomaticoCliente,
+} from "../src/lib/lgpd";
 import { calcularDDayAntibiotico, calcularIdade, calcularTempoInternacao, calcularDPO, formatarCirurgiaDPO, obterCirurgiasPaciente } from "../src/lib/antibiotic-engine";
 import { AdmissaoPaciente, AltaPaciente, PrescricaoAntibiotico, Pendencia, EquipePlantao, StatusPendencia, PacientePassagem } from "../src/types/hospital";
 import { gerarMensagemWhatsAppAdmissoes, gerarMensagemAlta } from "../src/lib/whatsapp";
@@ -2735,6 +2741,129 @@ function simularCriacaoPassagemComBuscaAtiva(termoBusca: string) {
   return busca;
 }
 assert(simularCriacaoPassagemComBuscaAtiva("Leito 12") === "", "Termo de busca na Passagem é limpo na criação do novo leito");
+
+console.log("\n--- 36. Expurgo Automático LGPD: 2 Dias Após a Data do Evento e Consolidação ---");
+
+// Teste 36.1: Regra de data futura (ex: agendado para dia 25/09 sendo hoje 23/09)
+const hojeDataRef = new Date(2026, 8, 23, 19, 30, 0); // 23/09/2026 19:30
+assert(
+  deveExpurgarAdmissao("2026-09-25", hojeDataRef) === false,
+  "Admissão agendada para data futura (25/09) NÃO é expurgada em 23/09"
+);
+assert(
+  deveExpurgarAlta("2026-09-25", hojeDataRef) === false,
+  "Alta agendada/realizada para data futura NÃO é expurgada"
+);
+
+// Teste 36.2: Regra de hoje (23/09): só pode expurgar após 25/09 23:59:59 (48h após 23/09 23:59:59)
+assert(
+  deveExpurgarAdmissao("2026-09-23", hojeDataRef) === false,
+  "Admissão do dia de hoje (23/09) NÃO é expurgada hoje"
+);
+const data25Setembro = new Date(2026, 8, 25, 23, 0, 0); // 25/09 23:00 (ainda dentro das 48h)
+assert(
+  deveExpurgarAdmissao("2026-09-23", data25Setembro) === false,
+  "Admissão de 23/09 ainda está válida e NÃO é expurgada em 25/09 às 23:00"
+);
+const data26SetembroInicio = new Date(2026, 8, 26, 0, 0, 1); // 26/09 00:00:01 (passou das 48h do fim de 23/09)
+assert(
+  deveExpurgarAdmissao("2026-09-23", data26SetembroInicio) === true,
+  "Admissão de 23/09 é expurgada exatamente a partir de 26/09 00:00:00 (2 dias após a data)"
+);
+
+// Teste 36.3: Regra de Permanência ajustada para 48h (2 dias)
+assert(
+  deveExpurgarPermanencia("2026-09-23", hojeDataRef) === false,
+  "Permanência do dia de hoje não é expurgada hoje"
+);
+const data24Setembro = new Date(2026, 8, 24, 15, 0, 0); // 1 dia após
+assert(
+  deveExpurgarPermanencia("2026-09-23", data24Setembro) === false,
+  "Permanência com 24h NÃO é mais expurgada (padronizada para 48h / 2 dias)"
+);
+assert(
+  deveExpurgarPermanencia("2026-09-23", data26SetembroInicio) === true,
+  "Permanência de 23/09 é expurgada em 26/09 00:00:01 (48h completas)"
+);
+
+// Teste 36.4: Orquestrador executarExpurgoAutomaticoCliente com dados mistos
+const estadoParaExpurgo = {
+  admissoes: [
+    {
+      id: "adm-antiga",
+      nome: "Paciente Antigo 19/09",
+      dataAdmissaoAgendada: "2026-09-19",
+      cancelada: false,
+    } as any,
+    {
+      id: "adm-cancelada-antiga",
+      nome: "Paciente Cancelado 19/09",
+      dataAdmissaoAgendada: "2026-09-19",
+      cancelada: true,
+    } as any,
+    {
+      id: "adm-recente",
+      nome: "Paciente Hoje 23/09",
+      dataAdmissaoAgendada: "2026-09-23",
+      cancelada: false,
+    } as any,
+    {
+      id: "adm-futura",
+      nome: "Paciente Futuro 26/09",
+      dataAdmissaoAgendada: "2026-09-26",
+      cancelada: false,
+    } as any,
+  ],
+  altas: [
+    {
+      id: "alta-antiga",
+      nomePaciente: "Alta Antiga 19/09",
+      dataAlta: "2026-09-19",
+      tipoCirurgia: "Hernioplastia",
+    } as any,
+    {
+      id: "alta-recente",
+      nomePaciente: "Alta Hoje 23/09",
+      dataAlta: "2026-09-23",
+      tipoCirurgia: "Apendicectomia",
+    } as any,
+  ],
+  permanencia: {
+    id: "perm-antiga",
+    data: "2026-09-19",
+    equipe: { doutorandos: [], residentes: [], preceptores: [] },
+    pendencias: [{ id: "pend-1", titulo: "Pedir USG" }] as any,
+  } as any,
+  metricas: [] as any[],
+};
+
+const resultadoRotina = executarExpurgoAutomaticoCliente(
+  estadoParaExpurgo,
+  hojeDataRef, // 23/09
+  () => "2026-09-23"
+);
+
+assert(resultadoRotina.houveExpurgo === true, "Identificou necessidade de expurgo para registros de 19/09");
+assert(resultadoRotina.expurgadasAdmissoes === 2, "Expurgou exatamente as 2 admissões antigas de 19/09");
+assert(resultadoRotina.novasAdmissoes.length === 2, "Preservou as 2 admissões válidas (hoje 23/09 e futura 26/09)");
+assert(resultadoRotina.novasAdmissoes.some(a => a.id === "adm-recente"), "Admissão de hoje preservada");
+assert(resultadoRotina.novasAdmissoes.some(a => a.id === "adm-futura"), "Admissão futura preservada intacta");
+
+assert(resultadoRotina.expurgadasAltas === 1, "Expurgou exatamente 1 alta de 19/09");
+assert(resultadoRotina.novasAltas.length === 1 && resultadoRotina.novasAltas[0].id === "alta-recente", "Alta de hoje preservada");
+assert(resultadoRotina.altasIdsParaRemoverFotos.includes("alta-antiga"), "Lista de fotos a remover inclui alta-antiga");
+
+assert(resultadoRotina.expurgadasPermanencia === true, "Permanência antiga de 19/09 foi expurgada e resetada");
+assert(resultadoRotina.novaPermanencia.data === "2026-09-23", "Nova permanência inicializada com a data de hoje");
+assert(resultadoRotina.novaPermanencia.pendencias.length === 0, "Nova permanência inicializada sem pendências legadas");
+
+assert(resultadoRotina.metricasAtualizadas.length === 1, "Consolidou métricas anônimas para o dia 19/09");
+const metrica19 = resultadoRotina.metricasAtualizadas[0];
+assert(metrica19.data === "2026-09-19", "Métrica possui data 19/09");
+assert(metrica19.totalAdmissoes === 1, "Métrica registrou 1 admissão ativa consolidada");
+assert(metrica19.totalCancelamentos === 1, "Métrica registrou 1 cancelamento consolidado");
+assert(metrica19.totalAltas === 1, "Métrica registrou 1 alta consolidada");
+assert(metrica19.totalCirurgias === 1, "Métrica registrou 1 cirurgia consolidada");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);

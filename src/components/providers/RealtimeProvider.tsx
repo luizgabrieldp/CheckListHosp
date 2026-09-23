@@ -53,6 +53,19 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     let retryAttempt = 0;
     const RETRY_DELAYS = [3000, 6000, 15000, 30000, 60000];
 
+    // Expurgo automático LGPD imediato no carregamento
+    try {
+      useAppStore.getState().executarExpurgoAutomatico();
+    } catch {}
+
+    // Expurgo periódico em segundo plano a cada 30 minutos
+    const intervaloExpurgo = setInterval(() => {
+      if (!isMounted) return;
+      try {
+        useAppStore.getState().executarExpurgoAutomatico();
+      } catch {}
+    }, 30 * 60 * 1000);
+
     // Bloquear pinça e zoom multitoque no iOS/Safari mantendo a rolagem fluida nativa por hardware a 60/120fps
     const preventZoom = (e: TouchEvent) => {
       if (e.touches && e.touches.length > 1) {
@@ -79,6 +92,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           if (!isMounted) return;
           syncFullState(dados as any);
           setConnected(true, 18);
+          // Executa expurgo automático LGPD (48h após a data do evento)
+          try {
+            useAppStore.getState().executarExpurgoAutomatico();
+          } catch {}
         },
         () => {
           // Se for o primeiro acesso e a coleção ainda estiver vazia no Firestore,
@@ -231,6 +248,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       if (unsubscribeFirestore) unsubscribeFirestore();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
+      if (intervaloExpurgo) clearInterval(intervaloExpurgo);
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
