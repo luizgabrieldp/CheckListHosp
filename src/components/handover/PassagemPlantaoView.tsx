@@ -138,12 +138,7 @@ export function PassagemPlantaoView() {
       medicacoesUsoGeral: "",
       antibioticos: [],
       pendencias: [],
-      sinaisVitais: {
-        fc: 75,
-        satO2: 98,
-        pa: "120/80",
-        tax: 36.5,
-      },
+      sinaisVitais: {},
       conduta: "",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -174,7 +169,7 @@ export function PassagemPlantaoView() {
     valor: any
   ) {
     const sinaisVitais = {
-      ...(paciente.sinaisVitais || { fc: 75, satO2: 98, pa: "120/80" }),
+      ...(paciente.sinaisVitais || {}),
       [campo]: valor,
     };
     handleSalvarCampo(paciente, "sinaisVitais", sinaisVitais);
@@ -841,63 +836,92 @@ export function PassagemPlantaoView() {
                           </div>
 
                           {/* LINHA 4: EXAME CLÍNICO / SINAIS VITAIS (FAIXA SUAVE) */}
-                          <div className="bg-slate-50/80 border border-slate-200/70 px-2.5 py-1.5 rounded-xl flex items-center gap-2.5 flex-wrap text-xs text-slate-700">
-                            <span className="font-bold text-slate-500 text-[10px] uppercase tracking-wider shrink-0">
-                              Exame Clínico:
-                            </span>
+                          {(() => {
+                            const sv = paciente.sinaisVitais;
+                            const temFc = sv?.fc !== undefined && sv.fc !== null && sv.fc > 0;
+                            const temSat = sv?.satO2 !== undefined && sv.satO2 !== null && sv.satO2 > 0;
+                            const temPa = Boolean(sv?.pa && sv.pa.trim());
+                            const temTax = sv?.tax !== undefined && sv.tax !== null && sv.tax > 0;
+                            const temSv = temFc || temSat || temPa || temTax;
 
-                            <span className="inline-flex items-center gap-1 font-semibold text-[11px] text-rose-700">
-                              <Heart className="w-3 h-3 text-rose-500" />
-                              <span>FC: {paciente.sinaisVitais?.fc || "-"} bpm</span>
-                            </span>
+                            const ultimaAntropo = paciente.antropometria?.ativo
+                              ? obterUltimaAntropometria(paciente.antropometria)
+                              : null;
+                            const temAntropo = Boolean(ultimaAntropo);
 
-                            <span className="text-slate-300">•</span>
+                            if (!temSv && !temAntropo) return null;
 
-                            <span className="inline-flex items-center gap-1 font-semibold text-[11px] text-sky-700">
-                              <Activity className="w-3 h-3 text-sky-500" />
-                              <span>SatO2: {paciente.sinaisVitais?.satO2 || "-"}%</span>
-                            </span>
-
-                            <span className="text-slate-300">•</span>
-
-                            <span className="font-semibold text-[11px] text-slate-700">
-                              PA: {paciente.sinaisVitais?.pa || "-"}
-                            </span>
-
-                            {paciente.sinaisVitais?.tax && (
-                              <>
-                                <span className="text-slate-300">•</span>
-                                <span className="inline-flex items-center gap-1 font-semibold text-[11px] text-amber-700">
-                                  <Thermometer className="w-3 h-3 text-amber-500" />
-                                  <span>{paciente.sinaisVitais.tax}ºC</span>
+                            const itensSv: React.ReactNode[] = [];
+                            if (temFc) {
+                              itensSv.push(
+                                <span key="fc" className="inline-flex items-center gap-1 font-semibold text-[11px] text-rose-700">
+                                  <Heart className="w-3 h-3 text-rose-500" />
+                                  <span>FC: {sv?.fc} bpm</span>
                                 </span>
-                              </>
-                            )}
-
-                            {/* RESUMO COMPACTO DE PESO & IMC (SE ATIVO E HOUVER PESAGEM) */}
-                            {(() => {
-                              if (!paciente.antropometria?.ativo) return null;
-                              const ultima = obterUltimaAntropometria(paciente.antropometria);
-                              if (!ultima) return null;
-                              const c = classificarIMC(ultima.imc);
-                              const v = calcularVariacaoPeso(paciente.antropometria.historico || []);
-                              return (
-                                <>
-                                  <span className="text-slate-300">•</span>
-                                  <span
-                                    className={`inline-flex items-center gap-1 font-semibold text-[11px] px-2 py-0.5 rounded-full border ${c.corBg} ${c.corTexto} ${c.corBorda}`}
-                                    title={`Altura: ${ultima.altura}m | IMC: ${ultima.imc} (${c.categoria})${v.tipo !== "unico" ? ` | Variação: ${v.textoFormatado}` : ""}`}
-                                  >
-                                    <Scale className="w-3 h-3" />
-                                    <span>
-                                      {ultima.peso} kg • IMC {ultima.imc}
-                                      {v.tipo === "perda" ? ` (${v.deltaKg} kg)` : v.tipo === "ganho" ? ` (+${v.deltaKg} kg)` : ""}
-                                    </span>
-                                  </span>
-                                </>
                               );
-                            })()}
-                          </div>
+                            }
+                            if (temSat) {
+                              itensSv.push(
+                                <span key="sat" className="inline-flex items-center gap-1 font-semibold text-[11px] text-sky-700">
+                                  <Activity className="w-3 h-3 text-sky-500" />
+                                  <span>SatO2: {sv?.satO2}%</span>
+                                </span>
+                              );
+                            }
+                            if (temPa) {
+                              itensSv.push(
+                                <span key="pa" className="font-semibold text-[11px] text-slate-700">
+                                  PA: {sv?.pa}
+                                </span>
+                              );
+                            }
+                            if (temTax) {
+                              itensSv.push(
+                                <span key="tax" className="inline-flex items-center gap-1 font-semibold text-[11px] text-amber-700">
+                                  <Thermometer className="w-3 h-3 text-amber-500" />
+                                  <span>{sv?.tax}ºC</span>
+                                </span>
+                              );
+                            }
+
+                            return (
+                              <div className="bg-slate-50/80 border border-slate-200/70 px-2.5 py-1.5 rounded-xl flex items-center gap-2.5 flex-wrap text-xs text-slate-700">
+                                {temSv && (
+                                  <span className="font-bold text-slate-500 text-[10px] uppercase tracking-wider shrink-0">
+                                    Exame Clínico:
+                                  </span>
+                                )}
+
+                                {itensSv.map((item, idx) => (
+                                  <React.Fragment key={idx}>
+                                    {idx > 0 && <span className="text-slate-300">•</span>}
+                                    {item}
+                                  </React.Fragment>
+                                ))}
+
+                                {/* RESUMO COMPACTO DE PESO & IMC (SE ATIVO E HOUVER PESAGEM) */}
+                                {ultimaAntropo && (() => {
+                                  const c = classificarIMC(ultimaAntropo.imc);
+                                  const v = calcularVariacaoPeso(paciente.antropometria?.historico || []);
+                                  return (
+                                    <>
+                                      {temSv && <span className="text-slate-300">•</span>}
+                                      <span
+                                        className={`inline-flex items-center gap-1 font-semibold text-[11px] px-2 py-0.5 rounded-full border ${c.corBg} ${c.corTexto} ${c.corBorda}`}
+                                        title={`Altura: ${ultimaAntropo.altura}m | IMC: ${ultimaAntropo.imc} (${c.categoria})${v.tipo !== "unico" ? ` | Variação: ${v.textoFormatado}` : ""}`}
+                                      >
+                                        <Scale className="w-3 h-3" />
+                                        <span>
+                                          {ultimaAntropo.peso} kg • IMC {ultimaAntropo.imc}
+                                          {v.tipo === "perda" ? ` (${v.deltaKg} kg)` : v.tipo === "ganho" ? ` (+${v.deltaKg} kg)` : ""}
+                                        </span>
+                                      </span>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            );
+                          })()}
 
                           {/* LINHA 5: PENDÊNCIAS DO LEITO (VISÍVEL SOMENTE SE HOUVER PENDÊNCIAS) */}
                           {paciente.pendencias && paciente.pendencias.length > 0 && (
@@ -1333,15 +1357,16 @@ export function PassagemPlantaoView() {
                                       inputMode="numeric"
                                       pattern="[0-9]*"
                                       value={paciente.sinaisVitais?.fc || ""}
-                                      onChange={(e) =>
+                                      onChange={(e) => {
+                                        const num = parseInt(e.target.value.replace(/\D/g, ""), 10);
                                         handleSalvarSinaisVitais(
                                           paciente,
                                           "fc",
-                                          parseInt(e.target.value.replace(/\D/g, ""), 10) || 0
-                                        )
-                                      }
+                                          isNaN(num) ? undefined : num
+                                        );
+                                      }}
                                       placeholder="Ex: 78"
-                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
                                     />
                                   </div>
                                   <div>
@@ -1353,15 +1378,16 @@ export function PassagemPlantaoView() {
                                       inputMode="numeric"
                                       pattern="[0-9]*"
                                       value={paciente.sinaisVitais?.satO2 || ""}
-                                      onChange={(e) =>
+                                      onChange={(e) => {
+                                        const num = parseInt(e.target.value.replace(/\D/g, ""), 10);
                                         handleSalvarSinaisVitais(
                                           paciente,
                                           "satO2",
-                                          parseInt(e.target.value.replace(/\D/g, ""), 10) || 0
-                                        )
-                                      }
+                                          isNaN(num) ? undefined : num
+                                        );
+                                      }}
                                       placeholder="Ex: 98"
-                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
                                     />
                                   </div>
                                   <div>
@@ -1372,15 +1398,16 @@ export function PassagemPlantaoView() {
                                       type="text"
                                       inputMode="numeric"
                                       value={paciente.sinaisVitais?.pa || ""}
-                                      onChange={(e) =>
+                                      onChange={(e) => {
+                                        const str = e.target.value.replace(/[^0-9xX/]/g, "").trim();
                                         handleSalvarSinaisVitais(
                                           paciente,
                                           "pa",
-                                          e.target.value.replace(/[^0-9xX/]/g, "")
-                                        )
-                                      }
+                                          str || undefined
+                                        );
+                                      }}
                                       placeholder="Ex: 120/80"
-                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
                                     />
                                   </div>
                                   <div>
@@ -1391,21 +1418,25 @@ export function PassagemPlantaoView() {
                                       type="text"
                                       inputMode="decimal"
                                       value={
-                                        paciente.sinaisVitais?.tax !== undefined && paciente.sinaisVitais?.tax !== 0
+                                        paciente.sinaisVitais?.tax !== undefined && paciente.sinaisVitais?.tax !== null && paciente.sinaisVitais?.tax !== 0
                                           ? String(paciente.sinaisVitais.tax).replace(".", ",")
                                           : ""
                                       }
                                       onChange={(e) => {
                                         const limpo = e.target.value.replace(/[^0-9,.]/g, "");
+                                        if (!limpo) {
+                                          handleSalvarSinaisVitais(paciente, "tax", undefined);
+                                          return;
+                                        }
                                         const num = parseFloat(limpo.replace(",", "."));
                                         handleSalvarSinaisVitais(
                                           paciente,
                                           "tax",
-                                          isNaN(num) ? 0 : num
+                                          isNaN(num) ? undefined : num
                                         );
                                       }}
                                       placeholder="Ex: 36,5"
-                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
                                     />
                                   </div>
                                 </div>

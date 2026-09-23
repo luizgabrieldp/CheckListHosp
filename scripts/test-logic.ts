@@ -7,6 +7,7 @@ import {
 } from "../src/lib/lgpd";
 import { calcularDDayAntibiotico, calcularIdade, calcularTempoInternacao, calcularDPO, formatarCirurgiaDPO, obterCirurgiasPaciente } from "../src/lib/antibiotic-engine";
 import { AdmissaoPaciente, AltaPaciente, PrescricaoAntibiotico, Pendencia, EquipePlantao, StatusPendencia, PacientePassagem } from "../src/types/hospital";
+import { limparSinaisVitaisLegadosAlta, limparSinaisVitaisLegadosPassagem } from "../src/store/useAppStore";
 import { gerarMensagemWhatsAppAdmissoes, gerarMensagemAlta } from "../src/lib/whatsapp";
 import { obterNivelProgressoAdmissao, atingiuEtapaAdmissao } from "../src/lib/utils";
 import {
@@ -2864,6 +2865,113 @@ assert(metrica19.totalAdmissoes === 1, "Métrica registrou 1 admissão ativa con
 assert(metrica19.totalCancelamentos === 1, "Métrica registrou 1 cancelamento consolidado");
 assert(metrica19.totalAltas === 1, "Métrica registrou 1 alta consolidada");
 assert(metrica19.totalCirurgias === 1, "Métrica registrou 1 cirurgia consolidada");
+
+// =========================================================================
+// SEÇÃO 37: TESTES DE SINAIS VITAIS SEM PRÉ-PREENCHIMENTO FICTÍCIO, PLACEHOLDERS TRANSLÚCIDOS E HIGIENIZAÇÃO RETROATIVA
+// =========================================================================
+console.log("\n--- 37. Sinais Vitais Livres de Falsos Padrões, Placeholders Translúcidos & Higienização ---");
+
+// Teste 37.1: Alta criada sem valores fictícios
+const altaCriadaSemSv: AltaPaciente = {
+  id: "alta-nova",
+  nomePaciente: "Paciente Sem SV",
+  enfermaria: "",
+  tipoCirurgia: "Hernioplastia",
+  temQueixas: false,
+  parametros: { dieta: true, deambulou: true, diurese: true, evacuacao: true },
+  sinaisVitais: {},
+  dataAlta: "2026-09-23",
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+assert(altaCriadaSemSv.sinaisVitais?.frequenciaCardiaca === undefined, "Alta criada nasce sem FC pré-preenchida");
+assert(altaCriadaSemSv.sinaisVitais?.saturacaoO2 === undefined, "Alta criada nasce sem SatO2 pré-preenchida");
+
+// Teste 37.2: Passagem criada sem valores fictícios
+const passagemCriadaSemSv: PacientePassagem = {
+  id: "pass-nova",
+  nome: "Paciente Leito Novo",
+  leito: "12",
+  enfermaria: "",
+  dataAdmissao: "2026-09-23",
+  hd: "Colecistite Aguda",
+  conduta: "Jejum",
+  pendencias: [],
+  sinaisVitais: {},
+  antibioticos: [],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+assert(passagemCriadaSemSv.sinaisVitais?.fc === undefined, "Passagem criada nasce sem FC pré-preenchida");
+assert(passagemCriadaSemSv.sinaisVitais?.satO2 === undefined, "Passagem criada nasce sem SatO2 pré-preenchida");
+assert(passagemCriadaSemSv.sinaisVitais?.pa === undefined, "Passagem criada nasce sem PA pré-preenchida");
+assert(passagemCriadaSemSv.sinaisVitais?.tax === undefined, "Passagem criada nasce sem Tax pré-preenchida");
+
+// Teste 37.3: Mensagem de WhatsApp da Alta sem sinais vitais não exibe linha de SV
+const msgSemSv = gerarMensagemAlta(altaCriadaSemSv);
+assert(!msgSemSv.includes("FC:"), "WhatsApp sem sinais vitais NÃO inclui linha de FC");
+assert(!msgSemSv.includes("Sat:"), "WhatsApp sem sinais vitais NÃO inclui linha de Sat");
+
+// Teste 37.4: Mensagem de WhatsApp da Alta com apenas FC
+const altaComFc: AltaPaciente = {
+  ...altaCriadaSemSv,
+  sinaisVitais: { frequenciaCardiaca: 82 },
+};
+const msgComFc = gerarMensagemAlta(altaComFc);
+assert(msgComFc.includes("FC: 82"), "WhatsApp com apenas FC exibe 'FC: 82'");
+assert(!msgComFc.includes("Sat:"), "WhatsApp com apenas FC não inclui Sat vazia");
+
+// Teste 37.5: Mensagem de WhatsApp da Alta com apenas Sat
+const altaComSat: AltaPaciente = {
+  ...altaCriadaSemSv,
+  sinaisVitais: { saturacaoO2: 99 },
+};
+const msgComSat = gerarMensagemAlta(altaComSat);
+assert(msgComSat.includes("Sat: 99%"), "WhatsApp com apenas Sat exibe 'Sat: 99%'");
+assert(!msgComSat.includes("FC:"), "WhatsApp com apenas Sat não inclui FC vazia");
+
+// Teste 37.6: Mensagem de WhatsApp da Alta com ambos FC e Sat
+const altaComFcSat: AltaPaciente = {
+  ...altaCriadaSemSv,
+  sinaisVitais: { frequenciaCardiaca: 72, saturacaoO2: 97 },
+};
+const msgComFcSat = gerarMensagemAlta(altaComFcSat);
+assert(msgComFcSat.includes("FC: 72 / Sat: 97%"), "WhatsApp com FC e Sat exibe formato combinado 'FC: 72 / Sat: 97%'");
+
+// Teste 37.7: Limpeza retroativa de alta com valor padrão falso antigo (75 e 98)
+const altaLegadaFalsa: AltaPaciente = {
+  ...altaCriadaSemSv,
+  sinaisVitais: { frequenciaCardiaca: 75, saturacaoO2: 98 },
+};
+const altaLimpa = limparSinaisVitaisLegadosAlta(altaLegadaFalsa);
+assert(altaLimpa.sinaisVitais?.frequenciaCardiaca === undefined, "limparSinaisVitaisLegadosAlta removeu FC 75 fictício");
+assert(altaLimpa.sinaisVitais?.saturacaoO2 === undefined, "limparSinaisVitaisLegadosAlta removeu Sat 98 fictício");
+
+// Teste 37.8: Preservação de valores reais medidos na alta (ex: 78 e 96)
+const altaReal: AltaPaciente = {
+  ...altaCriadaSemSv,
+  sinaisVitais: { frequenciaCardiaca: 78, saturacaoO2: 96 },
+};
+const altaRealPreservada = limparSinaisVitaisLegadosAlta(altaReal);
+assert(altaRealPreservada.sinaisVitais?.frequenciaCardiaca === 78, "limparSinaisVitaisLegadosAlta preservou FC real 78");
+assert(altaRealPreservada.sinaisVitais?.saturacaoO2 === 96, "limparSinaisVitaisLegadosAlta preservou Sat real 96");
+
+// Teste 37.9: Limpeza retroativa de passagem com combo padrão falso antigo (75, 98, 120/80, 36.5)
+const passagemLegadaFalsa: PacientePassagem = {
+  ...passagemCriadaSemSv,
+  sinaisVitais: { fc: 75, satO2: 98, pa: "120/80", tax: 36.5 },
+};
+const passagemLimpa = limparSinaisVitaisLegadosPassagem(passagemLegadaFalsa);
+assert(passagemLimpa.sinaisVitais === undefined, "limparSinaisVitaisLegadosPassagem higienizou combo fictício de sinais vitais");
+
+// Teste 37.10: Preservação de valores reais medidos na passagem
+const passagemReal: PacientePassagem = {
+  ...passagemCriadaSemSv,
+  sinaisVitais: { fc: 84, satO2: 97, pa: "130/80", tax: 37.2 },
+};
+const passagemRealPreservada = limparSinaisVitaisLegadosPassagem(passagemReal);
+assert(passagemRealPreservada.sinaisVitais?.fc === 84, "limparSinaisVitaisLegadosPassagem preservou FC real 84");
+assert(passagemRealPreservada.sinaisVitais?.tax === 37.2, "limparSinaisVitaisLegadosPassagem preservou Tax real 37.2");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);

@@ -48,8 +48,8 @@ export interface ParametrosAlta {
 }
 
 export interface SinaisVitaisAlta {
-  frequenciaCardiaca: number; // bpm
-  saturacaoO2: number; // %
+  frequenciaCardiaca?: number; // bpm
+  saturacaoO2?: number; // %
   pressaoArterial?: string;
   temperatura?: number;
 }
@@ -63,7 +63,7 @@ export interface AltaPaciente {
   temQueixas: boolean;
   detalhesQueixas?: string;
   parametros: ParametrosAlta;
-  sinaisVitais: SinaisVitaisAlta;
+  sinaisVitais?: SinaisVitaisAlta;
   fotoFeridaUrl?: string; // Base64 ou URL WebP (mantido para retrocompatibilidade)
   fotosFeridaUrls?: string[]; // Suporte a até 5 fotos da ferida cirúrgica
   dataAlta: string;

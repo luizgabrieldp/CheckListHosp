@@ -41,9 +41,9 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
   const [evacuacao, setEvacuacao] = useState(altaExistente?.parametros.evacuacao ?? true);
 
   // Sinais vitais
-  const [fc, setFc] = useState(altaExistente?.sinaisVitais.frequenciaCardiaca?.toString() || "76");
-  const [satO2, setSatO2] = useState(altaExistente?.sinaisVitais.saturacaoO2?.toString() || "98");
-  const [pa, setPa] = useState(altaExistente?.sinaisVitais.pressaoArterial || "120/80");
+  const [fc, setFc] = useState(altaExistente?.sinaisVitais?.frequenciaCardiaca?.toString() || "");
+  const [satO2, setSatO2] = useState(altaExistente?.sinaisVitais?.saturacaoO2?.toString() || "");
+  const [pa, setPa] = useState(altaExistente?.sinaisVitais?.pressaoArterial || "");
 
   // Queixas
   const [temQueixas, setTemQueixas] = useState(altaExistente?.temQueixas ?? false);
@@ -129,9 +129,9 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
         evacuacao,
       },
       sinaisVitais: {
-        frequenciaCardiaca: parseInt(fc, 10) || 75,
-        saturacaoO2: parseInt(satO2, 10) || 98,
-        pressaoArterial: pa.trim(),
+        frequenciaCardiaca: fc.trim() ? parseInt(fc, 10) : undefined,
+        saturacaoO2: satO2.trim() ? parseInt(satO2, 10) : undefined,
+        pressaoArterial: pa.trim() || undefined,
       },
       fotoFeridaUrl: fotosUrls[0] || undefined,
       fotosFeridaUrls: fotosUrls,
@@ -293,7 +293,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={fc}
                 onChange={(e) => setFc(e.target.value)}
                 placeholder="Ex: 78"
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
               />
             </div>
 
@@ -309,7 +309,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={satO2}
                 onChange={(e) => setSatO2(e.target.value)}
                 placeholder="Ex: 98"
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
               />
             </div>
 
@@ -322,7 +322,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={pa}
                 onChange={(e) => setPa(e.target.value)}
                 placeholder="Ex: 120/80"
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
               />
             </div>
           </div>

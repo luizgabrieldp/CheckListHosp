@@ -119,10 +119,16 @@ export function gerarMensagemAlta(alta: AltaPaciente): string {
   msg += `DIURESE ${alta.parametros.diurese ? "✅" : "❌"}\n`;
   msg += `EVACUAÇÃO ${alta.parametros.evacuacao ? "✅" : "❌"}`;
 
-  const fc = alta.sinaisVitais.frequenciaCardiaca;
-  const sat = alta.sinaisVitais.saturacaoO2;
+  const fc = alta.sinaisVitais?.frequenciaCardiaca;
+  const sat = alta.sinaisVitais?.saturacaoO2;
   if (fc || sat) {
-    msg += `\nFC: ${fc || "--"} / Sat: ${sat ? `${sat}%` : "--%"}`;
+    if (fc && sat) {
+      msg += `\nFC: ${fc} / Sat: ${sat}%`;
+    } else if (fc) {
+      msg += `\nFC: ${fc}`;
+    } else if (sat) {
+      msg += `\nSat: ${sat}%`;
+    }
   }
 
   return msg.trim();

@@ -76,6 +76,45 @@ export function normalizarEnfermariaPaciente<T extends { enfermaria?: string }>(
   return item;
 }
 
+export function limparSinaisVitaisLegadosAlta(alta: AltaPaciente): AltaPaciente {
+  const normalizada = normalizarEnfermariaPaciente(alta);
+  const sv = normalizada.sinaisVitais;
+  if (!sv) return normalizada;
+
+  // Se possui exatamente o valor padrão legado falso (FC: 75 e Sat: 98), limpa para não induzir a erro clínico
+  if (sv.frequenciaCardiaca === 75 && sv.saturacaoO2 === 98) {
+    return {
+      ...normalizada,
+      sinaisVitais: {
+        ...sv,
+        frequenciaCardiaca: undefined,
+        saturacaoO2: undefined,
+      },
+    };
+  }
+  return normalizada;
+}
+
+export function limparSinaisVitaisLegadosPassagem(paciente: PacientePassagem): PacientePassagem {
+  const normalizado = normalizarEnfermariaPaciente(paciente);
+  const sv = normalizado.sinaisVitais;
+  if (!sv) return normalizado;
+
+  // Se possui exatamente o combo padrão legado falso (FC: 75, Sat: 98, PA: 120/80 e Tax: 36.5 ou sem tax)
+  const isFcPadrao = sv.fc === 75;
+  const isSatPadrao = sv.satO2 === 98;
+  const isPaPadrao = sv.pa === "120/80";
+  const isTaxPadrao = sv.tax === 36.5 || !sv.tax || sv.tax === 0;
+
+  if (isFcPadrao && isSatPadrao && isPaPadrao && isTaxPadrao) {
+    return {
+      ...normalizado,
+      sinaisVitais: undefined,
+    };
+  }
+  return normalizado;
+}
+
 function carregarListaLocalStorage(chave: string, padrao: string[]): string[] {
   if (typeof window !== "undefined") {
     try {
@@ -207,7 +246,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   },
 
   admissoes: carregarItemLocalStorage<AdmissaoPaciente[]>("checklist_admissoes", []).map(normalizarEnfermariaPaciente),
-  altas: carregarItemLocalStorage<AltaPaciente[]>("checklist_altas", []).map(normalizarEnfermariaPaciente),
+  altas: carregarItemLocalStorage<AltaPaciente[]>("checklist_altas", []).map(limparSinaisVitaisLegadosAlta),
   permanencia: carregarItemLocalStorage<DadosPermanencia>("checklist_permanencia", {
     id: "perm-init",
     data: obterDataLocalHoje(),
@@ -216,7 +255,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }),
-  passagem: carregarItemLocalStorage<PacientePassagem[]>("checklist_passagem", []).map(normalizarEnfermariaPaciente),
+  passagem: carregarItemLocalStorage<PacientePassagem[]>("checklist_passagem", []).map(limparSinaisVitaisLegadosPassagem),
   ambulantes: carregarItemLocalStorage<MedicoAmbulatorio[]>("checklist_ambulantes", []),
   modelos: carregarItemLocalStorage<ModeloTexto[]>("checklist_modelos", []),
   metricas: carregarItemLocalStorage<MetricasHistoricasDiarias[]>("checklist_metricas", []),
@@ -271,7 +310,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
       altas: state.altas
         ? state.altas.map((nova) => {
             const anterior = prev.altas.find((a) => a.id === nova.id);
-            const atualizada = normalizarEnfermariaPaciente(nova);
+            const atualizada = limparSinaisVitaisLegadosAlta(nova);
             const fotosFeridaUrls =
               (anterior?.fotosFeridaUrls && anterior.fotosFeridaUrls.length > 0)
                 ? anterior.fotosFeridaUrls
@@ -290,7 +329,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
           })
         : prev.altas,
       permanencia: state.permanencia || prev.permanencia,
-      passagem: state.passagem ? state.passagem.map(normalizarEnfermariaPaciente) : prev.passagem,
+      passagem: state.passagem ? state.passagem.map(limparSinaisVitaisLegadosPassagem) : prev.passagem,
       ambulantes: state.ambulantes || prev.ambulantes,
       modelos: state.modelos || prev.modelos,
       metricas: state.metricas || prev.metricas,

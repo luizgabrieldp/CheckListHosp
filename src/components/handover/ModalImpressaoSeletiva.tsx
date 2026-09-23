@@ -703,56 +703,68 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                       )}
 
                       {/* LINHA 5: SINAIS VITAIS / EXAME CLÍNICO */}
-                      {categorias.sinaisVitais && (p.sinaisVitais || (p.antropometria?.ativo && p.antropometria.historico?.length > 0)) && (
-                        <div style={{ display: "block", marginBottom: "4px" }}>
-                          <div
-                            style={{
-                              display: "block",
-                              fontWeight: "700",
-                              textTransform: "uppercase",
-                              fontSize: "11px",
-                              letterSpacing: "0.03em",
-                              color: "#111827",
-                              marginBottom: "2px",
-                            }}
-                          >
-                            EXAME FÍSICO:
-                          </div>
-                          <div
-                            style={{
-                              display: "block",
-                              backgroundColor: "#f9fafb",
-                              border: "1px solid #d1d5db",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              fontSize: "11px",
-                              color: "#111827",
-                              fontWeight: "500",
-                            }}
-                            className="bg-gray-50 border border-gray-300 px-2.5 py-1 rounded text-xs text-gray-900 font-medium"
-                          >
-                            {p.sinaisVitais && (
-                              <div>
-                                FC: {p.sinaisVitais.fc || "-"} bpm | SatO2: {p.sinaisVitais.satO2 || "-"}% | PA: {p.sinaisVitais.pa || "-"}
-                                {p.sinaisVitais.tax ? ` | Tax: ${p.sinaisVitais.tax}ºC` : ""}
-                              </div>
-                            )}
-                            {(() => {
-                              if (!p.antropometria?.ativo) return null;
-                              const ultima = obterUltimaAntropometria(p.antropometria);
-                              if (!ultima) return null;
-                              const c = classificarIMC(ultima.imc);
-                              const v = calcularVariacaoPeso(p.antropometria.historico || []);
-                              return (
-                                <div style={{ marginTop: p.sinaisVitais ? "3px" : "0px", fontWeight: "600", color: "#0f766e" }}>
-                                  PESO &amp; IMC: {ultima.peso} kg | Altura: {ultima.altura} m | IMC: {ultima.imc} kg/m² ({c.categoria})
-                                  {v.tipo !== "unico" ? ` | Variação: ${v.textoFormatado}` : ""}
+                      {(() => {
+                        if (!categorias.sinaisVitais) return null;
+                        const sv = p.sinaisVitais;
+                        const partesSv: string[] = [];
+                        if (sv?.fc) partesSv.push(`FC: ${sv.fc} bpm`);
+                        if (sv?.satO2) partesSv.push(`SatO2: ${sv.satO2}%`);
+                        if (sv?.pa && sv.pa.trim()) partesSv.push(`PA: ${sv.pa}`);
+                        if (sv?.tax) partesSv.push(`Tax: ${sv.tax}ºC`);
+
+                        const temSv = partesSv.length > 0;
+                        const ultimaAntropo = p.antropometria?.ativo ? obterUltimaAntropometria(p.antropometria) : null;
+                        const temAntropo = Boolean(ultimaAntropo);
+
+                        if (!temSv && !temAntropo) return null;
+
+                        return (
+                          <div style={{ display: "block", marginBottom: "4px" }}>
+                            <div
+                              style={{
+                                display: "block",
+                                fontWeight: "700",
+                                textTransform: "uppercase",
+                                fontSize: "11px",
+                                letterSpacing: "0.03em",
+                                color: "#111827",
+                                marginBottom: "2px",
+                              }}
+                            >
+                              EXAME FÍSICO:
+                            </div>
+                            <div
+                              style={{
+                                display: "block",
+                                backgroundColor: "#f9fafb",
+                                border: "1px solid #d1d5db",
+                                padding: "4px 8px",
+                                borderRadius: "4px",
+                                fontSize: "11px",
+                                color: "#111827",
+                                fontWeight: "500",
+                              }}
+                              className="bg-gray-50 border border-gray-300 px-2.5 py-1 rounded text-xs text-gray-900 font-medium"
+                            >
+                              {temSv && (
+                                <div>
+                                  {partesSv.join(" | ")}
                                 </div>
-                              );
-                            })()}
+                              )}
+                              {ultimaAntropo && (() => {
+                                const c = classificarIMC(ultimaAntropo.imc);
+                                const v = calcularVariacaoPeso(p.antropometria?.historico || []);
+                                return (
+                                  <div style={{ marginTop: temSv ? "3px" : "0px", fontWeight: "600", color: "#0f766e" }}>
+                                    PESO &amp; IMC: {ultimaAntropo.peso} kg | Altura: {ultimaAntropo.altura} m | IMC: {ultimaAntropo.imc} kg/m² ({c.categoria})
+                                    {v.tipo !== "unico" ? ` | Variação: ${v.textoFormatado}` : ""}
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
 
                       {/* LINHA 6: EVOLUÇÃO CLÍNICA */}
                       {categorias.evolucao && p.evolucao && (

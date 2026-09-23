@@ -23,9 +23,9 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
   const [conduta, setConduta] = useState(pacienteExistente?.conduta || "");
 
   // Sinais vitais
-  const [fc, setFc] = useState(pacienteExistente?.sinaisVitais?.fc?.toString() || "78");
-  const [satO2, setSatO2] = useState(pacienteExistente?.sinaisVitais?.satO2?.toString() || "98");
-  const [pa, setPa] = useState(pacienteExistente?.sinaisVitais?.pa || "120/80");
+  const [fc, setFc] = useState(pacienteExistente?.sinaisVitais?.fc?.toString() || "");
+  const [satO2, setSatO2] = useState(pacienteExistente?.sinaisVitais?.satO2?.toString() || "");
+  const [pa, setPa] = useState(pacienteExistente?.sinaisVitais?.pa || "");
 
   // Pendências em texto livre (uma por linha)
   const [pendenciasTexto, setPendenciasTexto] = useState(
@@ -84,9 +84,9 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
       conduta: conduta.trim(),
       pendencias,
       sinaisVitais: {
-        fc: parseInt(fc, 10) || 75,
-        satO2: parseInt(satO2, 10) || 98,
-        pa: pa.trim(),
+        fc: fc.trim() ? parseInt(fc, 10) : undefined,
+        satO2: satO2.trim() ? parseInt(satO2, 10) : undefined,
+        pa: pa.trim() || undefined,
       },
       antibioticos,
       createdAt: pacienteExistente?.createdAt || new Date().toISOString(),
@@ -233,7 +233,8 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                   pattern="[0-9]*"
                   value={fc}
                   onChange={(e) => setFc(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                  placeholder="Ex: 78"
+                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -244,7 +245,8 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                   pattern="[0-9]*"
                   value={satO2}
                   onChange={(e) => setSatO2(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                  placeholder="Ex: 98"
+                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -253,7 +255,8 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                   type="text"
                   value={pa}
                   onChange={(e) => setPa(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                  placeholder="Ex: 120/80"
+                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
             </div>

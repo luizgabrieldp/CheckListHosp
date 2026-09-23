@@ -303,10 +303,7 @@ export function AltasView() {
         diurese: true,
         evacuacao: false,
       },
-      sinaisVitais: {
-        frequenciaCardiaca: 75,
-        saturacaoO2: 98,
-      },
+      sinaisVitais: {},
       dataAlta: dataSelecionada,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -829,19 +826,20 @@ export function AltasView() {
                                   type="number"
                                   inputMode="numeric"
                                   pattern="[0-9]*"
-                                  value={paciente.sinaisVitais.frequenciaCardiaca || ""}
+                                  value={paciente.sinaisVitais?.frequenciaCardiaca ?? ""}
                                   onChange={(e) => {
+                                    const val = parseInt(e.target.value, 10);
                                     salvarAlta({
                                       ...paciente,
                                       sinaisVitais: {
                                         ...paciente.sinaisVitais,
-                                        frequenciaCardiaca: parseInt(e.target.value, 10) || 0,
+                                        frequenciaCardiaca: isNaN(val) ? undefined : val,
                                       },
                                       updatedAt: new Date().toISOString(),
                                     });
                                   }}
-                                  placeholder="75"
-                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                  placeholder="Ex: 75"
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900 bg-white placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                                 />
                               </div>
 
@@ -853,19 +851,20 @@ export function AltasView() {
                                   type="number"
                                   inputMode="numeric"
                                   pattern="[0-9]*"
-                                  value={paciente.sinaisVitais.saturacaoO2 || ""}
+                                  value={paciente.sinaisVitais?.saturacaoO2 ?? ""}
                                   onChange={(e) => {
+                                    const val = parseInt(e.target.value, 10);
                                     salvarAlta({
                                       ...paciente,
                                       sinaisVitais: {
                                         ...paciente.sinaisVitais,
-                                        saturacaoO2: parseInt(e.target.value, 10) || 0,
+                                        saturacaoO2: isNaN(val) ? undefined : val,
                                       },
                                       updatedAt: new Date().toISOString(),
                                     });
                                   }}
-                                  placeholder="98"
-                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                  placeholder="Ex: 98"
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900 bg-white placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                                 />
                               </div>
                             </div>
