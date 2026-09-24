@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import {
   anonimizarNome,
   deveExpurgarAdmissao,
@@ -2972,6 +2974,71 @@ const passagemReal: PacientePassagem = {
 const passagemRealPreservada = limparSinaisVitaisLegadosPassagem(passagemReal);
 assert(passagemRealPreservada.sinaisVitais?.fc === 84, "limparSinaisVitaisLegadosPassagem preservou FC real 84");
 assert(passagemRealPreservada.sinaisVitais?.tax === 37.2, "limparSinaisVitaisLegadosPassagem preservou Tax real 37.2");
+
+// =========================================================================
+// SEÇÃO 38: TESTES DE CONFORMIDADE PWA (PROGRESSIVE WEB APP)
+// =========================================================================
+console.log("\n--- 38. Conformidade PWA (Manifest, Ícones HD, Service Worker & iOS) ---");
+
+// Teste 38.1: Existência e integridade do manifest.json
+const manifestPath = path.join(process.cwd(), "public", "manifest.json");
+assert(fs.existsSync(manifestPath), "Arquivo public/manifest.json existe");
+
+const manifestContent = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+assert(manifestContent.short_name === "CheckList", "Manifest define short_name 'CheckList' para tela inicial sem truncamento");
+assert(manifestContent.name.includes("CheckList Hospitalar"), "Manifest define name completo hospitalar");
+assert(manifestContent.display === "standalone", "Manifest configurado como 'standalone' para tela cheia de app nativo");
+assert(manifestContent.theme_color === "#0f172a", "Manifest define theme_color '#0f172a' (Slate escuro alinhado)");
+assert(manifestContent.background_color === "#0f172a", "Manifest define background_color '#0f172a'");
+assert(manifestContent.start_url === "./", "Manifest define start_url relativa './' para compatibilidade com GitHub Pages e Localhost");
+assert(manifestContent.scope === "./", "Manifest define scope relativo './'");
+
+// Teste 38.2: Validação dos ícones declarados no manifest
+assert(Array.isArray(manifestContent.icons) && manifestContent.icons.length >= 4, "Manifest declara ao menos 4 variações de ícones");
+const has192 = manifestContent.icons.some((i: any) => i.sizes === "192x192" && (i.purpose === "any" || !i.purpose));
+const has512 = manifestContent.icons.some((i: any) => i.sizes === "512x512" && (i.purpose === "any" || !i.purpose));
+const hasMaskable192 = manifestContent.icons.some((i: any) => i.sizes === "192x192" && i.purpose === "maskable");
+const hasMaskable512 = manifestContent.icons.some((i: any) => i.sizes === "512x512" && i.purpose === "maskable");
+
+assert(has192, "Manifest possui ícone 192x192 padrão");
+assert(has512, "Manifest possui ícone 512x512 padrão");
+assert(hasMaskable192, "Manifest possui ícone 192x192 adaptável (maskable)");
+assert(hasMaskable512, "Manifest possui ícone 512x512 adaptável (maskable)");
+
+// Teste 38.3: Existência física e cabeçalho binário dos arquivos PNG
+function validarPng(relPath: string, testLabel: string) {
+  const fullPath = path.join(process.cwd(), relPath);
+  assert(fs.existsSync(fullPath), `${testLabel}: arquivo existe`);
+  const buf = fs.readFileSync(fullPath);
+  assert(buf.length > 500, `${testLabel}: tamanho de arquivo válido (${buf.length} bytes)`);
+  const isPng = buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47;
+  assert(isPng, `${testLabel}: cabeçalho binário PNG válido`);
+}
+
+validarPng("public/icons/icon-192x192.png", "Ícone 192x192");
+validarPng("public/icons/icon-512x512.png", "Ícone 512x512");
+validarPng("public/icons/icon-maskable-192x192.png", "Ícone Maskable 192x192");
+validarPng("public/icons/icon-maskable-512x512.png", "Ícone Maskable 512x512");
+validarPng("public/icons/apple-touch-icon.png", "Ícone Apple Touch iOS");
+validarPng("public/favicon.ico", "Favicon da aplicação");
+
+// Teste 38.4: Existência e integridade do Service Worker (public/sw.js)
+const swPath = path.join(process.cwd(), "public", "sw.js");
+assert(fs.existsSync(swPath), "Arquivo public/sw.js existe");
+const swContent = fs.readFileSync(swPath, "utf-8");
+assert(swContent.includes("addEventListener(\"install\""), "Service Worker possui evento de instalação");
+assert(swContent.includes("addEventListener(\"activate\""), "Service Worker possui evento de ativação");
+assert(swContent.includes("addEventListener(\"fetch\""), "Service Worker possui interceptor de fetch");
+assert(swContent.includes("firestore.googleapis.com"), "Service Worker preserva tráfego em tempo real do Firebase");
+assert(swContent.includes("skipWaiting()"), "Service Worker ativa imediatamente com skipWaiting");
+assert(swContent.includes("clients.claim()"), "Service Worker assume controle com clients.claim");
+
+// Teste 38.5: Componente RegisterServiceWorker existe
+const regSwPath = path.join(process.cwd(), "src", "components", "pwa", "RegisterServiceWorker.tsx");
+assert(fs.existsSync(regSwPath), "Componente RegisterServiceWorker.tsx existe");
+const regSwContent = fs.readFileSync(regSwPath, "utf-8");
+assert(regSwContent.includes("serviceWorker.register"), "RegisterServiceWorker chama navigator.serviceWorker.register");
+assert(regSwContent.includes("CheckListHosp"), "RegisterServiceWorker possui suporte automático ao basePath do GitHub Pages");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
