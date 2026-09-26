@@ -146,6 +146,32 @@ function carregarItemLocalStorage<T>(chave: string, padrao: T): T {
   return padrao;
 }
 
+export type ThemeMode = "auto" | "light" | "dark";
+
+export function resolverTemaEfetivo(modo: ThemeMode, sistemaIsDark: boolean): "dark" | "light" {
+  if (modo === "dark") return "dark";
+  if (modo === "light") return "light";
+  return sistemaIsDark ? "dark" : "light";
+}
+
+export function aplicarTemaNoDocumento(modo: ThemeMode) {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const sistemaIsDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const efetivo = resolverTemaEfetivo(modo, sistemaIsDark);
+
+  if (efetivo === "dark") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+
+  // Atualiza a meta tag theme-color na barra de status do celular
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) {
+    metaTheme.setAttribute("content", efetivo === "dark" ? "#0b1120" : "#0f172a");
+  }
+}
+
 interface AppStoreState {
   // Gatekeeper & LGPD
   isAuthenticated: boolean;
@@ -179,6 +205,10 @@ interface AppStoreState {
   isSidebarCollapsed: boolean;
   toggleSidebarCollapsed: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+
+  // Tema & Aparência (Dark Mode / Light / Auto)
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
 
   // Ações de Gatekeeper
   login: (senha: string) => boolean;
@@ -242,6 +272,17 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
       try {
         localStorage.setItem("checklist_sidebar_collapsed", String(collapsed));
       } catch {}
+    }
+  },
+
+  themeMode: (typeof window !== "undefined" && (localStorage.getItem("checklist_theme_mode") as ThemeMode)) || "auto",
+  setThemeMode: (mode: ThemeMode) => {
+    set({ themeMode: mode });
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("checklist_theme_mode", mode);
+      } catch {}
+      aplicarTemaNoDocumento(mode);
     }
   },
 
@@ -582,3 +623,19 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     return resultado;
   },
 }));
+
+if (typeof window !== "undefined") {
+  try {
+    const modoSalvo = (localStorage.getItem("checklist_theme_mode") as ThemeMode) || "auto";
+    aplicarTemaNoDocumento(modoSalvo);
+
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    mql.addEventListener("change", () => {
+      const modoAtual = useAppStore.getState().themeMode;
+      if (modoAtual === "auto") {
+        aplicarTemaNoDocumento("auto");
+      }
+    });
+  } catch {}
+}
+

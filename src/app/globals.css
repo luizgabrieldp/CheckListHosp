@@ -39,6 +39,28 @@
     --ring: 160 84% 39%;
     --radius: 0.75rem;
   }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 15%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 215 28% 23%;
+    --input: 215 28% 23%;
+    --ring: 160 84% 39%;
+  }
 }
 
 @layer utilities {
@@ -48,6 +70,12 @@
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
   }
 
+  .dark .clean-card {
+    background-color: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
+  }
+
   .clean-card-hover {
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -55,6 +83,18 @@
   .clean-card-hover:hover {
     border-color: #cbd5e1;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .dark .clean-card-hover:hover {
+    border-color: #475569;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Suporte nativo e aprimorado para formulários e controles no Modo Escuro */
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+  .dark textarea,
+  .dark select {
+    color-scheme: dark;
   }
 }
 
@@ -74,9 +114,23 @@
   background: #94a3b8;
 }
 
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
 /* Efeito Vidro Líquido (iOS Liquid Glass) com Fallback Seguro para Aparelhos Antigos */
 .liquid-glass-header {
   background-color: #ffffff;
+}
+
+.dark .liquid-glass-header {
+  background-color: #0f172a;
 }
 
 @supports (backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)) {
@@ -84,6 +138,9 @@
     background-color: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+  }
+  .dark .liquid-glass-header {
+    background-color: rgba(15, 23, 42, 0.88);
   }
 }
 
@@ -224,5 +281,17 @@ body.app-background *::after {
     border-bottom: 2px solid #000000;
     padding-bottom: 6px;
     margin-bottom: 10px;
+  }
+
+  /* Forçar fundo branco e texto preto na impressão mesmo se o app estiver em modo escuro */
+  .dark html,
+  .dark body,
+  .dark main,
+  .dark .clean-card,
+  .dark .print-container {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
   }
 }

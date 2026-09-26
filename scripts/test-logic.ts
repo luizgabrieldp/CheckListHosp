@@ -9,7 +9,7 @@ import {
 } from "../src/lib/lgpd";
 import { calcularDDayAntibiotico, calcularIdade, calcularTempoInternacao, calcularDPO, formatarCirurgiaDPO, obterCirurgiasPaciente } from "../src/lib/antibiotic-engine";
 import { AdmissaoPaciente, AltaPaciente, PrescricaoAntibiotico, Pendencia, EquipePlantao, StatusPendencia, PacientePassagem } from "../src/types/hospital";
-import { limparSinaisVitaisLegadosAlta, limparSinaisVitaisLegadosPassagem } from "../src/store/useAppStore";
+import { limparSinaisVitaisLegadosAlta, limparSinaisVitaisLegadosPassagem, resolverTemaEfetivo, ThemeMode } from "../src/store/useAppStore";
 import { gerarMensagemWhatsAppAdmissoes, gerarMensagemAlta } from "../src/lib/whatsapp";
 import { obterNivelProgressoAdmissao, atingiuEtapaAdmissao } from "../src/lib/utils";
 import {
@@ -3039,6 +3039,54 @@ assert(fs.existsSync(regSwPath), "Componente RegisterServiceWorker.tsx existe");
 const regSwContent = fs.readFileSync(regSwPath, "utf-8");
 assert(regSwContent.includes("serviceWorker.register"), "RegisterServiceWorker chama navigator.serviceWorker.register");
 assert(regSwContent.includes("CheckListHosp"), "RegisterServiceWorker possui suporte automático ao basePath do GitHub Pages");
+
+// 39. MODO ESCURO (DARK MODE): AUTOMÁTICO COM O SISTEMA E MANUAL (CLARO/ESCURO)
+console.log("\n--- 39. Modo Escuro: Automático (Sistema) e Manual (Claro/Escuro) ---");
+
+// Teste 39.1: Resolução pura da lógica do tema efetivo
+assert(resolverTemaEfetivo("auto", true) === "dark", "Modo 'auto' com sistema dark ativo resolve para 'dark'");
+assert(resolverTemaEfetivo("auto", false) === "light", "Modo 'auto' com sistema claro ativo resolve para 'light'");
+assert(resolverTemaEfetivo("dark", false) === "dark", "Modo manual 'dark' força 'dark' mesmo com sistema claro");
+assert(resolverTemaEfetivo("dark", true) === "dark", "Modo manual 'dark' mantém 'dark' com sistema dark");
+assert(resolverTemaEfetivo("light", true) === "light", "Modo manual 'light' força 'light' mesmo com sistema dark");
+assert(resolverTemaEfetivo("light", false) === "light", "Modo manual 'light' mantém 'light' com sistema claro");
+
+// Teste 39.2: Validação da proteção anti-FOUC em src/app/layout.tsx
+const layoutPath = path.join(process.cwd(), "src", "app", "layout.tsx");
+assert(fs.existsSync(layoutPath), "Arquivo src/app/layout.tsx existe");
+const layoutContent = fs.readFileSync(layoutPath, "utf-8");
+assert(layoutContent.includes("suppressHydrationWarning"), "layout.tsx possui suppressHydrationWarning na tag <html>");
+assert(layoutContent.includes("checklist_theme_mode"), "layout.tsx lê chave checklist_theme_mode no script inline");
+assert(layoutContent.includes("prefers-color-scheme: dark"), "layout.tsx avalia prefers-color-scheme no script inline anti-FOUC");
+assert(layoutContent.includes("classList.add('dark')") || layoutContent.includes('classList.add("dark")'), "layout.tsx injeta classe .dark antes do primeiro render");
+assert(layoutContent.includes("dark:bg-slate-950"), "layout.tsx define fundo escuro Slate no body");
+
+// Teste 39.3: Validação das variáveis e isolamento de impressão em src/app/globals.css
+const globalsPath = path.join(process.cwd(), "src", "app", "globals.css");
+assert(fs.existsSync(globalsPath), "Arquivo src/app/globals.css existe");
+const globalsContent = fs.readFileSync(globalsPath, "utf-8");
+assert(globalsContent.includes(".dark"), "globals.css contém regras e variáveis para a classe .dark");
+assert(globalsContent.includes(".dark .clean-card"), "globals.css estiliza .clean-card no modo escuro com fundo e borda slate");
+assert(globalsContent.includes("@media print"), "globals.css possui bloco de regras para impressão @media print");
+assert(globalsContent.includes(".dark html") && globalsContent.includes("#ffffff !important"), "globals.css força fundo branco para impressão mesmo com tema escuro");
+assert(globalsContent.includes(".dark body") && globalsContent.includes("#000000 !important"), "globals.css força texto preto para impressão mesmo com tema escuro");
+
+// Teste 39.4: Validação do controle na Sidebar (Mobile e Desktop)
+const sidebarPath = path.join(process.cwd(), "src", "components", "layout", "Sidebar.tsx");
+assert(fs.existsSync(sidebarPath), "Arquivo Sidebar.tsx existe");
+const sidebarContent = fs.readFileSync(sidebarPath, "utf-8");
+assert(sidebarContent.includes("themeMode"), "Sidebar consome themeMode do store");
+assert(sidebarContent.includes("setThemeMode"), "Sidebar consome ação setThemeMode do store");
+assert(sidebarContent.includes("alternarTema"), "Sidebar possui função de ciclo rápido de temas (alternarTema)");
+
+// Teste 39.5: Validação do painel de configuração visual em ConfigView
+const configViewPath = path.join(process.cwd(), "src", "components", "config", "ConfigView.tsx");
+assert(fs.existsSync(configViewPath), "Arquivo ConfigView.tsx existe");
+const configContent = fs.readFileSync(configViewPath, "utf-8");
+assert(configContent.includes("Aparência e Tema do Sistema"), "ConfigView exibe card de Aparência e Tema");
+assert(configContent.includes("Automático"), "ConfigView possui opção de tema Automático (Sistema)");
+assert(configContent.includes("Claro"), "ConfigView possui opção de tema Claro");
+assert(configContent.includes("Escuro"), "ConfigView possui opção de tema Escuro");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
