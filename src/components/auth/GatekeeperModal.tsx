@@ -23,30 +23,30 @@ export function GatekeeperModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-100/90 backdrop-blur-xs p-4 transition-all no-print print:hidden">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 sm:p-8 shadow-2xl border border-slate-200/90 relative animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-4 transition-all no-print print:hidden">
+      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-200/90 dark:border-slate-800 relative animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center space-x-3 mb-6">
           <div className="w-12 h-12 rounded-xl bg-emerald-700 flex items-center justify-center text-white shadow-md shadow-emerald-700/25">
             <Stethoscope className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
               CheckList Hospitalar
-              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                 Enfermaria
               </span>
             </h2>
-            <p className="text-xs text-slate-500">Sessão Coletiva de Plantão Cirúrgico</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Sessão Coletiva de Plantão Cirúrgico</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
               Senha Mestre da Enfermaria
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                 <KeyRound className="w-4 h-4" />
               </div>
               <input
@@ -58,15 +58,15 @@ export function GatekeeperModal() {
                 }}
                 placeholder="Digite a senha"
                 autoFocus
-                className={`w-full pl-10 pr-4 py-2.5 min-h-[46px] rounded-xl border text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all ${
+                className={`w-full pl-10 pr-4 py-2.5 min-h-[46px] rounded-xl border text-slate-900 dark:text-white dark:bg-slate-800/90 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none transition-all ${
                   erro
                     ? "border-rose-500 focus:ring-2 focus:ring-rose-500/20"
-                    : "border-slate-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+                    : "border-slate-200 dark:border-slate-700 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
                 }`}
               />
             </div>
             {erro && (
-              <p className="mt-2 text-xs text-rose-600 flex items-center gap-1.5 font-medium">
+              <p className="mt-2 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1.5 font-medium">
                 <ShieldAlert className="w-3.5 h-3.5" />
                 Senha incorreta. Verifique com a equipe do plantão.
               </p>
@@ -82,8 +82,8 @@ export function GatekeeperModal() {
           </button>
         </form>
 
-        <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-          <p className="text-[11px] text-slate-400 leading-relaxed">
+        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
             🔒 Acesso restrito da equipe de saúde. Ferramenta de apoio operacional e não substitui o prontuário eletrônico oficial.
           </p>
         </div>

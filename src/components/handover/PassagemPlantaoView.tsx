@@ -539,32 +539,32 @@ export function PassagemPlantaoView() {
           2. PAINEL DE ESTATÍSTICAS COMPACTO
       ────────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 shrink-0">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-100 dark:border-sky-800/60 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
             <Stethoscope className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-lg font-bold text-slate-900 leading-none">{totalPacientes}</div>
-            <div className="text-xs text-slate-500 mt-0.5">Pacientes em Passagem</div>
+            <div className="text-lg font-bold text-slate-900 dark:text-white leading-none">{totalPacientes}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pacientes em Passagem</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 shrink-0">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-100 dark:border-teal-800/60 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0">
             <Pill className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-lg font-bold text-teal-700 leading-none">{totalAtbAtivos}</div>
-            <div className="text-xs text-slate-500 mt-0.5">Antibióticos em Curso</div>
+            <div className="text-lg font-bold text-teal-700 dark:text-teal-300 leading-none">{totalAtbAtivos}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Antibióticos em Curso</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
           <div
             className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${
               totalDesescalonar > 0
-                ? "bg-rose-50 border-rose-200 text-rose-600 animate-pulse"
-                : "bg-emerald-50 border-emerald-100 text-emerald-600"
+                ? "bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/60 text-rose-600 dark:text-rose-400 animate-pulse"
+                : "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-100 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400"
             }`}
           >
             <Flame className="w-4 h-4" />
@@ -572,12 +572,12 @@ export function PassagemPlantaoView() {
           <div>
             <div
               className={`text-lg font-bold leading-none ${
-                totalDesescalonar > 0 ? "text-rose-600" : "text-emerald-700"
+                totalDesescalonar > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-700 dark:text-emerald-300"
               }`}
             >
               {totalDesescalonar}
             </div>
-            <div className="text-xs text-slate-500 mt-0.5">Reavaliações / Desescalonamentos</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Reavaliações / Desescalonamentos</div>
           </div>
         </div>
       </div>
@@ -588,13 +588,13 @@ export function PassagemPlantaoView() {
       <div className="space-y-3">
         {/* BUSCA */}
         <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={termoBusca}
             onChange={(e) => setTermoBusca(e.target.value)}
             placeholder="Buscar paciente por nome, leito, enfermaria, HD ou motivo..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium placeholder-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 focus:outline-none transition-all shadow-xs"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 focus:outline-none transition-all shadow-xs"
           />
         </div>
 
@@ -605,8 +605,8 @@ export function PassagemPlantaoView() {
               onClick={() => setEnfermariaFiltro("TODAS")}
               className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
                 enfermariaFiltro === "TODAS"
-                  ? "bg-slate-900 text-white font-bold shadow-xs"
-                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
+                  ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-xs"
+                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
               }`}
             >
               Todas
@@ -700,42 +700,42 @@ export function PassagemPlantaoView() {
                     return (
                       <div
                         key={paciente.id}
-                        className="bg-white rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all overflow-hidden"
+                        className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition-all overflow-hidden"
                       >
                         {/* ──────────────────────────────────────────
                             CABEÇALHO RESUMIDO EM 4 LINHAS (CLICÁVEL)
                         ─────────────────────────────────────────── */}
                         <div
                           onClick={() => toggleExpandido(paciente.id)}
-                          className="p-3.5 sm:p-4 cursor-pointer hover:bg-slate-50/50 transition-colors space-y-2 select-none"
+                          className="p-3.5 sm:p-4 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors space-y-2 select-none"
                         >
                           {/* LINHA 1: IDENTIFICAÇÃO DO PACIENTE & CIRURGIAS/DPO INDIVIDUAIS */}
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div className="flex items-center gap-2 flex-wrap">
                               {/* LEITO */}
-                              <span className="font-extrabold text-xs px-2.5 py-0.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200">
+                              <span className="font-extrabold text-xs px-2.5 py-0.5 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60">
                                 {paciente.leito ? `LT ${paciente.leito}` : "Sem Leito"}
                               </span>
 
                               {/* ENFERMARIA */}
-                              <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                              <span className="text-xs text-slate-500 dark:text-slate-300 font-medium px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600">
                                 {paciente.enfermaria?.trim() || "Sem Enfermaria"}
                               </span>
 
                               {/* NOME ANONIMIZADO */}
-                              <span className="text-sm sm:text-base font-bold text-slate-900 tracking-tight break-words">
+                              <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight break-words">
                                 {nomeExibicao}
                               </span>
 
                               {/* IDADE CALCULADA */}
                               {idade !== "-" && (
-                                <span className="text-xs text-slate-500 font-medium">
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                                   • {idade}
                                 </span>
                               )}
 
                               {/* TEMPO DE INTERNAÇÃO */}
-                              <span className="text-xs text-slate-500 font-medium">
+                              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                                 • {tempoInternacao}
                               </span>
                             </div>

@@ -3088,6 +3088,44 @@ assert(configContent.includes("Automático"), "ConfigView possui opção de tema
 assert(configContent.includes("Claro"), "ConfigView possui opção de tema Claro");
 assert(configContent.includes("Escuro"), "ConfigView possui opção de tema Escuro");
 
+// Teste 39.6: Regras universais anti-caixas brancas e alto contraste em globals.css
+assert(globalsContent.includes(".dark .bg-white") && globalsContent.includes("#1e293b !important"), "globals.css sobrescreve .bg-white para #1e293b no modo escuro");
+assert(globalsContent.includes(".dark .bg-slate-50") && globalsContent.includes("#0f172a !important"), "globals.css sobrescreve .bg-slate-50 para #0f172a no modo escuro");
+assert(globalsContent.includes(".dark .text-slate-900") && globalsContent.includes("#f8fafc !important"), "globals.css garante tipografia primária luminosa (#f8fafc) no modo escuro");
+assert(globalsContent.includes(".dark .text-slate-800") && globalsContent.includes("#f1f5f9 !important"), "globals.css garante tipografia secundária (#f1f5f9) no modo escuro");
+
+// Teste 39.7: Status clínicos com contraste luminoso WCAG AAA no modo escuro
+assert(globalsContent.includes(".dark .text-sky-800") && globalsContent.includes("#7dd3fc !important"), "globals.css converte status Chegou (sky) em tom luminoso no dark mode");
+assert(globalsContent.includes(".dark .text-indigo-800") && globalsContent.includes("#c4b5fd !important"), "globals.css converte status Internou (indigo) em tom luminoso no dark mode");
+assert(globalsContent.includes(".dark .text-emerald-800") && globalsContent.includes("#6ee7b7 !important"), "globals.css converte status AIH (emerald) em tom luminoso no dark mode");
+
+// Teste 39.8: Preservação da chave de toggle / switch (bolinha branca) no modo escuro
+assert(globalsContent.includes(".dark div[class*=\"after:bg-white\"]::after") && globalsContent.includes("#ffffff !important"), "globals.css preserva a bolinha branca do switch nos toggles fisiológicos");
+
+// Teste 39.9: GatekeeperModal com suporte integral a dark mode (fundo slate-950 e card slate-900)
+const gatekeeperPath = path.join(process.cwd(), "src", "components", "auth", "GatekeeperModal.tsx");
+assert(fs.existsSync(gatekeeperPath), "Arquivo GatekeeperModal.tsx existe");
+const gatekeeperContent = fs.readFileSync(gatekeeperPath, "utf-8");
+assert(gatekeeperContent.includes("dark:bg-slate-950"), "GatekeeperModal possui backdrop dark:bg-slate-950");
+assert(gatekeeperContent.includes("dark:bg-slate-900"), "GatekeeperModal possui card dark:bg-slate-900");
+assert(gatekeeperContent.includes("dark:text-white"), "GatekeeperModal possui texto nítido dark:text-white");
+
+// Teste 39.10: Cobertura explícita de dark mode nas views clínicas e métricas
+const admissoesPath = path.join(process.cwd(), "src", "components", "admissions", "AdmissoesView.tsx");
+const altasPath = path.join(process.cwd(), "src", "components", "discharges", "AltasView.tsx");
+const metricasPath = path.join(process.cwd(), "src", "components", "metrics", "MetricasLgpdView.tsx");
+const passagemPath = path.join(process.cwd(), "src", "components", "handover", "PassagemPlantaoView.tsx");
+
+const admissoesContent = fs.readFileSync(admissoesPath, "utf-8");
+const altasContent = fs.readFileSync(altasPath, "utf-8");
+const metricasContent = fs.readFileSync(metricasPath, "utf-8");
+const passagemContent = fs.readFileSync(passagemPath, "utf-8");
+
+assert(admissoesContent.includes("dark:text-sky-300"), "AdmissoesView possui card de métricas com números luminosos no escuro");
+assert(altasContent.includes("dark:bg-slate-800/95"), "AltasView possui acordeão de pacientes adaptado para dark mode");
+assert(metricasContent.includes("dark:bg-slate-800"), "MetricasLgpdView possui cards e gráfico de tendência com suporte dark");
+assert(passagemContent.includes("dark:bg-slate-800"), "PassagemPlantaoView possui cards de resumo e leitos com suporte dark");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

@@ -490,55 +490,55 @@ export function AdmissoesView() {
 
       {/* SELETOR DE DATA NO TOPO (ESTILO BASE44) */}
       <div className="clean-card rounded-xl p-3 flex items-center gap-3 no-print">
-        <div className="flex items-center gap-2 text-slate-700 text-xs font-semibold">
-          <CalendarIcon className="w-4 h-4 text-slate-500" />
+        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-xs font-semibold">
+          <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
           <span>Data de Trabalho:</span>
         </div>
         <input
           type="date"
           value={dataSelecionada}
           onChange={(e) => setDataSelecionada(e.target.value)}
-          className="min-h-[44px] px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 cursor-pointer"
+          className="min-h-[44px] px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 cursor-pointer"
         />
-        <span className="text-[11px] text-slate-500 hidden sm:inline">
+        <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">
           (Pacientes adicionados ficam salvos até 48h após a data agendada)
         </span>
       </div>
 
       {/* RESUMO DO DIA (4 CARDS DE STATUS) */}
       <div className="space-y-2 no-print">
-        <div className="flex items-center justify-between text-xs text-slate-500 font-medium px-1">
-          <span className="font-bold text-slate-800">Resumo do dia</span>
+        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium px-1">
+          <span className="font-bold text-slate-800 dark:text-slate-200">Resumo do dia</span>
           <span>{totalAtivos} pacientes ativos</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* CHEGOU */}
-          <div className="clean-card rounded-2xl p-4 bg-sky-50/40 border-sky-100 flex flex-col items-center justify-center text-center">
+          <div className="clean-card rounded-2xl p-4 bg-sky-50/40 dark:bg-sky-950/40 border-sky-100 dark:border-sky-800/60 flex flex-col items-center justify-center text-center">
             <span className="text-xl mb-1">🏥</span>
-            <span className="text-xl font-bold text-sky-800 leading-tight">{totalChegou}</span>
-            <span className="text-[11px] font-semibold text-sky-700">Chegou</span>
+            <span className="text-xl font-bold text-sky-800 dark:text-sky-300 leading-tight">{totalChegou}</span>
+            <span className="text-[11px] font-semibold text-sky-700 dark:text-sky-400">Chegou</span>
           </div>
 
           {/* INTERNOU */}
-          <div className="clean-card rounded-2xl p-4 bg-indigo-50/40 border-indigo-100 flex flex-col items-center justify-center text-center">
+          <div className="clean-card rounded-2xl p-4 bg-indigo-50/40 dark:bg-indigo-950/40 border-indigo-100 dark:border-indigo-800/60 flex flex-col items-center justify-center text-center">
             <span className="text-xl mb-1">🛏️</span>
-            <span className="text-xl font-bold text-indigo-800 leading-tight">{totalInternou}</span>
-            <span className="text-[11px] font-semibold text-indigo-700">Internou</span>
+            <span className="text-xl font-bold text-indigo-800 dark:text-indigo-300 leading-tight">{totalInternou}</span>
+            <span className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-400">Internou</span>
           </div>
 
           {/* AIH */}
-          <div className="clean-card rounded-2xl p-4 bg-emerald-50/40 border-emerald-100 flex flex-col items-center justify-center text-center">
+          <div className="clean-card rounded-2xl p-4 bg-emerald-50/40 dark:bg-emerald-950/40 border-emerald-100 dark:border-emerald-800/60 flex flex-col items-center justify-center text-center">
             <span className="text-xl mb-1">✅</span>
-            <span className="text-xl font-bold text-emerald-800 leading-tight">{totalAih}</span>
-            <span className="text-[11px] font-semibold text-emerald-700">AIH</span>
+            <span className="text-xl font-bold text-emerald-800 dark:text-emerald-300 leading-tight">{totalAih}</span>
+            <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">AIH</span>
           </div>
 
           {/* ALTA/ADM */}
-          <div className="clean-card rounded-2xl p-4 bg-blue-50/40 border-blue-100 flex flex-col items-center justify-center text-center">
+          <div className="clean-card rounded-2xl p-4 bg-blue-50/40 dark:bg-blue-950/40 border-blue-100 dark:border-blue-800/60 flex flex-col items-center justify-center text-center">
             <span className="text-xl mb-1">🟦</span>
-            <span className="text-xl font-bold text-blue-800 leading-tight">{totalAltaAdm}</span>
-            <span className="text-[11px] font-semibold text-blue-700">Alta/ADM</span>
+            <span className="text-xl font-bold text-blue-800 dark:text-blue-300 leading-tight">{totalAltaAdm}</span>
+            <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400">Alta/ADM</span>
           </div>
         </div>
       </div>
@@ -547,9 +547,9 @@ export function AdmissoesView() {
       <div className="flex flex-wrap items-center gap-2.5 no-print">
         <button
           onClick={() => setModalNovoPaciente(true)}
-          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-emerald-700 text-xs font-bold border border-emerald-600 shadow-xs transition-colors cursor-pointer"
+          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-600 dark:border-emerald-500 shadow-xs transition-colors cursor-pointer"
         >
-          <Plus className="w-4 h-4 text-emerald-600" />
+          <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>Adicionar</span>
         </button>
 
@@ -563,9 +563,9 @@ export function AdmissoesView() {
 
         <button
           onClick={handleAbrirModalImpressao}
-          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200 shadow-xs transition-colors cursor-pointer"
+          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700 shadow-xs transition-colors cursor-pointer"
         >
-          <Printer className="w-4 h-4 text-slate-500" />
+          <Printer className="w-4 h-4 text-slate-500 dark:text-slate-400" />
           <span>Imprimir Lista</span>
         </button>
       </div>
@@ -573,13 +573,13 @@ export function AdmissoesView() {
       {/* BARRA DE BUSCA E FILTROS */}
       <div className="clean-card rounded-2xl p-3 space-y-3 no-print">
         <div className="relative w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar paciente..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           />
         </div>
 
@@ -599,7 +599,7 @@ export function AdmissoesView() {
               className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
                 filtroStatus === f.id
                   ? "bg-emerald-700 text-white shadow-xs"
-                  : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/60"
+                  : "bg-slate-100/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700"
               }`}
             >
               {f.label}
@@ -791,10 +791,10 @@ export function AdmissoesView() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleEtapaStatus(paciente, "chegou")}
-                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.chegou
-                                    ? "bg-sky-50 border-sky-400 text-sky-800 font-bold shadow-xs"
-                                    : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                                    ? "bg-sky-50 dark:bg-sky-950/60 border-sky-400 dark:border-sky-500 text-sky-800 dark:text-sky-300 font-bold shadow-xs"
+                                    : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
                                 <span className="text-xl">🏥</span>
@@ -805,10 +805,10 @@ export function AdmissoesView() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleEtapaStatus(paciente, "internou")}
-                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.internou
-                                    ? "bg-indigo-50 border-indigo-400 text-indigo-800 font-bold shadow-xs"
-                                    : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                                    ? "bg-indigo-50 dark:bg-indigo-950/60 border-indigo-400 dark:border-indigo-500 text-indigo-800 dark:text-indigo-300 font-bold shadow-xs"
+                                    : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
                                 <span className="text-xl">🛏️</span>
@@ -819,10 +819,10 @@ export function AdmissoesView() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleEtapaStatus(paciente, "aih")}
-                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.aih
-                                    ? "bg-emerald-50 border-emerald-400 text-emerald-800 font-bold shadow-xs"
-                                    : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                                    ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 dark:border-emerald-500 text-emerald-800 dark:text-emerald-300 font-bold shadow-xs"
+                                    : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
                                 <span className="text-xl">✅</span>
@@ -833,10 +833,10 @@ export function AdmissoesView() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleEtapaStatus(paciente, "altaAdm")}
-                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.altaAdm
-                                    ? "bg-blue-50 border-blue-400 text-blue-800 font-bold shadow-xs"
-                                    : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                                    ? "bg-blue-50 dark:bg-blue-950/60 border-blue-400 dark:border-blue-500 text-blue-800 dark:text-blue-300 font-bold shadow-xs"
+                                    : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
                                 <span className="text-xl">🟦</span>
@@ -845,8 +845,8 @@ export function AdmissoesView() {
                             </div>
 
                             {/* TOGGLE CANCELADA */}
-                            <div className="flex items-center justify-between py-1 border-t border-slate-100">
-                              <span className="text-xs font-semibold text-slate-700">Cancelada</span>
+                            <div className="flex items-center justify-between py-1 border-t border-slate-100 dark:border-slate-700/80">
+                              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Cancelada</span>
                               <label className="relative inline-flex items-center cursor-pointer">
                                 <input
                                 type="checkbox"
@@ -860,13 +860,13 @@ export function AdmissoesView() {
                                 }}
                                 className="sr-only peer"
                               />
-                              <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
+                              <div className="w-9 h-5 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
                             </label>
                           </div>
 
                           {/* CAMPO GRANDE DE ANOTAÇÕES (HISTÓRIA DO PACIENTE - TEMPLATE PADRÃO) */}
                           <div className="space-y-1">
-                            <label className="block text-[11px] font-bold text-slate-700">
+                            <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
                               Anotações (História do Paciente)
                             </label>
                             <textarea
@@ -880,7 +880,7 @@ export function AdmissoesView() {
                                   updatedAt: new Date().toISOString(),
                                 });
                               }}
-                              className="w-full p-3 rounded-xl border border-slate-200 text-xs font-mono text-slate-800 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 leading-relaxed disabled:opacity-75 disabled:bg-slate-100"
+                              className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-800 dark:text-slate-100 bg-slate-50/50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 leading-relaxed disabled:opacity-75 disabled:bg-slate-100 dark:disabled:bg-slate-800/80"
                             />
                           </div>
 
@@ -1047,21 +1047,21 @@ export function AdmissoesView() {
 
       {/* MODAL ADICIONAR NOVO PACIENTE */}
       {modalNovoPaciente && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in no-print">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-xs p-4 animate-in fade-in no-print">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] flex flex-col">
             <div className="shrink-0 mb-3 flex items-start justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 mb-1">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">
                   Adicionar Paciente para {dataFormatadaBR}
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Preencha o nome e selecione a enfermaria inicial.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setModalNovoPaciente(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 -mr-2 -mt-2 cursor-pointer"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 -mr-2 -mt-2 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1069,7 +1069,7 @@ export function AdmissoesView() {
 
             <form onSubmit={handleCriarPaciente} className="space-y-4 flex-1 overflow-y-auto pr-1">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Nome Completo *
                 </label>
                 <input
@@ -1079,13 +1079,13 @@ export function AdmissoesView() {
                   value={novoNome}
                   onChange={(e) => setNovoNome(e.target.value)}
                   placeholder="Ex: TAMIRES SILVA SAMPAIO SANTOS"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-slate-700">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Enfermaria
                   </label>
                   <button
@@ -1094,7 +1094,7 @@ export function AdmissoesView() {
                       setAdicionandoEnfModal(!adicionandoEnfModal);
                       setNomeNovaEnfModal("");
                     }}
-                    className="min-h-[36px] px-2 py-1 text-[11px] text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-0.5 cursor-pointer"
+                    className="min-h-[36px] px-2 py-1 text-[11px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 font-bold flex items-center gap-0.5 cursor-pointer"
                     title="Cadastrar nova enfermaria na hora"
                   >
                     <Plus className="w-3.5 h-3.5" /> Nova
@@ -1109,7 +1109,7 @@ export function AdmissoesView() {
                       value={nomeNovaEnfModal}
                       onChange={(e) => setNomeNovaEnfModal(e.target.value)}
                       placeholder="Nome da nova enfermaria..."
-                      className="flex-1 px-3 py-2 rounded-xl border border-emerald-500 text-xs text-slate-900 focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-emerald-500 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           handleSalvarNovaEnfermariaModal(e);
@@ -1126,7 +1126,7 @@ export function AdmissoesView() {
                     <button
                       type="button"
                       onClick={() => setAdicionandoEnfModal(false)}
-                      className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs cursor-pointer flex items-center justify-center"
+                      className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs cursor-pointer flex items-center justify-center"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -1135,7 +1135,7 @@ export function AdmissoesView() {
                   <select
                     value={novaEnfermaria}
                     onChange={(e) => setNovaEnfermaria(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
                   >
                     <option value="">Sem enfermaria</option>
                     {enfermarias
@@ -1149,11 +1149,11 @@ export function AdmissoesView() {
                 )}
               </div>
 
-              <div className="flex flex-col-reverse sm:flex-row items-center sm:justify-end gap-2 pt-3 border-t border-slate-100 shrink-0">
+              <div className="flex flex-col-reverse sm:flex-row items-center sm:justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 shrink-0">
                 <button
                   type="button"
                   onClick={() => setModalNovoPaciente(false)}
-                  className="min-h-[44px] w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer flex items-center justify-center"
+                  className="min-h-[44px] w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center"
                 >
                   Cancelar
                 </button>

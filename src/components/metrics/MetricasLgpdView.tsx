@@ -339,14 +339,14 @@ export function MetricasLgpdView() {
       {/* 2. OS 4 CARDS SUPERIORES (2x2 NO MOBILE, 4x1 NO DESKTOP) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* CARD 1: ADMISSÕES */}
-        <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
-          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs font-semibold">
             <ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span>Admissões</span>
           </div>
 
           <div className="my-1.5 sm:my-2">
-            <div className="text-2xl sm:text-3xl font-bold text-slate-900 leading-none">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-none">
               {totalAdmissoes}
             </div>
           </div>
@@ -358,7 +358,7 @@ export function MetricasLgpdView() {
               Object.entries(enfermariasAdmissoes).map(([enf, qtd]) => (
                 <span
                   key={enf}
-                  className="px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-medium"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 text-[10px] sm:text-[11px] font-medium"
                 >
                   {enf}: {qtd}
                 </span>
@@ -368,14 +368,14 @@ export function MetricasLgpdView() {
         </div>
 
         {/* CARD 2: ALTAS */}
-        <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
-          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs font-semibold">
             <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span>Altas</span>
           </div>
 
           <div className="my-1.5 sm:my-2">
-            <div className="text-2xl sm:text-3xl font-bold text-slate-900 leading-none">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-none">
               {totalAltas}
             </div>
           </div>
@@ -387,7 +387,7 @@ export function MetricasLgpdView() {
               Object.entries(enfermariasAltas).map(([enf, qtd]) => (
                 <span
                   key={enf}
-                  className="px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-medium"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 text-[10px] sm:text-[11px] font-medium"
                 >
                   {enf}: {qtd}
                 </span>
@@ -397,21 +397,21 @@ export function MetricasLgpdView() {
         </div>
 
         {/* CARD 3: PERMANÊNCIA */}
-        <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
           <div className="flex items-center justify-between gap-1 flex-wrap">
-            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs font-semibold">
               <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
               <span>Permanência</span>
             </div>
             {pendenciasUrgentesPendentes > 0 && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] sm:text-[10px] font-bold animate-pulse border border-red-200">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-950/70 text-red-700 dark:text-red-300 text-[9px] sm:text-[10px] font-bold animate-pulse border border-red-200 dark:border-red-800">
                 <span>🚨 {pendenciasUrgentesPendentes}</span>
               </span>
             )}
           </div>
 
           <div className="my-1.5 sm:my-2">
-            <div className="text-2xl sm:text-3xl font-bold text-slate-900 leading-none">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-none">
               {concluidasPendencias}/{totalPendencias}
             </div>
           </div>
@@ -422,14 +422,14 @@ export function MetricasLgpdView() {
         </div>
 
         {/* CARD 4: INTERNADOS */}
-        <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
-          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs font-semibold">
             <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span>Internados</span>
           </div>
 
           <div className="my-1.5 sm:my-2 flex items-baseline gap-1.5">
-            <span className="text-2xl sm:text-3xl font-bold text-slate-900 leading-none">
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-none">
               {totalInternados}
             </span>
             <span className="text-[11px] text-slate-400 font-normal">pacientes</span>
@@ -442,7 +442,7 @@ export function MetricasLgpdView() {
               Object.entries(enfermariasInternados).map(([enf, qtd]) => (
                 <span
                   key={enf}
-                  className="px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-medium"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 text-[10px] sm:text-[11px] font-medium"
                 >
                   {enf}: {qtd}
                 </span>
@@ -453,9 +453,9 @@ export function MetricasLgpdView() {
       </div>
 
       {/* 3. CARD: EQUIPE DO DIA (PERMANÊNCIA) */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
-        <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
-          <Users className="w-4 h-4 text-emerald-600" />
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-3">
+        <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+          <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>Equipe do Dia (Permanência)</span>
         </div>
 
@@ -532,22 +532,22 @@ export function MetricasLgpdView() {
       </div>
 
       {/* 4. CARD: FLUXO E ETAPAS DA ADMISSÃO + PROGRESSÃO POR ENFERMARIA */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-5">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-5">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-teal-700" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Activity className="w-4 h-4 text-teal-700 dark:text-teal-400" />
               <span>Fluxo e Fases da Admissão</span>
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Funil cumulativo de progressão do paciente no hospital cirúrgico
             </p>
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60">
               {countChegou}/{totalAdmissoes} em atendimento
             </span>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
               {countAltaAdm}/{totalAdmissoes} concluídos
             </span>
           </div>
@@ -555,14 +555,14 @@ export function MetricasLgpdView() {
 
         {/* FUNIL VISUAL DE PROGRESSÃO LINEAR */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
             <span>Progressão do fluxo ({totalAdmissoes} paciente{totalAdmissoes !== 1 ? "s" : ""} agendado{totalAdmissoes !== 1 ? "s" : ""})</span>
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
               {totalAdmissoes > 0 ? Math.round((countAltaAdm / totalAdmissoes) * 100) : 0}% com Alta/ADM
             </span>
           </div>
           {totalAdmissoes === 0 ? (
-            <div className="w-full h-3 bg-slate-100 rounded-full flex items-center justify-center">
+            <div className="w-full h-3 bg-slate-100 dark:bg-slate-700/60 rounded-full flex items-center justify-center">
               <span className="text-[10px] font-medium text-slate-400">Sem pacientes agendados para esta data</span>
             </div>
           ) : (
@@ -570,7 +570,7 @@ export function MetricasLgpdView() {
               {fasesAtivas.map((fase) => (
                 <div
                   key={fase.id}
-                  className="h-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60 shadow-2xs"
+                  className="h-full bg-slate-100 dark:bg-slate-700/60 rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-slate-700 shadow-2xs"
                   title={`${fase.label}: ${fase.count}/${totalAdmissoes} (${fase.pct}%)`}
                 >
                   <div
@@ -590,7 +590,7 @@ export function MetricasLgpdView() {
             return (
               <div
                 key={fase.id}
-                className="flex flex-col justify-between p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 hover:bg-slate-50 transition-colors"
+                className="flex flex-col justify-between p-3 rounded-xl bg-slate-50/80 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -600,31 +600,31 @@ export function MetricasLgpdView() {
                     >
                       <Icon className="w-3.5 h-3.5" />
                     </span>
-                    <span className="text-xs font-bold text-slate-800 truncate">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
                       {idx + 1}. {fase.label}
                     </span>
                   </div>
                   {idx < 3 && (
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0 hidden md:block" />
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 shrink-0 hidden md:block" />
                   )}
                 </div>
 
                 <div className="flex items-baseline justify-between mt-1">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+                    <span className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                       {fase.count}
                     </span>
                     <span className="text-xs text-slate-400 font-medium">
                       /{totalAdmissoes}
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-slate-600">
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
                     {fase.pct}%
                   </span>
                 </div>
 
                 {/* MINI BARRA DE PROCESSO INTERNA DO CARD */}
-                <div className="w-full h-1.5 bg-slate-200/70 rounded-full overflow-hidden mt-2">
+                <div className="w-full h-1.5 bg-slate-200/70 dark:bg-slate-700 rounded-full overflow-hidden mt-2">
                   <div
                     style={{ width: `${fase.pct}%`, backgroundColor: fase.hex }}
                     className="h-full rounded-full transition-all duration-300"
@@ -646,10 +646,10 @@ export function MetricasLgpdView() {
           <button
             key={p}
             onClick={() => setPeriodo(p)}
-            className={`px-4 py-2 min-h-[38px] inline-flex items-center justify-center rounded-full text-xs font-semibold transition-all ${
+            className={`px-4 py-2 min-h-[38px] inline-flex items-center justify-center rounded-full text-xs font-semibold transition-all cursor-pointer ${
               periodo === p
                 ? "bg-teal-700 text-white shadow-xs"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 active:bg-slate-100"
+                : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100"
             }`}
           >
             {p} dias
@@ -658,11 +658,11 @@ export function MetricasLgpdView() {
       </div>
 
       {/* 6. CARD: TENDÊNCIA HISTÓRICA (GRÁFICO SVG COM CURVAS SUAVES) */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Tendência histórica</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Tendência histórica</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Volume diário nos últimos {periodo} dias
             </p>
           </div>
