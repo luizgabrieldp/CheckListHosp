@@ -83,7 +83,7 @@ export function Sidebar() {
   return (
     <>
       {/* HEADER FIXO SUPERIOR PARA MOBILE (< 768px) - EFEITO VIDRO LÍQUIDO */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-30 liquid-glass-header border-b border-slate-200/80 dark:border-slate-800 px-3.5 pt-[env(safe-area-inset-top,0px)] h-[calc(3.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between no-print shadow-xs transition-colors">
+      <header className="md:hidden fixed top-0 left-0 right-0 w-full max-w-full box-border z-30 liquid-glass-header border-b border-slate-200/80 dark:border-slate-800 px-3.5 pt-[env(safe-area-inset-top,0px)] h-[calc(3.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between no-print shadow-xs transition-colors">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}

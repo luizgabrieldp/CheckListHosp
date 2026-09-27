@@ -115,7 +115,7 @@ export default function HomePage() {
   }, [setSidebarCollapsed]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex print:m-0 print:p-0">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex print:m-0 print:p-0">
       {/* SKIP LINK ACESSÍVEL PARA NAVEGAÇÃO RÁPIDA POR TECLADO E LEITORES DE TELA (WCAG 2.4.1) */}
       <a
         href="#main-content"
@@ -145,7 +145,7 @@ export default function HomePage() {
 
       {/* ÁREA DE CONTEÚDO PRINCIPAL (COM MARGEM DINÂMICA PARA A SIDEBAR E ESPAÇAMENTO PARA HEADER MOBILE) */}
       <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-200 print:m-0 print:p-0 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-0 ${
+        className={`flex-1 flex flex-col min-w-0 w-full max-w-full overflow-x-hidden transition-all duration-200 print:m-0 print:p-0 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-0 ${
           isSidebarCollapsed ? "md:ml-[68px]" : "md:ml-60"
         } ${!isAuthenticated ? "filter blur-sm select-none pointer-events-none" : ""}`}
       >
@@ -153,7 +153,7 @@ export default function HomePage() {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 p-4 sm:p-6 md:p-8 pb-[max(1.5rem,env(safe-area-inset-bottom,1.5rem))] print:p-0 print:m-0 focus:outline-none"
+          className="flex-1 w-full max-w-full p-4 sm:p-6 md:p-8 pb-[max(1.5rem,env(safe-area-inset-bottom,1.5rem))] print:p-0 print:m-0 focus:outline-none"
         >
           {activeTab === "admissoes" && <AdmissoesView />}
           {activeTab === "altas" && <AltasView />}

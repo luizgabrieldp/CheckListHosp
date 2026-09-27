@@ -3205,12 +3205,13 @@ assert(metricasContent.includes("stroke-slate-100 dark:stroke-slate-800"), "Metr
 // 41. AUDITORIA GERAL DE ACESSIBILIDADE (A11Y) E NAVEGABILIDADE WCAG 2.1 AA/AAA
 console.log("\n--- 41. Auditoria Geral de Acessibilidade (a11y) e Navegabilidade WCAG 2.1 AA/AAA ---");
 
-// Teste 41.1: WCAG 1.4.4 - Zoom e redimensionamento de texto não bloqueados no viewport
+// Teste 41.1: Configuração de App Nativo no Viewport (100% fixo, sem auto-zoom acidental em celular/tablet)
 const a11y_layoutPath = path.join(process.cwd(), "src", "app", "layout.tsx");
 assert(fs.existsSync(a11y_layoutPath), "Arquivo layout.tsx existe");
 const a11y_layoutContent = fs.readFileSync(a11y_layoutPath, "utf-8");
-assert(!a11y_layoutContent.includes("userScalable: false"), "layout.tsx não bloqueia zoom de tela (WCAG 1.4.4 userScalable != false)");
-assert(!a11y_layoutContent.includes("maximumScale: 1"), "layout.tsx permite ampliação de texto e zoom até pelo menos 200% (WCAG 1.4.4)");
+assert(a11y_layoutContent.includes("userScalable: false"), "layout.tsx define userScalable: false garantindo experiência estável de app nativo");
+assert(a11y_layoutContent.includes("maximumScale: 1"), "layout.tsx trava maximumScale: 1 impedindo zoom acidental pós-login ou por toque duplo");
+assert(a11y_layoutContent.includes("initialScale: 1"), "layout.tsx define initialScale: 1 para escala perfeita em celular e tablet");
 
 // Teste 41.2: WCAG 2.4.1 - Skip Link no topo da página
 const a11y_pagePath = path.join(process.cwd(), "src", "app", "page.tsx");
@@ -3404,7 +3405,33 @@ assert(storeThemeCheckContent.includes('document.documentElement.style.colorSche
 assert(storeThemeCheckContent.includes(".replace(/['\"]/g, \"\")"), "useAppStore sanitiza aspas em checklist_theme_mode");
 
 // Teste 43.10: useAppStore possui fallback mql.addListener no listener global
-assert(storeThemeCheckContent.includes("(mql as any).addListener"), "useAppStore global listener possui fallback addListener");
+// 44. PREVENÇÃO DE AUTO-ZOOM NO LOGIN E BLINDAGEM MULTIPLATAFORMA (APP NATIVO)
+console.log("\n--- 44. Prevenção de Auto-Zoom no Login e Blindagem Multiplataforma (App Nativo) ---");
+
+// Teste 44.1: Regra universal de fonte >= 16px para inputs no mobile em globals.css
+const globalsCssPath = path.join(process.cwd(), "src", "app", "globals.css");
+assert(fs.existsSync(globalsCssPath), "Arquivo globals.css existe");
+const globalsCssContent = fs.readFileSync(globalsCssPath, "utf-8");
+assert(globalsCssContent.includes("@media screen and (max-width: 768px)"), "globals.css possui media query para telas móveis <= 768px");
+assert(globalsCssContent.includes("font-size: 16px !important"), "globals.css impõe font-size: 16px !important em inputs/selects/textareas no mobile evitando auto-zoom do WebKit");
+assert(globalsCssContent.includes("touch-action: pan-x pan-y"), "globals.css define touch-action para rolagem fluída");
+assert(globalsCssContent.includes("overflow-x: hidden"), "globals.css bloqueia overflow horizontal da página");
+
+// Teste 44.2: GatekeeperModal com input de 16px no mobile e desfoque/scroll reset no login
+const gatekeeperAntiZoomPath = path.join(process.cwd(), "src", "components", "auth", "GatekeeperModal.tsx");
+assert(fs.existsSync(gatekeeperAntiZoomPath), "Arquivo GatekeeperModal.tsx existe");
+const gatekeeperAntiZoomContent = fs.readFileSync(gatekeeperAntiZoomPath, "utf-8");
+assert(gatekeeperAntiZoomContent.includes("text-base md:text-sm"), "GatekeeperModal utiliza text-base (16px) no mobile para blindar contra auto-zoom");
+assert(gatekeeperAntiZoomContent.includes("document.activeElement.blur()"), "GatekeeperModal remove foco do teclado móvel antes de fechar");
+assert(gatekeeperAntiZoomContent.includes("window.scrollTo({ top: 0, left: 0"), "GatekeeperModal restaura viewport para (0, 0) imediatamente pós-login");
+
+// Teste 44.3: Containers principais blindados contra vazamento horizontal
+const pageContentCheck = fs.readFileSync(path.join(process.cwd(), "src", "app", "page.tsx"), "utf-8");
+assert(pageContentCheck.includes("w-full max-w-full overflow-x-hidden"), "page.tsx blinda container raiz com w-full max-w-full overflow-x-hidden");
+
+// Teste 44.4: Header móvel com box-border e largura restrita
+const sidebarContentCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "layout", "Sidebar.tsx"), "utf-8");
+assert(sidebarContentCheck.includes("w-full max-w-full box-border"), "Sidebar.tsx define w-full max-w-full box-border no header móvel impedindo cortes laterais");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);

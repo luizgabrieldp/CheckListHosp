@@ -17,11 +17,19 @@ export function GatekeeperModal() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Remove o foco do teclado móvel antes de fechar o modal para evitar deslocamento residual da viewport
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     const ok = login(senha);
     if (!ok) {
       setErro(true);
     } else {
       setErro(false);
+      // Garante restauração instantânea do alinhamento inicial da tela (0,0) pós-login
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      }
     }
   }
 
@@ -73,7 +81,7 @@ export function GatekeeperModal() {
                 autoFocus
                 aria-invalid={erro}
                 aria-describedby={erro ? "senha-erro-msg" : undefined}
-                className={`w-full pl-10 pr-4 py-2.5 min-h-[46px] rounded-xl border text-slate-900 dark:text-white dark:bg-slate-800/90 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none transition-all ${
+                className={`w-full pl-10 pr-4 py-2.5 min-h-[46px] rounded-xl border text-slate-900 dark:text-white dark:bg-slate-800/90 placeholder-slate-400 dark:placeholder-slate-500 text-base md:text-sm focus:outline-none transition-all ${
                   erro
                     ? "border-rose-500 focus:ring-2 focus:ring-rose-500/20"
                     : "border-slate-200 dark:border-slate-700 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
