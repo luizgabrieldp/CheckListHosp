@@ -3305,6 +3305,60 @@ const a11y_metricasLgpdContent = fs.readFileSync(a11y_metricasLgpdPath, "utf-8")
 assert(a11y_metricasLgpdContent.includes('role="img"'), "MetricasLgpdView possui gráfico com role='img'");
 assert(a11y_metricasLgpdContent.includes('role="tablist"') && a11y_metricasLgpdContent.includes('role="tab"'), "MetricasLgpdView possui seletor de período com role tablist/tab");
 
+console.log("\n--- 42. Auditoria Aprofundada de Focus Trap, Un-nesting e Touch Targets (useModalA11y, WCAG 2.1 AA) ---");
+
+const s42_focusTrapPath = path.join(process.cwd(), "src", "lib", "useFocusTrap.ts");
+assert(fs.existsSync(s42_focusTrapPath), "Arquivo useFocusTrap.ts existe");
+const s42_focusTrapContent = fs.readFileSync(s42_focusTrapPath, "utf-8");
+assert(s42_focusTrapContent.includes("export function useModalA11y"), "useFocusTrap exporta hook useModalA11y");
+assert(s42_focusTrapContent.includes("focusables[0].focus()") || s42_focusTrapContent.includes("container.focus()"), "useModalA11y implementa foco inicial automático");
+assert(s42_focusTrapContent.includes('e.key === "Tab"'), "useModalA11y implementa focus trapping no ciclo Tab/Shift+Tab");
+assert(s42_focusTrapContent.includes("triggerRef.current.focus()"), "useModalA11y restaura foco ao fechar o modal");
+
+// Verificação de uso universal do hook de a11y em modais
+const s42_gatekeeperContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "auth", "GatekeeperModal.tsx"), "utf-8");
+assert(s42_gatekeeperContent.includes("useModalA11y"), "GatekeeperModal integra useModalA11y");
+
+const s42_lgpdModalContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "auth", "LgpdConsentModal.tsx"), "utf-8");
+assert(s42_lgpdModalContent.includes("useModalA11y"), "LgpdConsentModal integra useModalA11y");
+
+const s42_modalAdmissaoContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "admissions", "ModalAdmissaoForm.tsx"), "utf-8");
+assert(s42_modalAdmissaoContent.includes("useModalA11y"), "ModalAdmissaoForm integra useModalA11y");
+
+const s42_modalImpressaoAdmContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "admissions", "ModalImpressaoAdmissoes.tsx"), "utf-8");
+assert(s42_modalImpressaoAdmContent.includes("useModalA11y"), "ModalImpressaoAdmissoes integra useModalA11y");
+
+const s42_modalAltaContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "discharges", "ModalAltaForm.tsx"), "utf-8");
+assert(s42_modalAltaContent.includes("useModalA11y"), "ModalAltaForm integra useModalA11y");
+
+const s42_altasViewContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "discharges", "AltasView.tsx"), "utf-8");
+assert(s42_altasViewContent.includes("useModalA11y"), "AltasView integra useModalA11y em seus modais");
+
+const s42_modalPassagemContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "ModalPacientePassagemForm.tsx"), "utf-8");
+assert(s42_modalPassagemContent.includes("useModalA11y"), "ModalPacientePassagemForm integra useModalA11y");
+
+const s42_modalImpressaoSelContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "ModalImpressaoSeletiva.tsx"), "utf-8");
+assert(s42_modalImpressaoSelContent.includes("useModalA11y"), "ModalImpressaoSeletiva integra useModalA11y");
+assert(s42_modalImpressaoSelContent.includes("dark:bg-slate-900"), "ModalImpressaoSeletiva possui dark mode completo");
+
+const s42_ambulatorioViewContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "outpatient", "AmbulatorioView.tsx"), "utf-8");
+assert(s42_ambulatorioViewContent.includes("useModalA11y"), "AmbulatorioView integra useModalA11y");
+
+const s42_modelosViewContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "templates", "ModelosTextoView.tsx"), "utf-8");
+assert(s42_modelosViewContent.includes("useModalA11y"), "ModelosTextoView integra useModalA11y");
+
+// Verificação de touch targets e un-nesting de botões em Permanência
+const s42_permanenciaCheckContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "permanence", "PermanenciaView.tsx"), "utf-8");
+assert(s42_permanenciaCheckContent.includes("min-h-[44px] min-w-[44px]"), "PermanenciaView possui botões circulares com tamanho mínimo acessível");
+
+// Verificação de touch target em ControlePesoImc
+const s42_controlePesoCheckContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "ControlePesoImc.tsx"), "utf-8");
+assert(s42_controlePesoCheckContent.includes("min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-slate-400"), "ControlePesoImc possui botão de desativar com touch target >= 44px");
+
+// Verificação de contraste no MetricasLgpdView
+const s42_metricasLgpdCheckContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "metrics", "MetricasLgpdView.tsx"), "utf-8");
+assert(s42_metricasLgpdCheckContent.includes("text-slate-500 dark:text-slate-400"), "MetricasLgpdView possui contraste compatível com WCAG AA para textos secundários");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

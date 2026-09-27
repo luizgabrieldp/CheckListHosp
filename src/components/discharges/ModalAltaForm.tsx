@@ -5,6 +5,7 @@ import { AltaPaciente } from "@/types/hospital";
 import { useAppStore } from "@/store/useAppStore";
 import { comprimirImagemParaWebP, ResultadoCompressao } from "@/lib/image-compressor";
 import { obterDataLocalHoje } from "@/lib/utils";
+import { useModalA11y } from "@/lib/useFocusTrap";
 import {
   X,
   Save,
@@ -25,6 +26,8 @@ interface Props {
 }
 
 export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
+  const modalRef = useModalA11y<HTMLDivElement>({ isOpen: true, onClose });
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -157,10 +160,12 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 md:p-6 animate-in fade-in duration-200">
       <div
+        ref={modalRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-alta-form-title"
-        className="w-full max-w-2xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden"
+        className="w-full max-w-2xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden focus:outline-none"
       >
         {/* CABEÇALHO */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">
@@ -181,7 +186,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             type="button"
             onClick={onClose}
             aria-label="Fechar modal de alta"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
@@ -205,7 +210,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={leito}
                 onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                 placeholder="Ex: 04"
-                className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
               />
             </div>
 
@@ -219,7 +224,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 id="modal-alta-enfermaria"
                 value={enfermaria}
                 onChange={(e) => setEnfermaria(e.target.value)}
-                className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none cursor-pointer"
+                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 cursor-pointer"
               >
                 <option value="">Sem enfermaria</option>
                 {enfermarias
@@ -245,7 +250,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={nomePaciente}
                 onChange={(e) => setNomePaciente(e.target.value)}
                 placeholder="Nome do paciente"
-                className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
               />
             </div>
           </div>
@@ -260,7 +265,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
               value={tipoCirurgia}
               onChange={(e) => setTipoCirurgia(e.target.value)}
               placeholder="Ex: PO 1 Colecistectomia Videolaparoscópica"
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+              className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
             />
           </div>
 
@@ -319,7 +324,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={fc}
                 onChange={(e) => setFc(e.target.value)}
                 placeholder="Ex: 78"
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
+                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
               />
             </div>
 
@@ -336,7 +341,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={satO2}
                 onChange={(e) => setSatO2(e.target.value)}
                 placeholder="Ex: 98"
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
+                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
               />
             </div>
 
@@ -350,7 +355,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={pa}
                 onChange={(e) => setPa(e.target.value)}
                 placeholder="Ex: 120/80"
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
+                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
               />
             </div>
           </div>
@@ -437,10 +442,10 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                       type="button"
                       onClick={() => handleRemoverFoto(idx)}
                       aria-label={`Excluir foto ${idx + 1}`}
-                      className="absolute top-1 right-1 min-h-[38px] min-w-[38px] flex items-center justify-center p-1.5 rounded-lg bg-black/75 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                      className="absolute top-1 right-1 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg bg-black/75 hover:bg-rose-600 text-white transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                       title="Excluir esta foto"
                     >
-                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                      <Trash2 className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -525,13 +530,13 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[44px] w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center justify-center"
+              className="min-h-[44px] w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold shadow-lg shadow-teal-500/25 active:scale-95 transition-all cursor-pointer"
+              className="min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold shadow-lg shadow-teal-500/25 active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
             >
               <Save className="w-4 h-4" />
               <span>Salvar Alta / PO</span>

@@ -148,15 +148,20 @@ export function Header() {
             <button
               onClick={logout}
               title="Sair do plantão"
-              className="p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-rose-400 border border-slate-700 transition-colors"
+              aria-label="Sair do plantão"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-rose-400 border border-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 cursor-pointer"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
         </div>
 
         {/* NAVEGAÇÃO ENTRE ABAS */}
-        <div className="max-w-7xl mx-auto mt-2 pt-2 border-t border-slate-800/50 overflow-x-auto scrollbar-none">
+        <nav
+          aria-label="Navegação secundária do cabeçalho"
+          role="tablist"
+          className="max-w-7xl mx-auto mt-2 pt-2 border-t border-slate-800/50 overflow-x-auto scrollbar-none"
+        >
           <div className="flex items-center gap-1.5 min-w-max pb-1">
             {tabs.map((t) => {
               const Icon = t.icon;
@@ -164,20 +169,22 @@ export function Header() {
               return (
                 <button
                   key={t.id}
+                  role="tab"
+                  aria-selected={isActive}
                   onClick={() => setActiveTab(t.id)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  className={`min-h-[44px] flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 cursor-pointer ${
                     isActive
                       ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-500/50 shadow-sm shadow-cyan-500/20"
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-cyan-400" : "text-slate-400"}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? "text-cyan-400" : "text-slate-400"}`} aria-hidden="true" />
                   <span>{t.label}</span>
                 </button>
               );
             })}
           </div>
-        </div>
+        </nav>
       </div>
     </header>
   );

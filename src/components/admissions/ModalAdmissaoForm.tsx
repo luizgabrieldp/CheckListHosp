@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { AdmissaoPaciente, StatusAdmissao } from "@/types/hospital";
 import { obterDataLocalHoje } from "@/lib/utils";
+import { useModalA11y } from "@/lib/useFocusTrap";
 import {
   X,
   Save,
@@ -22,6 +23,8 @@ interface Props {
 }
 
 export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Props) {
+  const modalRef = useModalA11y<HTMLDivElement>({ isOpen: true, onClose });
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -121,6 +124,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 md:p-6 animate-in fade-in duration-200">
       <div
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-admissao-form-title"
@@ -148,7 +152,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
             type="button"
             onClick={onClose}
             aria-label="Fechar modal de admissão"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
@@ -164,9 +168,9 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
             <button
               type="button"
               onClick={() => setHistoriaFinalizada(false)}
-              className="min-h-[38px] px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+              className="min-h-[44px] px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold flex items-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
-              <Unlock className="w-3 h-3" aria-hidden="true" />
+              <Unlock className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Destravar Edição</span>
             </button>
           </div>
@@ -186,7 +190,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
               role="tab"
               aria-selected={secaoAtiva === tab.id}
               onClick={() => setSecaoAtiva(tab.id as any)}
-              className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
+              className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
                 secaoAtiva === tab.id
                   ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
                   : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"

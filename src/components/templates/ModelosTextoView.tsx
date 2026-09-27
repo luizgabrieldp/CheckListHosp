@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { CategoriaModelo, ModeloTexto } from "@/types/hospital";
+import { useModalA11y } from "@/lib/useFocusTrap";
 import {
   FileText,
   Copy,
@@ -35,6 +36,10 @@ export function ModelosTextoView() {
 
   // Controle do modal de criação / edição
   const [modalAberto, setModalAberto] = useState(false);
+  const modalAbertoRef = useModalA11y<HTMLDivElement>({
+    isOpen: modalAberto,
+    onClose: () => setModalAberto(false),
+  });
 
   // Fechamento de modal via teclado ESC
   useEffect(() => {
@@ -410,20 +415,21 @@ export function ModelosTextoView() {
                             <button
                               type="button"
                               onClick={() => handleCopiar(m.id, m.conteudo)}
-                              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                              aria-label={`Copiar texto formatado de ${m.titulo}`}
+                              className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                                 isCopiado
-                                  ? "bg-emerald-600 text-white"
+                                  ? "bg-emerald-600 text-white shadow-xs"
                                   : "bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700"
                               }`}
                             >
                               {isCopiado ? (
                                 <>
-                                  <Check className="w-3.5 h-3.5" />
+                                  <Check className="w-3.5 h-3.5" aria-hidden="true" />
                                   <span>Copiado com Sucesso!</span>
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                  <Copy className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                                   <span>Copiar Texto</span>
                                 </>
                               )}
@@ -455,7 +461,11 @@ export function ModelosTextoView() {
           aria-labelledby="modal-modelo-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in"
         >
-          <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col">
+          <div
+            ref={modalAbertoRef}
+            tabIndex={-1}
+            className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col outline-none"
+          >
             {/* CABEÇALHO DO MODAL */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
               <h3 id="modal-modelo-title" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -489,7 +499,7 @@ export function ModelosTextoView() {
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ex: BARIÁTRICA, COLELAP, Padrão..."
-                    className="w-full min-h-[44px] h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all"
+                    className="w-full min-h-[44px] h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-all"
                   />
                 </div>
 
@@ -502,7 +512,7 @@ export function ModelosTextoView() {
                     <button
                       type="button"
                       onClick={() => setCriandoNovaCat(!criandoNovaCat)}
-                      className="text-[11px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold cursor-pointer hover:underline flex items-center gap-0.5"
+                      className="min-h-[44px] inline-flex items-center text-[11px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold cursor-pointer hover:underline gap-0.5 px-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                     >
                       {criandoNovaCat ? "Cancelar" : "+ Nova"}
                     </button>
@@ -528,7 +538,7 @@ export function ModelosTextoView() {
                       <button
                         type="button"
                         onClick={handleCriarNovaCategoria}
-                        className="h-full px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer flex items-center justify-center shadow-xs"
+                        className="h-full min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer flex items-center justify-center shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                       >
                         OK
                       </button>

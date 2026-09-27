@@ -162,15 +162,15 @@ export function Sidebar() {
             // CABEÇALHO COMPACTO (SOMENTE ÍCONE E TOGGLE NO PC/TABLET)
             <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex flex-col items-center gap-2.5">
               <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-xs shrink-0">
-                <Stethoscope className="w-5 h-5" />
+                <Stethoscope className="w-5 h-5" aria-hidden="true" />
               </div>
               <button
                 onClick={toggleSidebarCollapsed}
                 title="Expandir menu lateral"
                 aria-label="Expandir menu lateral"
-                className="hidden md:flex min-h-[38px] min-w-[38px] items-center justify-center rounded-xl text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="hidden md:flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <PanelLeftOpen className="w-4 h-4" />
+                <PanelLeftOpen className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
           ) : (
@@ -178,7 +178,7 @@ export function Sidebar() {
             <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-xs shrink-0">
-                  <Stethoscope className="w-5 h-5" />
+                  <Stethoscope className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <div className="min-w-0 truncate">
                   <h1 className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">
@@ -195,18 +195,18 @@ export function Sidebar() {
                 onClick={toggleSidebarCollapsed}
                 title="Recolher menu lateral"
                 aria-label="Recolher menu lateral"
-                className="hidden md:flex min-h-[36px] min-w-[36px] items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+                className="hidden md:flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <PanelLeftClose className="w-4 h-4" />
+                <PanelLeftClose className="w-5 h-5" aria-hidden="true" />
               </button>
 
               {/* Botão de fechar visível no mobile dentro do drawer */}
               <button
                 onClick={() => setMobileOpen(false)}
                 aria-label="Fechar menu lateral"
-                className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
           )}
@@ -261,7 +261,7 @@ export function Sidebar() {
                     title={item.label}
                     aria-label={item.label}
                     aria-current={isActive ? "page" : undefined}
-                    className={`min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl transition-all cursor-pointer group relative ${
+                    className={`min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl transition-all cursor-pointer group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                       isActive
                         ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-600/50 shadow-xs"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
@@ -285,7 +285,7 @@ export function Sidebar() {
                     setMobileOpen(false);
                   }}
                   aria-current={isActive ? "page" : undefined}
-                  className={`w-full min-h-[44px] flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                  className={`w-full min-h-[44px] flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                     isActive
                       ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200/80 dark:border-emerald-700/50 shadow-xs"
                       : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60"
@@ -313,27 +313,27 @@ export function Sidebar() {
                 onClick={alternarTema}
                 title={`Tema atual: ${currentTheme.label} (clique para alternar)`}
                 aria-label={`Tema atual: ${currentTheme.label}`}
-                className="min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <ThemeIcon className={`w-5 h-5 shrink-0 ${currentTheme.color}`} />
+                <ThemeIcon className={`w-5 h-5 shrink-0 ${currentTheme.color}`} aria-hidden="true" />
               </button>
 
               <button
                 onClick={() => alert("Para alterar a senha mestre da enfermaria, contate o administrador.")}
                 title="Alterar senha"
                 aria-label="Alterar senha"
-                className="min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <KeyRound className="w-5 h-5 text-slate-400 shrink-0" />
+                <KeyRound className="w-5 h-5 text-slate-400 shrink-0" aria-hidden="true" />
               </button>
 
               <button
                 onClick={logout}
                 title="Sair da sessão"
                 aria-label="Sair da sessão"
-                className="min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                className="min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
               >
-                <LogOut className="w-5 h-5 text-rose-500 shrink-0" />
+                <LogOut className="w-5 h-5 text-rose-500 shrink-0" aria-hidden="true" />
               </button>
             </>
           ) : (
@@ -341,11 +341,12 @@ export function Sidebar() {
               {/* Botão de Tema Expandido */}
               <button
                 onClick={alternarTema}
-                className="w-full min-h-[44px] flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="w-full min-h-[44px] flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 title="Alternar entre Sistema (Auto), Claro e Escuro"
+                aria-label={`Alternar tema: atualmente ${currentTheme.label}`}
               >
                 <div className="flex items-center gap-2.5">
-                  <ThemeIcon className={`w-4 h-4 shrink-0 ${currentTheme.color}`} />
+                  <ThemeIcon className={`w-4 h-4 shrink-0 ${currentTheme.color}`} aria-hidden="true" />
                   <span>{currentTheme.label}</span>
                 </div>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
@@ -355,17 +356,17 @@ export function Sidebar() {
 
               <button
                 onClick={() => alert("Para alterar a senha mestre da enfermaria, contate o administrador.")}
-                className="w-full min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="w-full min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <KeyRound className="w-4 h-4 text-slate-400 shrink-0" />
+                <KeyRound className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
                 <span>Alterar senha</span>
               </button>
 
               <button
                 onClick={logout}
-                className="w-full min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                className="w-full min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
               >
-                <LogOut className="w-4 h-4 text-rose-500 shrink-0" />
+                <LogOut className="w-4 h-4 text-rose-500 shrink-0" aria-hidden="true" />
                 <span>Sair</span>
               </button>
             </>

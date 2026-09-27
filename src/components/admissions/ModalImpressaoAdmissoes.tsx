@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { AdmissaoPaciente } from "@/types/hospital";
+import { useModalA11y } from "@/lib/useFocusTrap";
 import {
   DndContext,
   closestCenter,
@@ -49,7 +50,7 @@ function SortableItem({ paciente }: { paciente: AdmissaoPaciente }) {
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-700/60"
+          className="cursor-grab active:cursor-grabbing min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
           title="Arrastar para reordenar"
           aria-label={`Arrastar paciente ${paciente.nome} para reordenar`}
         >
@@ -75,15 +76,7 @@ function SortableItem({ paciente }: { paciente: AdmissaoPaciente }) {
 }
 
 export function ModalImpressaoAdmissoes({ admissoes, onClose, onSalvarOrdem }: Props) {
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  const modalRef = useModalA11y<HTMLDivElement>({ isOpen: true, onClose });
 
   const [itens, setItens] = useState<AdmissaoPaciente[]>(() => [...admissoes]);
 
@@ -123,6 +116,7 @@ export function ModalImpressaoAdmissoes({ admissoes, onClose, onSalvarOrdem }: P
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200 no-print print:hidden">
       <div
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-priorizacao-leitos-title"
@@ -147,7 +141,7 @@ export function ModalImpressaoAdmissoes({ admissoes, onClose, onSalvarOrdem }: P
             type="button"
             onClick={onClose}
             aria-label="Fechar janela"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
@@ -169,14 +163,14 @@ export function ModalImpressaoAdmissoes({ admissoes, onClose, onSalvarOrdem }: P
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center justify-center"
+            className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={handleImprimir}
-            className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold shadow-lg shadow-cyan-500/25 active:scale-95 transition-all cursor-pointer"
+            className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold shadow-lg shadow-cyan-500/25 active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
           >
             <Printer className="w-4 h-4" aria-hidden="true" />
             <span>Confirmar Ordem & Imprimir Relatório</span>

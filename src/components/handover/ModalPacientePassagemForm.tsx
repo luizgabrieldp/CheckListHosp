@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { PacientePassagem, PrescricaoAntibiotico } from "@/types/hospital";
 import { obterDataLocalHoje } from "@/lib/utils";
+import { useModalA11y } from "@/lib/useFocusTrap";
 import { X, Save, Plus, Trash2, Pill, Activity, Stethoscope } from "lucide-react";
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
 }
 
 export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose }: Props) {
+  const modalRef = useModalA11y<HTMLDivElement>({ isOpen: true, onClose });
+
   // Fechamento via teclado ESC
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -115,7 +118,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
       aria-labelledby="modal-paciente-passagem-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 md:p-6 animate-in fade-in"
     >
-      <div className="w-full max-w-3xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+      <div
+        ref={modalRef}
+        tabIndex={-1}
+        className="w-full max-w-3xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden outline-none"
+      >
         {/* CABEÇALHO */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-3">
@@ -300,9 +307,9 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
               <button
                 type="button"
                 onClick={handleAdicionarAntibiotico}
-                className="flex items-center gap-1 px-3 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-semibold transition-colors"
+                className="min-h-[44px] flex items-center gap-1.5 px-3 py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Adicionar Antibiótico</span>
               </button>
             </div>
@@ -325,9 +332,10 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                       <button
                         type="button"
                         onClick={() => handleRemoverAtb(index)}
-                        className="text-slate-500 hover:text-rose-400 p-1 rounded"
+                        aria-label={`Remover antibiótico ${atb.nome || index + 1}`}
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-500 hover:text-rose-400 p-2 rounded cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
                     </div>
 
@@ -469,13 +477,13 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[44px] w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center justify-center"
+              className="min-h-[44px] w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold shadow-lg shadow-cyan-500/25 transition-all cursor-pointer flex items-center justify-center"
+              className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold shadow-lg shadow-cyan-500/25 transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
             >
               Salvar Paciente na Passagem
             </button>

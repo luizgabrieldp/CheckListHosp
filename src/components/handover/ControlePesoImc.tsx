@@ -220,10 +220,11 @@ export function ControlePesoImc({
           <button
             type="button"
             onClick={handleDesativar}
-            className="p-1 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
             title="Ocultar controle de peso para este paciente"
+            aria-label="Ocultar controle de peso para este paciente"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -247,7 +248,7 @@ export function ControlePesoImc({
               value={alturaInput}
               onChange={(e) => setAlturaInput(e.target.value)}
               placeholder="Ex: 1,70"
-              className="w-full px-2.5 py-1.5 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:border-teal-500 focus:outline-none"
+              className="w-full min-h-[44px] px-2.5 py-1.5 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:border-teal-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
             />
           </div>
 
@@ -266,7 +267,7 @@ export function ControlePesoImc({
               value={pesoInput}
               onChange={(e) => setPesoInput(e.target.value)}
               placeholder="Ex: 112,5"
-              className="w-full px-2.5 py-1.5 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-teal-500 focus:outline-none"
+              className="w-full min-h-[44px] px-2.5 py-1.5 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-teal-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
             />
           </div>
 
@@ -283,7 +284,7 @@ export function ControlePesoImc({
               type="date"
               value={dataInput}
               onChange={(e) => setDataInput(e.target.value)}
-              className="w-full px-2 py-1.5 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:border-teal-500 focus:outline-none"
+              className="w-full min-h-[44px] px-2 py-1.5 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:border-teal-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
             />
           </div>
 
@@ -604,8 +605,9 @@ export function ControlePesoImc({
                           <button
                             type="button"
                             onClick={() => handleExcluirPesagem(reg.id)}
-                            className="p-1 rounded text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                             title="Excluir este registro"
+                            aria-label="Excluir este registro"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

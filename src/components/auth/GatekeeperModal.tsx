@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { useModalA11y } from "@/lib/useFocusTrap";
 import { KeyRound, ShieldAlert, Lock, ArrowRight, Stethoscope } from "lucide-react";
 
 export function GatekeeperModal() {
@@ -9,6 +10,8 @@ export function GatekeeperModal() {
   const login = useAppStore((s) => s.login);
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState(false);
+
+  const modalRef = useModalA11y<HTMLDivElement>({ isOpen: !isAuthenticated });
 
   if (isAuthenticated) return null;
 
@@ -24,6 +27,7 @@ export function GatekeeperModal() {
 
   return (
     <div
+      ref={modalRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="gatekeeper-title"

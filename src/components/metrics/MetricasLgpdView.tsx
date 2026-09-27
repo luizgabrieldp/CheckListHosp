@@ -421,7 +421,7 @@ export function MetricasLgpdView() {
             </div>
           </div>
 
-          <span className="text-[10px] sm:text-[11px] text-slate-400 truncate block">
+          <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 truncate block">
             {legendaPermanencia}
           </span>
         </div>
@@ -437,7 +437,7 @@ export function MetricasLgpdView() {
             <span className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-none">
               {totalInternados}
             </span>
-            <span className="text-[11px] text-slate-400 font-normal">pacientes</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">pacientes</span>
           </div>
 
           <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
@@ -568,7 +568,7 @@ export function MetricasLgpdView() {
           </div>
           {totalAdmissoes === 0 ? (
             <div className="w-full h-3 bg-slate-100 dark:bg-slate-700/60 rounded-full flex items-center justify-center">
-              <span className="text-[10px] font-medium text-slate-400">Sem pacientes agendados para esta data</span>
+              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Sem pacientes agendados para esta data</span>
             </div>
           ) : (
             <div className="grid grid-cols-4 gap-1.5 h-2.5">
@@ -619,7 +619,7 @@ export function MetricasLgpdView() {
                     <span className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                       {fase.count}
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                       /{totalAdmissoes}
                     </span>
                   </div>
@@ -636,7 +636,7 @@ export function MetricasLgpdView() {
                   />
                 </div>
 
-                <span className="text-[10px] text-slate-400 font-medium mt-1.5 truncate">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1.5 truncate">
                   {fase.sublabel}
                 </span>
               </div>
@@ -934,7 +934,7 @@ export function MetricasLgpdView() {
 
       {/* 7. RODAPÉ DE RETENÇÃO E PRIVACIDADE LGPD (TEXTO EXATO DO PRINT) */}
       <div className="pt-2 pb-6 text-center">
-        <p className="text-xs text-slate-400 flex items-center justify-center gap-1.5 flex-wrap">
+        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5 flex-wrap">
           <ShieldCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <span>
             Dados clínicos apagados automaticamente: admissão/alta em 2 dias, pendências e equipe em 1 dia. Apenas totais diários são preservados.

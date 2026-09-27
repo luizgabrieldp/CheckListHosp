@@ -433,7 +433,8 @@ export function PermanenciaView() {
                       setCategoriaAdicionando("residentes");
                       setNomeMembroInline("");
                     }}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-sky-600 dark:text-sky-300 hover:text-sky-800 dark:hover:text-sky-100 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 border border-sky-200 dark:border-sky-800 transition-colors cursor-pointer focus-visible:outline-sky-500"
+                    aria-label="Adicionar residente"
+                    className="min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center text-sky-600 dark:text-sky-300 hover:text-sky-800 dark:hover:text-sky-100 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 border border-sky-200 dark:border-sky-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                     title="Adicionar residente"
                   >
                     <Plus className="w-4 h-4" />
@@ -455,21 +456,24 @@ export function PermanenciaView() {
                         if (e.key === "Escape") setCategoriaAdicionando(null);
                       }}
                       placeholder="Nome do residente (ex: Dr. Felipe R1)..."
-                      className="flex-1 text-xs px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                      aria-label="Nome do residente"
+                      className="flex-1 min-h-[44px] text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                     />
                     <button
                       onClick={() => handleSalvarMembroInline("residentes")}
-                      className="p-1.5 rounded-md bg-sky-600 hover:bg-sky-700 text-white transition-colors cursor-pointer"
+                      aria-label="Salvar residente"
+                      className="min-h-[44px] min-w-[44px] rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
                       title="Salvar (Enter)"
                     >
-                      <Check className="w-3.5 h-3.5" />
+                      <Check className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setCategoriaAdicionando(null)}
-                      className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      aria-label="Cancelar adição de residente"
+                      className="min-h-[44px] min-w-[44px] rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
                       title="Cancelar (Esc)"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -519,25 +523,30 @@ export function PermanenciaView() {
                   }
 
                   return (
-                    <span
+                    <div
                       key={idx}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Editar residente ${membro}`}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setMembroEditando({ categoria: "residentes", index: idx, nome: membro });
-                        }
-                      }}
-                      onClick={() =>
-                        setMembroEditando({ categoria: "residentes", index: idx, nome: membro })
-                      }
-                      title="Clique para editar o nome"
-                      className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700/80 text-sky-950 dark:text-sky-200 text-xs font-semibold shadow-xs hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/40 dark:hover:bg-sky-950/40 transition-all cursor-pointer focus-visible:outline-sky-500"
+                      className="group inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700/80 text-sky-950 dark:text-sky-200 text-xs font-semibold shadow-xs hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/40 dark:hover:bg-sky-950/40 transition-all"
                     >
-                      <span>{membro}</span>
-                      <Pencil className="w-2.5 h-2.5 text-slate-400 dark:text-slate-400 group-hover:text-sky-500 dark:group-hover:text-sky-300 transition-colors" />
+                      <button
+                        type="button"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Editar residente ${membro}`}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setMembroEditando({ categoria: "residentes", index: idx, nome: membro });
+                          }
+                        }}
+                        onClick={() =>
+                          setMembroEditando({ categoria: "residentes", index: idx, nome: membro })
+                        }
+                        title="Clique para editar o nome"
+                        className="inline-flex items-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded py-1 min-h-[36px]"
+                      >
+                        <span>{membro}</span>
+                        <Pencil className="w-2.5 h-2.5 text-slate-400 dark:text-slate-400 group-hover:text-sky-500 dark:group-hover:text-sky-300 transition-colors" />
+                      </button>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -545,12 +554,12 @@ export function PermanenciaView() {
                           handleRemoverMembro("residentes", idx, e);
                         }}
                         aria-label={`Remover residente ${membro}`}
-                        className="p-1 -mr-1 text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                        className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1 rounded-md text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                         title="Remover residente"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
-                    </span>
+                    </div>
                   );
                 })}
                 {(!equipe.residentes || equipe.residentes.length === 0) &&
@@ -575,7 +584,8 @@ export function PermanenciaView() {
                       setCategoriaAdicionando("doutorandos");
                       setNomeMembroInline("");
                     }}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-teal-600 dark:text-teal-300 hover:text-teal-800 dark:hover:text-teal-100 bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800 transition-colors cursor-pointer focus-visible:outline-teal-500"
+                    aria-label="Adicionar interno"
+                    className="min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center text-teal-600 dark:text-teal-300 hover:text-teal-800 dark:hover:text-teal-100 bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                     title="Adicionar interno"
                   >
                     <Plus className="w-4 h-4" />
@@ -597,21 +607,24 @@ export function PermanenciaView() {
                         if (e.key === "Escape") setCategoriaAdicionando(null);
                       }}
                       placeholder="Nome do interno (ex: Lucas Internato)..."
-                      className="flex-1 text-xs px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500"
+                      aria-label="Nome do interno"
+                      className="flex-1 min-h-[44px] text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                     />
                     <button
                       onClick={() => handleSalvarMembroInline("doutorandos")}
-                      className="p-1.5 rounded-md bg-teal-600 hover:bg-teal-700 text-white transition-colors cursor-pointer"
+                      aria-label="Salvar interno"
+                      className="min-h-[44px] min-w-[44px] rounded-lg bg-teal-600 hover:bg-teal-700 text-white transition-colors cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
                       title="Salvar (Enter)"
                     >
-                      <Check className="w-3.5 h-3.5" />
+                      <Check className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setCategoriaAdicionando(null)}
-                      className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      aria-label="Cancelar adição de interno"
+                      className="min-h-[44px] min-w-[44px] rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
                       title="Cancelar (Esc)"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -661,25 +674,30 @@ export function PermanenciaView() {
                   }
 
                   return (
-                    <span
+                    <div
                       key={idx}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Editar interno ${membro}`}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setMembroEditando({ categoria: "doutorandos", index: idx, nome: membro });
-                        }
-                      }}
-                      onClick={() =>
-                        setMembroEditando({ categoria: "doutorandos", index: idx, nome: membro })
-                      }
-                      title="Clique para editar o nome"
-                      className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-700/80 text-teal-950 dark:text-teal-200 text-xs font-semibold shadow-xs hover:border-teal-300 dark:hover:border-teal-600 hover:bg-teal-50/40 dark:hover:bg-teal-950/40 transition-all cursor-pointer focus-visible:outline-teal-500"
+                      className="group inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-700/80 text-teal-950 dark:text-teal-200 text-xs font-semibold shadow-xs hover:border-teal-300 dark:hover:border-teal-600 hover:bg-teal-50/40 dark:hover:bg-teal-950/40 transition-all"
                     >
-                      <span>{membro}</span>
-                      <Pencil className="w-2.5 h-2.5 text-slate-400 dark:text-slate-400 group-hover:text-teal-500 dark:group-hover:text-teal-300 transition-colors" />
+                      <button
+                        type="button"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Editar interno ${membro}`}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setMembroEditando({ categoria: "doutorandos", index: idx, nome: membro });
+                          }
+                        }}
+                        onClick={() =>
+                          setMembroEditando({ categoria: "doutorandos", index: idx, nome: membro })
+                        }
+                        title="Clique para editar o nome"
+                        className="inline-flex items-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded py-1 min-h-[36px]"
+                      >
+                        <span>{membro}</span>
+                        <Pencil className="w-2.5 h-2.5 text-slate-400 dark:text-slate-400 group-hover:text-teal-500 dark:group-hover:text-teal-300 transition-colors" />
+                      </button>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -687,12 +705,12 @@ export function PermanenciaView() {
                           handleRemoverMembro("doutorandos", idx, e);
                         }}
                         aria-label={`Remover interno ${membro}`}
-                        className="p-1 -mr-1 text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                        className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1 rounded-md text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                         title="Remover interno"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
-                    </span>
+                    </div>
                   );
                 })}
                 {(!equipe.doutorandos || equipe.doutorandos.length === 0) &&
@@ -872,7 +890,7 @@ export function PermanenciaView() {
                                 setNovosResponsaveis(novosResponsaveis.filter((r) => r !== resp))
                               }
                               aria-label={`Remover responsável ${resp}`}
-                              className="p-1 -mr-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer"
+                              className="min-h-[36px] min-w-[36px] -my-1 -mr-1.5 p-1 flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -1132,7 +1150,7 @@ export function PermanenciaView() {
                             <button
                               key={st}
                               onClick={() => handleAtualizarCampo(p, { status: st })}
-                              className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center ${
+                              className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                                 p.status === st
                                   ? st === "Feito"
                                     ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
@@ -1153,7 +1171,7 @@ export function PermanenciaView() {
                           <button
                             type="button"
                             onClick={() => handleAtualizarCampo(p, { prioridade: "Normal" })}
-                            className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center ${
+                            className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                               p.prioridade === "Normal"
                                 ? "bg-slate-800 dark:bg-slate-700 text-white border-slate-800 dark:border-slate-700"
                                 : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
@@ -1164,7 +1182,7 @@ export function PermanenciaView() {
                           <button
                             type="button"
                             onClick={() => handleAtualizarCampo(p, { prioridade: "Urgente" })}
-                            className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                            className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center justify-center gap-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
                               p.prioridade === "Urgente"
                                 ? "bg-rose-600 text-white border-rose-600 shadow-xs"
                                 : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
@@ -1319,7 +1337,7 @@ export function PermanenciaView() {
                                     type="button"
                                     onClick={(e) => handleRemoverResponsavel(p, resp, e)}
                                     aria-label={`Remover responsável ${resp}`}
-                                    className="p-1 -mr-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer"
+                                    className="min-h-[36px] min-w-[36px] -my-1 -mr-1.5 p-1 flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                                     title="Remover responsável"
                                   >
                                     <X className="w-3.5 h-3.5" />

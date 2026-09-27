@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { useModalA11y } from "@/lib/useFocusTrap";
 import { obterDataLocalHoje } from "@/lib/utils";
 import { ShieldCheck, AlertTriangle, Clock, FileText, CheckCircle2 } from "lucide-react";
 
@@ -13,10 +14,13 @@ export function LgpdConsentModal() {
   const hoje = obterDataLocalHoje();
   const precisaAceitar = isAuthenticated && lgpdAcceptedDate !== hoje;
 
+  const modalRef = useModalA11y<HTMLDivElement>({ isOpen: precisaAceitar });
+
   if (!precisaAceitar) return null;
 
   return (
     <div
+      ref={modalRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="lgpd-modal-title"
