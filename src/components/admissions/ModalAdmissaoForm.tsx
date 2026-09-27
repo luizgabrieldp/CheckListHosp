@@ -202,13 +202,13 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
         </div>
 
         {/* FORMULÁRIO */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 p-1">
           {/* SEÇÃO 1: GERAL */}
           {secaoAtiva === "geral" && (
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="h-6 flex items-center mb-1.5">
+                  <div className="h-7 flex items-center mb-1.5">
                     <label htmlFor="admissao-modal-nome" className="text-xs font-semibold text-slate-300">
                       Nome Completo do Paciente *
                     </label>
@@ -221,12 +221,12 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Ex: João Carlos Silva Santos"
-                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
                   />
                 </div>
 
                 <div>
-                  <div className="h-6 flex items-center mb-1.5">
+                  <div className="h-7 flex items-center mb-1.5">
                     <label htmlFor="admissao-modal-data-agendada" className="text-xs font-semibold text-slate-300 truncate" title="Data Agendada da Admissão * (Referência LGPD)">
                       Data Agendada da Admissão *
                     </label>
@@ -238,14 +238,14 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     disabled={isBloqueado}
                     value={dataAdmissaoAgendada}
                     onChange={(e) => setDataAdmissaoAgendada(e.target.value)}
-                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <div className="h-6 flex items-center mb-1.5">
+                  <div className="h-7 flex items-center mb-1.5">
                     <label htmlFor="admissao-modal-enfermaria" className="text-xs font-semibold text-slate-300">
                       Enfermaria
                     </label>
@@ -255,7 +255,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     disabled={isBloqueado}
                     value={enfermaria}
                     onChange={(e) => setEnfermaria(e.target.value)}
-                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60 cursor-pointer"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60 cursor-pointer"
                   >
                     <option value="Cirurgia Geral 1">Cirurgia Geral 1</option>
                     <option value="Cirurgia Geral 2">Cirurgia Geral 2</option>
@@ -265,7 +265,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                 </div>
 
                 <div>
-                  <div className="h-6 flex items-center mb-1.5">
+                  <div className="h-7 flex items-center mb-1.5">
                     <label htmlFor="admissao-modal-leito" className="text-xs font-semibold text-slate-300">
                       Leito
                     </label>
@@ -279,12 +279,12 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={leito}
                     onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                     placeholder="Ex: 03"
-                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
                   />
                 </div>
 
                 <div>
-                  <div className="h-6 flex items-center mb-1.5">
+                  <div className="h-7 flex items-center mb-1.5">
                     <label htmlFor="admissao-modal-data-nasc" className="text-xs font-semibold text-slate-300 truncate">
                       Data de Nascimento (Opcional)
                     </label>
@@ -295,22 +295,24 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     disabled={isBloqueado}
                     value={dataNascimento}
                     onChange={(e) => setDataNascimento(e.target.value)}
-                    className="w-full h-[42px] px-3.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div>
-                  <label htmlFor="admissao-modal-status" className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Status da Admissão
-                  </label>
+                  <div className="h-7 flex items-center mb-1.5">
+                    <label htmlFor="admissao-modal-status" className="text-xs font-semibold text-slate-300">
+                      Status da Admissão
+                    </label>
+                  </div>
                   <select
                     id="admissao-modal-status"
                     disabled={isBloqueado}
                     value={status}
                     onChange={(e) => setStatus(e.target.value as StatusAdmissao)}
-                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60 cursor-pointer"
                   >
                     <option value="Aguardando">Aguardando</option>
                     <option value="Chegou">Chegou</option>
@@ -392,60 +394,68 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Comorbidades
-                  </label>
+                  <div className="h-7 flex items-center mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Comorbidades
+                    </label>
+                  </div>
                   <input
                     type="text"
                     disabled={isBloqueado}
                     value={comorbidades}
                     onChange={(e) => setComorbidades(e.target.value)}
                     placeholder="Ex: HAS, DM2, Asma..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Cirurgias Prévias
-                  </label>
+                  <div className="h-7 flex items-center mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Cirurgias Prévias
+                    </label>
+                  </div>
                   <input
                     type="text"
                     disabled={isBloqueado}
                     value={cirurgiasPrevias}
                     onChange={(e) => setCirurgiasPrevias(e.target.value)}
                     placeholder="Ex: Apendicectomia há 5 anos, Cesárea..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Medicamentos de Uso Contínuo (MUC)
-                  </label>
+                  <div className="h-7 flex items-center mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Medicamentos de Uso Contínuo (MUC)
+                    </label>
+                  </div>
                   <textarea
                     rows={2}
                     disabled={isBloqueado}
                     value={muc}
                     onChange={(e) => setMuc(e.target.value)}
                     placeholder="Ex: Losartana 50mg 1x/dia, Metformina 850mg..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Hábitos e Histórico Familiar
-                  </label>
+                  <div className="h-7 flex items-center mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Hábitos e Histórico Familiar
+                    </label>
+                  </div>
                   <textarea
                     rows={2}
                     disabled={isBloqueado}
                     value={habitos}
                     onChange={(e) => setHabitos(e.target.value)}
                     placeholder="Ex: Ex-tabagista, nega etilismo. HF de neoplasia colorretal..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
                   />
                 </div>
               </div>

@@ -200,12 +200,12 @@ export function ConfigView() {
             onChange={(e) => setNovaEnfermaria(e.target.value)}
             aria-label="Nome da nova enfermaria"
             placeholder="Nome da enfermaria..."
-            className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="flex-1 h-11 min-h-[44px] box-border px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           />
           <button
             type="submit"
             aria-label="Adicionar enfermaria"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            className="h-11 min-h-[44px] min-w-[44px] box-border flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             title="Adicionar Enfermaria"
           >
             <Plus className="w-4 h-4" aria-hidden="true" />
@@ -256,12 +256,12 @@ export function ConfigView() {
             onChange={(e) => setNovaCategoria(e.target.value)}
             aria-label="Nome da nova categoria de modelo"
             placeholder="Nome da categoria..."
-            className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="flex-1 h-11 min-h-[44px] box-border px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           />
           <button
             type="submit"
             aria-label="Adicionar categoria de modelo"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-xs font-bold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="h-11 min-h-[44px] min-w-[44px] box-border flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-xs font-bold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             title="Adicionar Categoria"
           >
             <Plus className="w-4 h-4" aria-hidden="true" />

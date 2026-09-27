@@ -337,7 +337,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
               </div>
             </div>
 
-            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-72 overflow-y-auto p-1">
               {gruposEnfermarias.map((grupo) => {
                 const totalGrupo = grupo.pacientes.length;
                 const selecionadosGrupo = grupo.pacientes.filter((p) =>

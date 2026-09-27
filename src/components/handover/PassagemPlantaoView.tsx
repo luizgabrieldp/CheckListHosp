@@ -998,9 +998,11 @@ export function PassagemPlantaoView() {
                               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                                 {/* NOME DO PACIENTE */}
                                 <div className="sm:col-span-6">
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                                    Nome do Paciente (Anonimizado na tela)
-                                  </label>
+                                  <div className="h-7 flex items-center mb-1">
+                                    <label className="text-[11px] font-bold text-slate-700">
+                                      Nome do Paciente (Anonimizado na tela)
+                                    </label>
+                                  </div>
                                   <input
                                     type="text"
                                     value={paciente.nome}
@@ -1008,16 +1010,18 @@ export function PassagemPlantaoView() {
                                       handleSalvarCampo(paciente, "nome", e.target.value)
                                     }
                                     placeholder="Nome completo do paciente..."
-                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
+                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
                                   />
                                 </div>
 
                                 {/* LEITO */}
                                 <div className="sm:col-span-3">
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-                                    <Bed className="w-3 h-3 text-slate-400" />
-                                    <span>Leito</span>
-                                  </label>
+                                  <div className="h-7 flex items-center mb-1">
+                                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                                      <Bed className="w-3 h-3 text-slate-400" />
+                                      <span>Leito</span>
+                                    </label>
+                                  </div>
                                   <input
                                     type="text"
                                     inputMode="numeric"
@@ -1031,22 +1035,24 @@ export function PassagemPlantaoView() {
                                       )
                                     }
                                     placeholder="Ex: 25"
-                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
+                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
                                   />
                                 </div>
 
                                 {/* ENFERMARIA */}
                                 <div className="sm:col-span-3">
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-                                    <Building2 className="w-3 h-3 text-slate-400" />
-                                    <span>Enfermaria</span>
-                                  </label>
+                                  <div className="h-7 flex items-center mb-1">
+                                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                                      <Building2 className="w-3 h-3 text-slate-400" />
+                                      <span>Enfermaria</span>
+                                    </label>
+                                  </div>
                                   <select
                                     value={paciente.enfermaria || ""}
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "enfermaria", e.target.value)
                                     }
-                                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                    className="w-full h-9 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
                                   >
                                     <option value="">Sem enfermaria</option>
                                     {enfermarias
@@ -1064,23 +1070,25 @@ export function PassagemPlantaoView() {
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                                 {/* DATA DE ADMISSÃO */}
                                 <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-                                    <Calendar className="w-3 h-3 text-slate-400" />
-                                    <span>Data de Admissão</span>
-                                  </label>
+                                  <div className="h-7 flex items-center mb-1">
+                                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                                      <Calendar className="w-3 h-3 text-slate-400" />
+                                      <span>Data de Admissão</span>
+                                    </label>
+                                  </div>
                                   <input
                                     type="date"
                                     value={paciente.dataAdmissao}
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "dataAdmissao", e.target.value)
                                     }
-                                    className="w-full px-3 py-1.5 min-h-[40px] rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
                                   />
                                 </div>
 
                                 {/* DATA DE NASCIMENTO */}
                                 <div>
-                                  <div className="flex items-center justify-between mb-1">
+                                  <div className="h-7 flex items-center justify-between mb-1">
                                     <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
                                       <Calendar className="w-3 h-3 text-slate-400" />
                                       <span>Data de Nascimento</span>
@@ -1097,7 +1105,7 @@ export function PassagemPlantaoView() {
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "dataNascimento", e.target.value)
                                     }
-                                    className="w-full px-3 py-1.5 min-h-[40px] rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"
+                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
                                   />
                                 </div>
                               </div>
@@ -2094,11 +2102,13 @@ export function PassagemPlantaoView() {
               </button>
             </div>
 
-            <form onSubmit={handleSalvarNovaEnfermaria} className="space-y-3 flex-1 overflow-y-auto">
+            <form onSubmit={handleSalvarNovaEnfermaria} className="space-y-3 flex-1 overflow-y-auto p-1">
               <div>
-                <label htmlFor="nova-enf-input" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Nome da Enfermaria
-                </label>
+                <div className="h-7 flex items-center mb-1">
+                  <label htmlFor="nova-enf-input" className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Nome da Enfermaria
+                  </label>
+                </div>
                 <input
                   id="nova-enf-input"
                   type="text"
@@ -2106,7 +2116,7 @@ export function PassagemPlantaoView() {
                   onChange={(e) => setNovaEnfNome(e.target.value)}
                   placeholder="Ex: NEFRO, UTI, 5º ANDAR..."
                   autoFocus
-                  className="w-full min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 text-xs font-medium"
+                  className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border text-xs font-medium"
                 />
               </div>
 

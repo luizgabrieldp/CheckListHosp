@@ -340,11 +340,13 @@ export function AmbulatorioView() {
               </button>
             </div>
 
-            <form onSubmit={handleSalvarMedico} className="space-y-4 flex-1 overflow-y-auto pr-1">
+            <form onSubmit={handleSalvarMedico} className="space-y-4 flex-1 overflow-y-auto p-1">
               <div>
-                <label htmlFor="medico-form-nome" className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                  Nome do Médico *
-                </label>
+                <div className="h-7 flex items-center mb-1">
+                  <label htmlFor="medico-form-nome" className="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                    Nome do Médico *
+                  </label>
+                </div>
                 <input
                   id="medico-form-nome"
                   type="text"
@@ -352,13 +354,13 @@ export function AmbulatorioView() {
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Ex: Dr. Bernardo Silva"
-                  className="w-full min-h-[44px] h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors"
+                  className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-colors"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <div className="h-6 flex items-center mb-1">
+                  <div className="h-7 flex items-center mb-1">
                     <label htmlFor="medico-form-especialidade" className="text-xs font-bold text-slate-700 dark:text-slate-200">
                       Especialidade
                     </label>
@@ -369,12 +371,12 @@ export function AmbulatorioView() {
                     value={especialidade}
                     onChange={(e) => setEspecialidade(e.target.value)}
                     placeholder="Ex: Cirurgia Geral"
-                    className="w-full min-h-[44px] h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-colors"
                   />
                 </div>
 
                 <div>
-                  <div className="h-6 flex items-center mb-1">
+                  <div className="h-7 flex items-center mb-1">
                     <label htmlFor="medico-form-sala" className="text-xs font-bold text-slate-700 dark:text-slate-200">
                       Consultório / Sala
                     </label>
@@ -385,7 +387,7 @@ export function AmbulatorioView() {
                     value={sala}
                     onChange={(e) => setSala(e.target.value)}
                     placeholder="Ex: Consultório 103"
-                    className="w-full min-h-[44px] h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-colors"
                   />
                 </div>
               </div>

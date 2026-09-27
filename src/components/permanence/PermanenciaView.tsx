@@ -797,10 +797,12 @@ export function PermanenciaView() {
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                   {/* LEITO NUMÉRICO */}
                   <div className="sm:col-span-3">
-                    <label htmlFor="novo-leito-numero" className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1">
-                      <Bed className="w-3 h-3 text-slate-400" aria-hidden="true" />
-                      <span>Leito (Número)</span>
-                    </label>
+                    <div className="h-7 flex items-center mb-1">
+                      <label htmlFor="novo-leito-numero" className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                        <Bed className="w-3 h-3 text-slate-400" aria-hidden="true" />
+                        <span>Leito (Número)</span>
+                      </label>
+                    </div>
                     <input
                       id="novo-leito-numero"
                       type="text"
@@ -809,21 +811,23 @@ export function PermanenciaView() {
                       value={novoLeitoNumero}
                       onChange={(e) => setNovoLeitoNumero(e.target.value.replace(/\D/g, ""))}
                       placeholder="Ex: 08"
-                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none"
+                      className="w-full h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
                     />
                   </div>
 
                   {/* ENFERMARIA DAS CONFIGURAÇÕES */}
                   <div className="sm:col-span-3">
-                    <label htmlFor="nova-enfermaria-pendencia" className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1">
-                      <Building2 className="w-3 h-3 text-slate-400" aria-hidden="true" />
-                      <span>Enfermaria</span>
-                    </label>
+                    <div className="h-7 flex items-center mb-1">
+                      <label htmlFor="nova-enfermaria-pendencia" className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                        <Building2 className="w-3 h-3 text-slate-400" aria-hidden="true" />
+                        <span>Enfermaria</span>
+                      </label>
+                    </div>
                     <select
                       id="nova-enfermaria-pendencia"
                       value={novaEnfermaria}
                       onChange={(e) => setNovaEnfermaria(e.target.value)}
-                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none"
+                      className="w-full h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
                     >
                       <option value="">Sem enfermaria</option>
                       {enfermarias
@@ -838,15 +842,17 @@ export function PermanenciaView() {
 
                   {/* MÚLTIPLOS RESPONSÁVEIS */}
                   <div className="sm:col-span-4">
-                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1">
-                      <UserCheck className="w-3 h-3 text-slate-400" />
-                      <span>Adicionar Responsável</span>
-                    </label>
+                    <div className="h-7 flex items-center mb-1">
+                      <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                        <UserCheck className="w-3 h-3 text-slate-400" />
+                        <span>Adicionar Responsável</span>
+                      </label>
+                    </div>
                     <div className="flex items-center gap-1.5">
                       <select
                         value={responsavelSelecionadoCriacao}
                         onChange={(e) => setResponsavelSelecionadoCriacao(e.target.value)}
-                        className="flex-1 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none"
+                        className="flex-1 h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
                       >
                         <option value="">Selecione um profissional</option>
                         {todosOsMembros.map((m, idx) => (
@@ -868,7 +874,7 @@ export function PermanenciaView() {
                         }}
                         disabled={!responsavelSelecionadoCriacao}
                         aria-label="Adicionar responsável à pendência"
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-sky-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-700 cursor-pointer shrink-0"
+                        className="h-11 min-h-[44px] w-11 min-w-[44px] flex items-center justify-center rounded-xl bg-sky-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-700 cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 box-border"
                         title="Adicionar responsável"
                       >
                         <Plus className="w-4 h-4" />
@@ -1198,10 +1204,12 @@ export function PermanenciaView() {
                       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
                         {/* LEITO (APENAS NÚMERO) */}
                         <div className="sm:col-span-3">
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1">
-                            <Bed className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
-                            <span>Leito (Apenas Número)</span>
-                          </label>
+                          <div className="h-7 flex items-center mb-1">
+                            <label className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                              <Bed className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
+                              <span>Leito (Apenas Número)</span>
+                            </label>
+                          </div>
                           <input
                             type="text"
                             inputMode="numeric"
@@ -1212,13 +1220,13 @@ export function PermanenciaView() {
                               handleAtualizarCampo(p, { leito: num });
                             }}
                             placeholder="Ex: 08"
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:border-sky-500 focus:outline-none"
+                            className="w-full h-10 min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
                           />
                         </div>
 
                         {/* ENFERMARIA DAS CONFIGURAÇÕES */}
                         <div className="sm:col-span-4">
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="h-7 flex items-center justify-between mb-1">
                             <label className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
                               <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
                               <span>Enfermaria</span>
@@ -1230,7 +1238,7 @@ export function PermanenciaView() {
                                   setMostrandoNovaEnfId(p.id);
                                   setEnfParaCriar("");
                                 }}
-                                className="text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 font-semibold cursor-pointer"
+                                className="h-6 px-2 text-xs text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 font-bold flex items-center gap-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 cursor-pointer"
                               >
                                 + Nova
                               </button>
@@ -1249,12 +1257,12 @@ export function PermanenciaView() {
                                   if (e.key === "Escape") setMostrandoNovaEnfId(null);
                                 }}
                                 placeholder="Nome da enfermaria..."
-                                className="flex-1 px-2 py-1 min-h-[38px] bg-white dark:bg-slate-800 border border-sky-400 dark:border-sky-600 text-slate-900 dark:text-slate-100 rounded-lg text-xs uppercase"
+                                className="flex-1 h-10 min-h-[40px] px-2 py-1 bg-white dark:bg-slate-800 border border-sky-400 dark:border-sky-600 text-slate-900 dark:text-slate-100 rounded-lg text-xs uppercase focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
                               />
                               <button
                                 type="button"
                                 onClick={() => handleCriarNovaEnfermaria(p.id)}
-                                className="min-h-[38px] min-w-[38px] flex items-center justify-center p-1 rounded-lg bg-sky-600 text-white cursor-pointer hover:bg-sky-700 transition-colors"
+                                className="h-10 min-h-[40px] w-10 min-w-[40px] flex items-center justify-center p-1 rounded-lg bg-sky-600 text-white cursor-pointer hover:bg-sky-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 box-border"
                                 title="Salvar"
                               >
                                 <Check className="w-3.5 h-3.5" />
@@ -1262,7 +1270,7 @@ export function PermanenciaView() {
                               <button
                                 type="button"
                                 onClick={() => setMostrandoNovaEnfId(null)}
-                                className="min-h-[38px] min-w-[38px] flex items-center justify-center p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors"
+                                className="h-10 min-h-[40px] w-10 min-w-[40px] flex items-center justify-center p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 box-border"
                                 title="Cancelar"
                               >
                                 <X className="w-3.5 h-3.5" />
@@ -1272,7 +1280,7 @@ export function PermanenciaView() {
                             <select
                               value={p.enfermaria || ""}
                               onChange={(e) => handleAtualizarCampo(p, { enfermaria: e.target.value })}
-                              className="w-full px-2.5 py-1.5 min-h-[44px] rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:border-sky-500 focus:outline-none"
+                              className="w-full h-10 min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
                             >
                               <option value="">Sem enfermaria</option>
                               {enfermarias
@@ -1288,10 +1296,12 @@ export function PermanenciaView() {
 
                         {/* MÚLTIPLOS RESPONSÁVEIS */}
                         <div className="sm:col-span-5">
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1">
-                            <UserCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
-                            <span>Responsáveis</span>
-                          </label>
+                          <div className="h-7 flex items-center mb-1">
+                            <label className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                              <UserCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
+                              <span>Responsáveis</span>
+                            </label>
+                          </div>
                           <div className="flex items-center gap-1.5">
                             <select
                               value={responsavelTempPorTarefa[p.id] || ""}
@@ -1301,7 +1311,7 @@ export function PermanenciaView() {
                                   [p.id]: e.target.value,
                                 }))
                               }
-                              className="flex-1 px-2.5 py-1.5 min-h-[44px] rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:border-sky-500 focus:outline-none"
+                              className="flex-1 h-10 min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
                             >
                               <option value="">Selecione um profissional</option>
                               {todosOsMembros.map((m, idx) => (
@@ -1317,7 +1327,7 @@ export function PermanenciaView() {
                                 if (nome) handleAdicionarResponsavel(p, nome);
                               }}
                               disabled={!responsavelTempPorTarefa[p.id]}
-                              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5 rounded-lg bg-sky-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-700 cursor-pointer transition-colors"
+                              className="h-10 min-h-[40px] w-10 min-w-[40px] flex items-center justify-center p-1.5 rounded-lg bg-sky-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 box-border"
                               title="Adicionar responsável"
                             >
                               <Plus className="w-3.5 h-3.5" />

@@ -483,7 +483,7 @@ export function ModelosTextoView() {
             </div>
 
             {/* FORMULÁRIO */}
-            <form onSubmit={handleSalvar} className="space-y-4 flex-1 overflow-y-auto pr-1">
+            <form onSubmit={handleSalvar} className="space-y-4 flex-1 overflow-y-auto p-1">
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                 {/* TÍTULO DO MODELO */}
                 <div className="sm:col-span-7">
@@ -499,7 +499,7 @@ export function ModelosTextoView() {
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ex: BARIÁTRICA, COLELAP, Padrão..."
-                    className="w-full min-h-[44px] h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-all"
+                    className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-all"
                   />
                 </div>
 
@@ -512,14 +512,14 @@ export function ModelosTextoView() {
                     <button
                       type="button"
                       onClick={() => setCriandoNovaCat(!criandoNovaCat)}
-                      className="min-h-[44px] inline-flex items-center text-[11px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold cursor-pointer hover:underline gap-0.5 px-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                      className="h-6 px-2 text-xs text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-bold flex items-center gap-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer"
                     >
                       {criandoNovaCat ? "Cancelar" : "+ Nova"}
                     </button>
                   </div>
 
                   {criandoNovaCat ? (
-                    <div className="flex items-center gap-1.5 min-h-[44px] h-[44px]">
+                    <div className="flex items-center gap-1.5 h-11 min-h-[44px]">
                       <input
                         type="text"
                         autoFocus
@@ -527,7 +527,7 @@ export function ModelosTextoView() {
                         onChange={(e) => setNovaCatNome(e.target.value)}
                         aria-label="Nome da nova categoria"
                         placeholder="Nova categoria..."
-                        className="flex-1 h-full px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                        className="flex-1 h-11 min-h-[44px] px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
@@ -538,7 +538,7 @@ export function ModelosTextoView() {
                       <button
                         type="button"
                         onClick={handleCriarNovaCategoria}
-                        className="h-full min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer flex items-center justify-center shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                        className="h-11 min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer flex items-center justify-center shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 box-border"
                       >
                         OK
                       </button>
@@ -548,7 +548,7 @@ export function ModelosTextoView() {
                       id="modelo-form-categoria"
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
-                      className="w-full min-h-[44px] h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all cursor-pointer"
+                      className="w-full h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-all cursor-pointer"
                     >
                       {categoriasModelos.map((cat) => (
                         <option key={cat} value={cat}>
@@ -562,9 +562,11 @@ export function ModelosTextoView() {
 
               {/* CONTEÚDO COMPLETO (TEXTAREA COM PRESERVAÇÃO RIGOROSA DE ESPAÇOS E QUEBRAS) */}
               <div>
-                <label htmlFor="modelo-form-conteudo" className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                  Conteúdo do Modelo *
-                </label>
+                <div className="h-7 flex items-center mb-1.5">
+                  <label htmlFor="modelo-form-conteudo" className="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                    Conteúdo do Modelo *
+                  </label>
+                </div>
                 <textarea
                   id="modelo-form-conteudo"
                   rows={10}
@@ -572,7 +574,7 @@ export function ModelosTextoView() {
                   value={conteudo}
                   onChange={(e) => setConteudo(e.target.value)}
                   placeholder="Escreva a anotação completa do modelo. As quebras de linha, recuos e espaços serão 100% preservados para receituários e prontuários..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-mono text-xs leading-relaxed focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-mono text-xs leading-relaxed focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-all"
                 />
                 <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">
                   Preserva integralmente quebras de linhas e tabulações para copiar e colar diretamente no prontuário.

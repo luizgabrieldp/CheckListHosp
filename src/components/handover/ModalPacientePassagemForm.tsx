@@ -147,11 +147,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
         </div>
 
         {/* FORMULÁRIO */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 p-1">
           {/* IDENTIFICAÇÃO BÁSICA */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <div className="h-6 flex items-center mb-1">
+              <div className="h-7 flex items-center mb-1">
                 <label htmlFor="pass-form-nome" className="text-xs font-semibold text-slate-300">
                   Nome do Paciente *
                 </label>
@@ -163,12 +163,12 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Ex: Carlos Eduardo de Oliveira"
-                className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
               />
             </div>
 
             <div>
-              <div className="h-6 flex items-center mb-1">
+              <div className="h-7 flex items-center mb-1">
                 <label htmlFor="pass-form-leito" className="text-xs font-semibold text-slate-300">
                   Leito *
                 </label>
@@ -182,12 +182,12 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 value={leito}
                 onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                 placeholder="Ex: 08"
-                className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
               />
             </div>
 
             <div>
-              <div className="h-6 flex items-center mb-1">
+              <div className="h-7 flex items-center mb-1">
                 <label htmlFor="pass-form-enfermaria" className="text-xs font-semibold text-slate-300">
                   Enfermaria
                 </label>
@@ -196,7 +196,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 id="pass-form-enfermaria"
                 value={enfermaria}
                 onChange={(e) => setEnfermaria(e.target.value)}
-                className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none cursor-pointer"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset cursor-pointer box-border"
               >
                 <option value="Cirurgia Geral 1">Cirurgia Geral 1</option>
                 <option value="Cirurgia Geral 2">Cirurgia Geral 2</option>
@@ -207,37 +207,43 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label htmlFor="pass-form-nascimento" className="block text-xs font-semibold text-slate-300 mb-1">
-                Data de Nascimento (Cálculo de Idade)
-              </label>
+              <div className="h-7 flex items-center mb-1">
+                <label htmlFor="pass-form-nascimento" className="text-xs font-semibold text-slate-300 truncate">
+                  Data de Nascimento (Cálculo de Idade)
+                </label>
+              </div>
               <input
                 id="pass-form-nascimento"
                 type="date"
                 value={dataNascimento}
                 onChange={(e) => setDataNascimento(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
               />
             </div>
 
             <div>
-              <label htmlFor="pass-form-admissao" className="block text-xs font-semibold text-slate-300 mb-1">
-                Data de Admissão (Cálculo de D-Day Internação) *
-              </label>
+              <div className="h-7 flex items-center mb-1">
+                <label htmlFor="pass-form-admissao" className="text-xs font-semibold text-slate-300 truncate">
+                  Data de Admissão (Cálculo de D-Day Internação) *
+                </label>
+              </div>
               <input
                 id="pass-form-admissao"
                 type="date"
                 required
                 value={dataAdmissao}
                 onChange={(e) => setDataAdmissao(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="pass-form-hd" className="block text-xs font-semibold text-slate-300 mb-1">
-              Hipótese Diagnóstica (HD) / Cirurgia Realizada *
-            </label>
+            <div className="h-7 flex items-center mb-1">
+              <label htmlFor="pass-form-hd" className="text-xs font-semibold text-slate-300">
+                Hipótese Diagnóstica (HD) / Cirurgia Realizada *
+              </label>
+            </div>
             <input
               id="pass-form-hd"
               type="text"
@@ -245,7 +251,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
               value={hd}
               onChange={(e) => setHd(e.target.value)}
               placeholder="Ex: PO 3 Apendicectomia por apendicite complicada"
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none"
+              className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
             />
           </div>
 
@@ -256,7 +262,9 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
             </h4>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label htmlFor="pass-form-fc" className="block text-[11px] text-slate-400 mb-1">FC (bpm)</label>
+                <div className="h-7 flex items-center mb-1">
+                  <label htmlFor="pass-form-fc" className="text-[11px] text-slate-400">FC (bpm)</label>
+                </div>
                 <input
                   id="pass-form-fc"
                   type="number"
@@ -265,11 +273,13 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                   value={fc}
                   onChange={(e) => setFc(e.target.value)}
                   placeholder="Ex: 78"
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
+                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
                 />
               </div>
               <div>
-                <label htmlFor="pass-form-sat" className="block text-[11px] text-slate-400 mb-1">SatO2 (%)</label>
+                <div className="h-7 flex items-center mb-1">
+                  <label htmlFor="pass-form-sat" className="text-[11px] text-slate-400">SatO2 (%)</label>
+                </div>
                 <input
                   id="pass-form-sat"
                   type="number"
@@ -278,18 +288,20 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                   value={satO2}
                   onChange={(e) => setSatO2(e.target.value)}
                   placeholder="Ex: 98"
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
+                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
                 />
               </div>
               <div>
-                <label htmlFor="pass-form-pa" className="block text-[11px] text-slate-400 mb-1">PA (mmHg)</label>
+                <div className="h-7 flex items-center mb-1">
+                  <label htmlFor="pass-form-pa" className="text-[11px] text-slate-400">PA (mmHg)</label>
+                </div>
                 <input
                   id="pass-form-pa"
                   type="text"
                   value={pa}
                   onChange={(e) => setPa(e.target.value)}
                   placeholder="Ex: 120/80"
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none"
+                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
                 />
               </div>
             </div>

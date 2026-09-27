@@ -193,11 +193,11 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
         </div>
 
         {/* FORMULÁRIO */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 p-1">
           {/* IDENTIFICAÇÃO BÁSICA */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <div className="h-6 flex items-center mb-1">
+              <div className="h-7 flex items-center mb-1">
                 <label htmlFor="modal-alta-leito" className="text-xs font-semibold text-slate-300">
                   Leito (Opcional)
                 </label>
@@ -210,12 +210,12 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={leito}
                 onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                 placeholder="Ex: 04"
-                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
               />
             </div>
 
             <div>
-              <div className="h-6 flex items-center mb-1">
+              <div className="h-7 flex items-center mb-1">
                 <label htmlFor="modal-alta-enfermaria" className="text-xs font-semibold text-slate-300">
                   Enfermaria
                 </label>
@@ -224,7 +224,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 id="modal-alta-enfermaria"
                 value={enfermaria}
                 onChange={(e) => setEnfermaria(e.target.value)}
-                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 cursor-pointer"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset cursor-pointer box-border"
               >
                 <option value="">Sem enfermaria</option>
                 {enfermarias
@@ -238,7 +238,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             </div>
 
             <div>
-              <div className="h-6 flex items-center mb-1">
+              <div className="h-7 flex items-center mb-1">
                 <label htmlFor="modal-alta-nome" className="text-xs font-semibold text-slate-300">
                   Nome do Paciente *
                 </label>
@@ -250,7 +250,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={nomePaciente}
                 onChange={(e) => setNomePaciente(e.target.value)}
                 placeholder="Nome do paciente"
-                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
               />
             </div>
           </div>
@@ -312,10 +312,12 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
           {/* SINAIS VITAIS */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label htmlFor="modal-alta-fc" className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-                <Heart className="w-3 h-3 text-rose-400" aria-hidden="true" />
-                FC (bpm)
-              </label>
+              <div className="h-7 flex items-center mb-1">
+                <label htmlFor="modal-alta-fc" className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                  <Heart className="w-3 h-3 text-rose-400" aria-hidden="true" />
+                  FC (bpm)
+                </label>
+              </div>
               <input
                 id="modal-alta-fc"
                 type="number"
@@ -324,15 +326,17 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={fc}
                 onChange={(e) => setFc(e.target.value)}
                 placeholder="Ex: 78"
-                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
               />
             </div>
 
             <div>
-              <label htmlFor="modal-alta-sato2" className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-                <Activity className="w-3 h-3 text-cyan-400" aria-hidden="true" />
-                SatO2 (%)
-              </label>
+              <div className="h-7 flex items-center mb-1">
+                <label htmlFor="modal-alta-sato2" className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                  <Activity className="w-3 h-3 text-cyan-400" aria-hidden="true" />
+                  SatO2 (%)
+                </label>
+              </div>
               <input
                 id="modal-alta-sato2"
                 type="number"
@@ -341,21 +345,23 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={satO2}
                 onChange={(e) => setSatO2(e.target.value)}
                 placeholder="Ex: 98"
-                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
               />
             </div>
 
             <div>
-              <label htmlFor="modal-alta-pa" className="block text-xs font-semibold text-slate-300 mb-1">
-                PA (mmHg)
-              </label>
+              <div className="h-7 flex items-center mb-1">
+                <label htmlFor="modal-alta-pa" className="text-xs font-semibold text-slate-300">
+                  PA (mmHg)
+                </label>
+              </div>
               <input
                 id="modal-alta-pa"
                 type="text"
                 value={pa}
                 onChange={(e) => setPa(e.target.value)}
                 placeholder="Ex: 120/80"
-                className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
               />
             </div>
           </div>
