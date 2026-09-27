@@ -352,19 +352,21 @@ export function PermanenciaView() {
           <button
             type="button"
             onClick={() => mudarDia(-1)}
+            aria-label="Dia anterior"
             className="min-h-[44px] min-w-[44px] rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer"
             title="Dia anterior"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           </button>
 
           <button
             type="button"
             onClick={() => mudarDia(1)}
+            aria-label="Próximo dia"
             className="min-h-[44px] min-w-[44px] rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer"
             title="Próximo dia"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -372,6 +374,7 @@ export function PermanenciaView() {
           type="date"
           value={dataSelecionada}
           onChange={(e) => setDataSelecionada(e.target.value)}
+          aria-label="Data das pendências"
           className="min-h-[44px] px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 cursor-pointer"
         />
       </div>
@@ -736,6 +739,7 @@ export function PermanenciaView() {
                   type="text"
                   value={novoTitulo}
                   onChange={(e) => setNovoTitulo(e.target.value)}
+                  aria-label="Título da nova pendência do round"
                   placeholder="Adicionar nova pendência do round... (Pressione Enter para criar)"
                   className="w-full pl-3 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 focus:outline-none transition-all"
                 />
@@ -745,6 +749,8 @@ export function PermanenciaView() {
               <button
                 type="button"
                 onClick={() => setExpandirCriacao(!expandirCriacao)}
+                aria-expanded={expandirCriacao}
+                aria-label="Mais detalhes da pendência"
                 className={`min-h-[44px] px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                   expandirCriacao
                     ? "bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-700"
@@ -752,7 +758,7 @@ export function PermanenciaView() {
                 }`}
                 title="Adicionar leito numérico, enfermaria, responsáveis ou nota antes de salvar"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
                 <span className="hidden sm:inline">Detalhes</span>
               </button>
 
@@ -762,7 +768,7 @@ export function PermanenciaView() {
                 disabled={!novoTitulo.trim()}
                 className="min-h-[44px] px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4" aria-hidden="true" />
                 <span>Adicionar</span>
               </button>
             </div>
@@ -773,11 +779,12 @@ export function PermanenciaView() {
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                   {/* LEITO NUMÉRICO */}
                   <div className="sm:col-span-3">
-                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1">
-                      <Bed className="w-3 h-3 text-slate-400" />
+                    <label htmlFor="novo-leito-numero" className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1">
+                      <Bed className="w-3 h-3 text-slate-400" aria-hidden="true" />
                       <span>Leito (Número)</span>
                     </label>
                     <input
+                      id="novo-leito-numero"
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
@@ -790,11 +797,12 @@ export function PermanenciaView() {
 
                   {/* ENFERMARIA DAS CONFIGURAÇÕES */}
                   <div className="sm:col-span-3">
-                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1">
-                      <Building2 className="w-3 h-3 text-slate-400" />
+                    <label htmlFor="nova-enfermaria-pendencia" className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1">
+                      <Building2 className="w-3 h-3 text-slate-400" aria-hidden="true" />
                       <span>Enfermaria</span>
                     </label>
                     <select
+                      id="nova-enfermaria-pendencia"
                       value={novaEnfermaria}
                       onChange={(e) => setNovaEnfermaria(e.target.value)}
                       className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none"
@@ -925,7 +933,7 @@ export function PermanenciaView() {
         </div>
 
         {/* FILTRO DE STATUS */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-label="Filtro de status das pendências">
           {[
             { id: "TODOS", label: "Todas" },
             { id: "URGENTES", label: "🔥 Urgentes" },
@@ -937,8 +945,11 @@ export function PermanenciaView() {
             return (
               <button
                 key={f.id}
+                type="button"
+                role="tab"
+                aria-selected={isAtivo}
                 onClick={() => setFiltroStatus(f.id)}
-                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
                   isAtivo
                     ? "bg-slate-900 dark:bg-sky-600 text-white font-bold shadow-xs"
                     : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -982,6 +993,17 @@ export function PermanenciaView() {
                 >
                   {/* LINHA RESUMIDA (CLICÁVEL PARA ABRIR SANFONA) */}
                   <div
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isAberta}
+                    aria-controls={`pendencia-body-${p.id}`}
+                    aria-label={`Pendência ${p.titulo}, ${isAberta ? "recolher detalhes" : "expandir detalhes"}`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setPendenciaAbertaId(isAberta ? null : p.id);
+                      }
+                    }}
                     onClick={() => setPendenciaAbertaId(isAberta ? null : p.id)}
                     className="p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 cursor-pointer select-none"
                   >
@@ -990,6 +1012,7 @@ export function PermanenciaView() {
                       <button
                         type="button"
                         onClick={(e) => handleAvancarStatus(p, e)}
+                        aria-label={`Status atual: ${p.status}. Clique para avançar.`}
                         title={`Status: ${p.status}. Clique para avançar.`}
                         className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center -ml-1.5 sm:ml-0 p-1 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                       >
@@ -1002,7 +1025,7 @@ export function PermanenciaView() {
                               : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-sky-500"
                           }`}
                         >
-                          <Check className="w-3.5 h-3.5" />
+                          <Check className="w-3.5 h-3.5" aria-hidden="true" />
                         </div>
                       </button>
 
@@ -1015,7 +1038,7 @@ export function PermanenciaView() {
                           {/* TAG URGENTE */}
                           {isUrgente && (
                             <span className="inline-flex items-center gap-1 font-bold text-[10px] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse">
-                              <Flame className="w-3 h-3 text-rose-600" /> URGENTE
+                              <Flame className="w-3 h-3 text-rose-600" aria-hidden="true" /> URGENTE
                             </span>
                           )}
 
@@ -1038,7 +1061,7 @@ export function PermanenciaView() {
                               title="Possui nota interna / conduta detalhada"
                               className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
                             >
-                              <FileText className="w-3 h-3 text-amber-600" />
+                              <FileText className="w-3 h-3 text-amber-600" aria-hidden="true" />
                               <span>Nota</span>
                             </span>
                           )}
@@ -1052,7 +1075,7 @@ export function PermanenciaView() {
                                 key={idx}
                                 className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700"
                               >
-                                <UserCheck className="w-2.5 h-2.5 text-slate-400" />
+                                <UserCheck className="w-2.5 h-2.5 text-slate-400" aria-hidden="true" />
                                 <span>{resp}</span>
                               </span>
                             ))
@@ -1087,7 +1110,7 @@ export function PermanenciaView() {
                           isAberta ? "rotate-180 text-sky-600 dark:text-sky-400" : ""
                         }`}
                       >
-                        <ChevronDown className="w-4 h-4" />
+                        <ChevronDown className="w-4 h-4" aria-hidden="true" />
                       </div>
                     </div>
                   </div>
@@ -1096,7 +1119,10 @@ export function PermanenciaView() {
                       SANFONA DESLIZANTE (STATUS E DADOS NO TOPO, NOTA NA BASE)
                   ────────────────────────────────────────────────────────────── */}
                   {isAberta && (
-                    <div className="border-t border-slate-100 dark:border-slate-800 p-4 bg-slate-50/70 dark:bg-slate-900/50 space-y-4 animate-in slide-in-from-top-2 duration-150">
+                    <div
+                      id={`pendencia-body-${p.id}`}
+                      className="border-t border-slate-100 dark:border-slate-800 p-4 bg-slate-50/70 dark:bg-slate-900/50 space-y-4 animate-in slide-in-from-top-2 duration-150"
+                    >
                       {/* 1. STATUS E URGÊNCIA (NO TOPO) */}
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200/70 dark:border-slate-800">
                         {/* ATALHOS DE STATUS */}

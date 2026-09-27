@@ -102,8 +102,12 @@ export function ConfigView() {
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* TOAST FLUTUANTE */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold shadow-xl border border-slate-700 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold shadow-xl border border-slate-700 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2"
+        >
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" aria-hidden="true" />
           <span>{toastMsg}</span>
         </div>
       )}
@@ -112,7 +116,7 @@ export function ConfigView() {
       <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 border border-cyan-100 dark:border-cyan-800/50">
-            <Palette className="w-5 h-5" />
+            <Palette className="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">Aparência e Tema do Sistema</h2>
@@ -122,7 +126,11 @@ export function ConfigView() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+        <div
+          role="radiogroup"
+          aria-label="Aparência e Tema do Sistema"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1"
+        >
           {opcoesTema.map((opcao) => {
             const Icon = opcao.icon;
             const isAtivo = themeMode === opcao.id;
@@ -131,11 +139,13 @@ export function ConfigView() {
               <button
                 key={opcao.id}
                 type="button"
+                role="radio"
+                aria-checked={isAtivo}
                 onClick={() => {
                   setThemeMode(opcao.id);
                   exibirToast(`Tema alterado para ${opcao.label}`);
                 }}
-                className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative group ${
+                className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 min-h-[44px] ${
                   isAtivo
                     ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 shadow-xs ring-2 ring-emerald-500/20"
                     : "bg-slate-50/60 dark:bg-slate-850 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
@@ -147,12 +157,12 @@ export function ConfigView() {
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white"
                   }`}>
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4" aria-hidden="true" />
                   </div>
 
                   {isAtivo && (
                     <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full">
-                      <Check className="w-3 h-3" />
+                      <Check className="w-3 h-3" aria-hidden="true" />
                       Ativo
                     </span>
                   )}
@@ -172,7 +182,7 @@ export function ConfigView() {
       <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/50">
-            <Hospital className="w-5 h-5" />
+            <Hospital className="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">Enfermarias</h2>
@@ -188,15 +198,17 @@ export function ConfigView() {
             type="text"
             value={novaEnfermaria}
             onChange={(e) => setNovaEnfermaria(e.target.value)}
+            aria-label="Nome da nova enfermaria"
             placeholder="Nome da enfermaria..."
             className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           />
           <button
             type="submit"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer"
+            aria-label="Adicionar enfermaria"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             title="Adicionar Enfermaria"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4" aria-hidden="true" />
           </button>
         </form>
 
@@ -211,10 +223,11 @@ export function ConfigView() {
               <button
                 type="button"
                 onClick={() => handleRemoveEnfermaria(enf)}
-                className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                aria-label={`Excluir enfermaria ${enf}`}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                 title={`Excluir enfermaria ${enf}`}
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           ))}
@@ -225,7 +238,7 @@ export function ConfigView() {
       <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/50">
-            <FileText className="w-5 h-5" />
+            <FileText className="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">Categorias de Modelos</h2>
@@ -241,15 +254,17 @@ export function ConfigView() {
             type="text"
             value={novaCategoria}
             onChange={(e) => setNovaCategoria(e.target.value)}
+            aria-label="Nome da nova categoria de modelo"
             placeholder="Nome da categoria..."
             className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           />
           <button
             type="submit"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-xs font-bold transition-colors cursor-pointer"
+            aria-label="Adicionar categoria de modelo"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-xs font-bold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             title="Adicionar Categoria"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4" aria-hidden="true" />
           </button>
         </form>
 
@@ -264,10 +279,11 @@ export function ConfigView() {
               <button
                 type="button"
                 onClick={() => handleRemoveCategoria(cat)}
-                className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                aria-label={`Excluir categoria ${cat}`}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                 title={`Excluir categoria ${cat}`}
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           ))}

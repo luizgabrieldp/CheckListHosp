@@ -35,6 +35,17 @@ export function Sidebar() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Fechar menu mobile com tecla ESC para acessibilidade
+  React.useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && mobileOpen) {
+        setMobileOpen(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileOpen]);
+
   function alternarTema() {
     if (themeMode === "auto") {
       setThemeMode("light");
@@ -76,10 +87,12 @@ export function Sidebar() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+            aria-label={mobileOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
             className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-slate-800 dark:text-slate-200 bg-white/70 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 transition-all flex items-center justify-center cursor-pointer shadow-2xs active:scale-95"
           >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
           </button>
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">CheckList</span>
@@ -95,14 +108,19 @@ export function Sidebar() {
             title={`Tema: ${currentTheme.label} (toque para alternar)`}
             className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-slate-700 dark:text-slate-200 bg-white/70 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 transition-all flex items-center justify-center cursor-pointer shadow-2xs active:scale-95"
           >
-            <ThemeIcon className={`w-4 h-4 ${currentTheme.color}`} />
+            <ThemeIcon className={`w-4 h-4 ${currentTheme.color}`} aria-hidden="true" />
           </button>
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-300 shadow-2xs">
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-300 shadow-2xs"
+            role="status"
+            aria-label={isConnected ? "Status: Conectado ao vivo" : "Status: Desconectado offline"}
+          >
             <span
               className={`w-2 h-2 rounded-full ${
                 isConnected ? "bg-emerald-500 shadow-xs shadow-emerald-500/50" : "bg-rose-400 animate-pulse"
               }`}
+              aria-hidden="true"
             />
             <span className="text-[10px] font-semibold">{isConnected ? "Ao vivo" : "Offline"}</span>
           </div>
@@ -112,13 +130,24 @@ export function Sidebar() {
       {/* OVERLAY MOBILE */}
       {mobileOpen && (
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Fechar menu lateral"
           onClick={() => setMobileOpen(false)}
-          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-xs"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setMobileOpen(false);
+            }
+          }}
+          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-xs cursor-pointer"
         />
       )}
 
       {/* ASIDE SIDEBAR COM MODO ENCOLHIDO PARA PC E TABLET */}
       <aside
+        id="mobile-navigation"
+        aria-label="Menu principal de navegação"
         className={`fixed top-0 bottom-0 left-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-all duration-200 no-print pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] ${
           // No mobile (< 768px): sempre drawer de 240px deslizante
           // No tablet e PC (>= 768px): fixo com largura condicional (68px encolhido vs 240px expandido)
@@ -213,7 +242,10 @@ export function Sidebar() {
           )}
 
           {/* ITENS DE NAVEGAÇÃO */}
-          <nav className={`p-2 space-y-1.5 overflow-y-auto max-h-[calc(100vh-270px)] ${isSidebarCollapsed ? "flex flex-col items-center" : ""}`}>
+          <nav
+            aria-label="Menu principal"
+            className={`p-2 space-y-1.5 overflow-y-auto max-h-[calc(100vh-270px)] ${isSidebarCollapsed ? "flex flex-col items-center" : ""}`}
+          >
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -228,6 +260,7 @@ export function Sidebar() {
                     }}
                     title={item.label}
                     aria-label={item.label}
+                    aria-current={isActive ? "page" : undefined}
                     className={`min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl transition-all cursor-pointer group relative ${
                       isActive
                         ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-600/50 shadow-xs"
@@ -238,6 +271,7 @@ export function Sidebar() {
                       className={`w-5 h-5 shrink-0 ${
                         isActive ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300"
                       }`}
+                      aria-hidden="true"
                     />
                   </button>
                 );
@@ -250,6 +284,7 @@ export function Sidebar() {
                     setActiveTab(item.id as any);
                     setMobileOpen(false);
                   }}
+                  aria-current={isActive ? "page" : undefined}
                   className={`w-full min-h-[44px] flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                     isActive
                       ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200/80 dark:border-emerald-700/50 shadow-xs"
@@ -260,6 +295,7 @@ export function Sidebar() {
                     className={`w-4 h-4 shrink-0 ${
                       isActive ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
                     }`}
+                    aria-hidden="true"
                   />
                   <span>{item.label}</span>
                 </button>

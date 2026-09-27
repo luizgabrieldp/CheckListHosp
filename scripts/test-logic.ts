@@ -3202,6 +3202,109 @@ assert(passagemContent.includes('aria-label="Salvar alteração da pendência"')
 assert(altasContent.includes("aria-label={`Excluir foto ${idx + 1}`}"), "AltasView possui botões de fotos com aria-labels");
 assert(metricasContent.includes("stroke-slate-100 dark:stroke-slate-800"), "MetricasLgpdView possui linhas de grade de tendência adaptadas ao dark mode");
 
+// 41. AUDITORIA GERAL DE ACESSIBILIDADE (A11Y) E NAVEGABILIDADE WCAG 2.1 AA/AAA
+console.log("\n--- 41. Auditoria Geral de Acessibilidade (a11y) e Navegabilidade WCAG 2.1 AA/AAA ---");
+
+// Teste 41.1: WCAG 1.4.4 - Zoom e redimensionamento de texto não bloqueados no viewport
+const a11y_layoutPath = path.join(process.cwd(), "src", "app", "layout.tsx");
+assert(fs.existsSync(a11y_layoutPath), "Arquivo layout.tsx existe");
+const a11y_layoutContent = fs.readFileSync(a11y_layoutPath, "utf-8");
+assert(!a11y_layoutContent.includes("userScalable: false"), "layout.tsx não bloqueia zoom de tela (WCAG 1.4.4 userScalable != false)");
+assert(!a11y_layoutContent.includes("maximumScale: 1"), "layout.tsx permite ampliação de texto e zoom até pelo menos 200% (WCAG 1.4.4)");
+
+// Teste 41.2: WCAG 2.4.1 - Skip Link no topo da página
+const a11y_pagePath = path.join(process.cwd(), "src", "app", "page.tsx");
+assert(fs.existsSync(a11y_pagePath), "Arquivo page.tsx existe");
+const a11y_pageContent = fs.readFileSync(a11y_pagePath, "utf-8");
+assert(a11y_pageContent.includes('href="#main-content"') && a11y_pageContent.includes("Pular para o conteúdo principal"), "page.tsx possui Skip Link para pular navegação direta ao conteúdo principal");
+assert(a11y_pageContent.includes('id="main-content"') && a11y_pageContent.includes("tabIndex={-1}"), "page.tsx possui elemento main com id='main-content' e tabIndex={-1} para foco acessível");
+
+// Teste 41.3: Sidebar semântica, controle ARIA e suporte a teclado ESC no mobile
+const a11y_sidebarPath = path.join(process.cwd(), "src", "components", "layout", "Sidebar.tsx");
+assert(fs.existsSync(a11y_sidebarPath), "Arquivo Sidebar.tsx existe");
+const a11y_sidebarContent = fs.readFileSync(a11y_sidebarPath, "utf-8");
+assert(a11y_sidebarContent.includes('aria-label="Menu principal"'), "Sidebar possui nav com rótulo acessível aria-label='Menu principal'");
+assert(a11y_sidebarContent.includes('aria-expanded={mobileOpen}'), "Botão mobile possui aria-expanded indicando estado aberto/fechado");
+assert(a11y_sidebarContent.includes('aria-controls="mobile-navigation"'), "Botão mobile possui aria-controls apontando para o container de navegação");
+assert(a11y_sidebarContent.includes('aria-current={isActive ? "page" : undefined}'), "Itens de navegação marcam aria-current='page' para leitores de tela");
+assert(a11y_sidebarContent.includes('e.key === "Escape"'), "Sidebar mobile fecha ao pressionar a tecla ESC");
+
+// Teste 41.4: Modais de Autenticação e LGPD com dialog e aria-modal
+const a11y_gatekeeperPath = path.join(process.cwd(), "src", "components", "auth", "GatekeeperModal.tsx");
+assert(fs.existsSync(a11y_gatekeeperPath), "Arquivo GatekeeperModal.tsx existe");
+const a11y_gatekeeperContent = fs.readFileSync(a11y_gatekeeperPath, "utf-8");
+assert(a11y_gatekeeperContent.includes('role="dialog"') && a11y_gatekeeperContent.includes('aria-modal="true"'), "GatekeeperModal possui role='dialog' e aria-modal='true'");
+assert(a11y_gatekeeperContent.includes('aria-labelledby="gatekeeper-title"'), "GatekeeperModal possui aria-labelledby vinculado ao título");
+assert(a11y_gatekeeperContent.includes('htmlFor="gatekeeper-input"') && a11y_gatekeeperContent.includes('id="gatekeeper-input"'), "GatekeeperModal possui label associado ao campo de senha");
+assert(a11y_gatekeeperContent.includes('role="alert"'), "GatekeeperModal possui role='alert' para anúncio de erro de senha incorreta");
+
+const a11y_lgpdModalPath = path.join(process.cwd(), "src", "components", "auth", "LgpdConsentModal.tsx");
+assert(fs.existsSync(a11y_lgpdModalPath), "Arquivo LgpdConsentModal.tsx existe");
+const a11y_lgpdModalContent = fs.readFileSync(a11y_lgpdModalPath, "utf-8");
+assert(a11y_lgpdModalContent.includes('role="dialog"') && a11y_lgpdModalContent.includes('aria-modal="true"'), "LgpdConsentModal possui role='dialog' e aria-modal='true'");
+assert(a11y_lgpdModalContent.includes('aria-labelledby="lgpd-modal-title"'), "LgpdConsentModal possui aria-labelledby");
+
+// Teste 41.5: Admissões e Altas com ESC listener, diálogos semânticos e formulários acessíveis
+const a11y_admissoesViewPath = path.join(process.cwd(), "src", "components", "admissions", "AdmissoesView.tsx");
+const a11y_admissoesViewContent = fs.readFileSync(a11y_admissoesViewPath, "utf-8");
+assert(a11y_admissoesViewContent.includes('e.key === "Escape"'), "AdmissoesView fecha modais ao pressionar a tecla ESC");
+assert(a11y_admissoesViewContent.includes('aria-controls={`admissao-body-${paciente.id}`}') && a11y_admissoesViewContent.includes('aria-expanded={isExpandido}'), "AdmissoesView possui acordeão acessível com aria-expanded e aria-controls");
+
+const a11y_modalAdmissaoPath = path.join(process.cwd(), "src", "components", "admissions", "ModalAdmissaoForm.tsx");
+const a11y_modalAdmissaoContent = fs.readFileSync(a11y_modalAdmissaoPath, "utf-8");
+assert(a11y_modalAdmissaoContent.includes('role="dialog"') && a11y_modalAdmissaoContent.includes('aria-modal="true"'), "ModalAdmissaoForm possui role='dialog' e aria-modal='true'");
+assert(a11y_modalAdmissaoContent.includes('e.key === "Escape"'), "ModalAdmissaoForm fecha via tecla ESC");
+
+const a11y_modalAltaPath = path.join(process.cwd(), "src", "components", "discharges", "ModalAltaForm.tsx");
+const a11y_modalAltaContent = fs.readFileSync(a11y_modalAltaPath, "utf-8");
+assert(a11y_modalAltaContent.includes('role="dialog"') && a11y_modalAltaContent.includes('aria-modal="true"'), "ModalAltaForm possui role='dialog' e aria-modal='true'");
+assert(a11y_modalAltaContent.includes('e.key === "Escape"'), "ModalAltaForm fecha via tecla ESC");
+
+const a11y_altasViewPath = path.join(process.cwd(), "src", "components", "discharges", "AltasView.tsx");
+const a11y_altasViewContent = fs.readFileSync(a11y_altasViewPath, "utf-8");
+assert(a11y_altasViewContent.includes('e.key === "Escape"'), "AltasView fecha modais via tecla ESC");
+assert(a11y_altasViewContent.includes('e.key === "ArrowRight"') && a11y_altasViewContent.includes('e.key === "ArrowLeft"'), "AltasView permite navegar na galeria de fotos via setas do teclado");
+
+// Teste 41.6: Permanência e Passagem com semântica de teclado em acordeões e modais
+const a11y_permanenciaViewPath = path.join(process.cwd(), "src", "components", "permanence", "PermanenciaView.tsx");
+const a11y_permanenciaViewContent = fs.readFileSync(a11y_permanenciaViewPath, "utf-8");
+assert(a11y_permanenciaViewContent.includes('role="tablist"') && a11y_permanenciaViewContent.includes('role="tab"'), "PermanenciaView possui abas de status acessíveis com role tablist e tab");
+assert(a11y_permanenciaViewContent.includes('aria-controls={`pendencia-body-${p.id}`}') && a11y_permanenciaViewContent.includes('aria-expanded={isAberta}'), "PermanenciaView possui acordeão de pendências com controle ARIA");
+
+const a11y_modalPassagemPath = path.join(process.cwd(), "src", "components", "handover", "ModalPacientePassagemForm.tsx");
+const a11y_modalPassagemContent = fs.readFileSync(a11y_modalPassagemPath, "utf-8");
+assert(a11y_modalPassagemContent.includes('role="dialog"') && a11y_modalPassagemContent.includes('aria-modal="true"'), "ModalPacientePassagemForm possui role='dialog' e aria-modal='true'");
+assert(a11y_modalPassagemContent.includes('e.key === "Escape"'), "ModalPacientePassagemForm fecha via tecla ESC");
+
+const a11y_modalImpressaoPath = path.join(process.cwd(), "src", "components", "handover", "ModalImpressaoSeletiva.tsx");
+const a11y_modalImpressaoContent = fs.readFileSync(a11y_modalImpressaoPath, "utf-8");
+assert(a11y_modalImpressaoContent.includes('role="dialog"') && a11y_modalImpressaoContent.includes('aria-modal="true"'), "ModalImpressaoSeletiva possui role='dialog' e aria-modal='true'");
+assert(a11y_modalImpressaoContent.includes('role="checkbox"') && a11y_modalImpressaoContent.includes('aria-checked={ativo}'), "ModalImpressaoSeletiva possui opções de seção com role='checkbox' e aria-checked");
+
+// Teste 41.7: Ambulatório, Modelos, Métricas e Configurações
+const a11y_ambulatorioPath = path.join(process.cwd(), "src", "components", "outpatient", "AmbulatorioView.tsx");
+const a11y_ambulatorioContent = fs.readFileSync(a11y_ambulatorioPath, "utf-8");
+assert(a11y_ambulatorioContent.includes('role="dialog"') && a11y_ambulatorioContent.includes('aria-modal="true"'), "AmbulatorioView possui modal de médico com role='dialog' e aria-modal='true'");
+assert(a11y_ambulatorioContent.includes('e.key === "Escape"'), "AmbulatorioView fecha modal via tecla ESC");
+assert(a11y_ambulatorioContent.includes('aria-pressed={selecionado}'), "AmbulatorioView possui botões de turno com aria-pressed");
+
+const a11y_modelosPath = path.join(process.cwd(), "src", "components", "templates", "ModelosTextoView.tsx");
+const a11y_modelosContent = fs.readFileSync(a11y_modelosPath, "utf-8");
+assert(a11y_modelosContent.includes('role="dialog"') && a11y_modelosContent.includes('aria-modal="true"'), "ModelosTextoView possui modal com role='dialog' e aria-modal='true'");
+assert(a11y_modelosContent.includes('role="tablist"') && a11y_modelosContent.includes('role="tab"'), "ModelosTextoView possui pílulas de categoria com role tablist/tab");
+assert(a11y_modelosContent.includes('e.key === "Escape"'), "ModelosTextoView fecha modal via tecla ESC");
+
+const a11y_configPath = path.join(process.cwd(), "src", "components", "config", "ConfigView.tsx");
+const a11y_configContent = fs.readFileSync(a11y_configPath, "utf-8");
+assert(a11y_configContent.includes('role="radiogroup"') && a11y_configContent.includes('role="radio"'), "ConfigView possui seleção de tema com role='radiogroup' e role='radio'");
+assert(a11y_configContent.includes('aria-checked={isAtivo}'), "ConfigView marca tema ativo com aria-checked");
+assert(a11y_configContent.includes('role="status"') && a11y_configContent.includes('aria-live="polite"'), "ConfigView possui toast com role='status' e aria-live='polite'");
+
+const a11y_metricasLgpdPath = path.join(process.cwd(), "src", "components", "metrics", "MetricasLgpdView.tsx");
+const a11y_metricasLgpdContent = fs.readFileSync(a11y_metricasLgpdPath, "utf-8");
+assert(a11y_metricasLgpdContent.includes('role="img"'), "MetricasLgpdView possui gráfico com role='img'");
+assert(a11y_metricasLgpdContent.includes('role="tablist"') && a11y_metricasLgpdContent.includes('role="tab"'), "MetricasLgpdView possui seletor de período com role tablist/tab");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

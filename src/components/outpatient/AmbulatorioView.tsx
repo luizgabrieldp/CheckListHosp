@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { DiaSemana, HorarioMedico, MedicoAmbulatorio, TurnoAmbulatorio } from "@/types/hospital";
 import {
@@ -27,6 +27,17 @@ export function AmbulatorioView() {
 
   const [modalNovoMedico, setModalNovoMedico] = useState(false);
   const [medicoEmEdicao, setMedicoEmEdicao] = useState<MedicoAmbulatorio | null>(null);
+
+  // Fechamento de modal via teclado ESC
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && modalNovoMedico) {
+        setModalNovoMedico(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalNovoMedico]);
 
   // Form states
   const [nome, setNome] = useState("");
@@ -188,9 +199,9 @@ export function AmbulatorioView() {
                                     onClick={() => abrirModal(m)}
                                     title="Editar médico"
                                     aria-label={`Editar ${m.nome}`}
-                                    className="opacity-70 group-hover:opacity-100 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-opacity min-h-[36px] min-w-[36px] -mr-1 shrink-0 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
+                                    className="opacity-70 group-hover:opacity-100 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-opacity min-h-[44px] min-w-[44px] -mr-1 shrink-0 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                                   >
-                                    <Edit3 className="w-3.5 h-3.5" />
+                                    <Edit3 className="w-4 h-4" aria-hidden="true" />
                                   </button>
                                 </div>
                                 {m.especialidade && (
@@ -298,27 +309,34 @@ export function AmbulatorioView() {
 
       {/* MODAL CADASTRO / EDIÇÃO */}
       {modalNovoMedico && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4 animate-in fade-in">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-medico-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4 animate-in fade-in"
+        >
           <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3 shrink-0">
-              <h4 className="text-base font-bold text-slate-900 dark:text-white">
+              <h4 id="modal-medico-title" className="text-base font-bold text-slate-900 dark:text-white">
                 {medicoEmEdicao ? "Editar Médico Ambulatorial" : "Cadastrar Médico no Ambulatório"}
               </h4>
               <button
                 type="button"
                 onClick={() => setModalNovoMedico(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer -mr-2"
+                aria-label="Fechar modal de cadastro de médico"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer -mr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
             <form onSubmit={handleSalvarMedico} className="space-y-4 flex-1 overflow-y-auto pr-1">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                <label htmlFor="medico-form-nome" className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
                   Nome do Médico *
                 </label>
                 <input
+                  id="medico-form-nome"
                   type="text"
                   required
                   value={nome}
@@ -331,11 +349,12 @@ export function AmbulatorioView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <div className="h-6 flex items-center mb-1">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    <label htmlFor="medico-form-especialidade" className="text-xs font-bold text-slate-700 dark:text-slate-200">
                       Especialidade
                     </label>
                   </div>
                   <input
+                    id="medico-form-especialidade"
                     type="text"
                     value={especialidade}
                     onChange={(e) => setEspecialidade(e.target.value)}
@@ -346,11 +365,12 @@ export function AmbulatorioView() {
 
                 <div>
                   <div className="h-6 flex items-center mb-1">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    <label htmlFor="medico-form-sala" className="text-xs font-bold text-slate-700 dark:text-slate-200">
                       Consultório / Sala
                     </label>
                   </div>
                   <input
+                    id="medico-form-sala"
                     type="text"
                     value={sala}
                     onChange={(e) => setSala(e.target.value)}
@@ -381,8 +401,10 @@ export function AmbulatorioView() {
                             <button
                               type="button"
                               key={turno}
+                              role="button"
+                              aria-pressed={selecionado}
                               onClick={() => toggleHorario(dia, turno)}
-                              className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
+                              className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                                 selecionado
                                   ? "bg-emerald-600 text-white font-bold shadow-xs"
                                   : "bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300/80 dark:hover:bg-slate-600"

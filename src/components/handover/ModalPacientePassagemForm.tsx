@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PacientePassagem, PrescricaoAntibiotico } from "@/types/hospital";
 import { obterDataLocalHoje } from "@/lib/utils";
 import { X, Save, Plus, Trash2, Pill, Activity, Stethoscope } from "lucide-react";
@@ -12,6 +12,17 @@ interface Props {
 }
 
 export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose }: Props) {
+  // Fechamento via teclado ESC
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   const [nome, setNome] = useState(pacienteExistente?.nome || "");
   const [leito, setLeito] = useState(pacienteExistente?.leito || "");
   const [enfermaria, setEnfermaria] = useState(pacienteExistente?.enfermaria || "Cirurgia Geral 1");
@@ -98,16 +109,21 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 md:p-6 animate-in fade-in">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-paciente-passagem-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 md:p-6 animate-in fade-in"
+    >
       <div className="w-full max-w-3xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
         {/* CABEÇALHO */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
-              <Stethoscope className="w-5 h-5" />
+              <Stethoscope className="w-5 h-5" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 id="modal-paciente-passagem-title" className="text-base font-bold text-white">
                 {pacienteExistente ? "Editar Paciente na Passagem" : "Adicionar Paciente à Passagem"}
               </h3>
               <p className="text-xs text-slate-400">Dados clínicos e prescrição detalhada de antibioticoterapia</p>
@@ -116,9 +132,10 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white cursor-pointer -mr-2"
+            aria-label="Fechar modal"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white cursor-pointer -mr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -128,11 +145,12 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <div className="h-6 flex items-center mb-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label htmlFor="pass-form-nome" className="text-xs font-semibold text-slate-300">
                   Nome do Paciente *
                 </label>
               </div>
               <input
+                id="pass-form-nome"
                 type="text"
                 required
                 value={nome}
@@ -144,11 +162,12 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
 
             <div>
               <div className="h-6 flex items-center mb-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label htmlFor="pass-form-leito" className="text-xs font-semibold text-slate-300">
                   Leito *
                 </label>
               </div>
               <input
+                id="pass-form-leito"
                 type="text"
                 required
                 inputMode="numeric"
@@ -162,11 +181,12 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
 
             <div>
               <div className="h-6 flex items-center mb-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label htmlFor="pass-form-enfermaria" className="text-xs font-semibold text-slate-300">
                   Enfermaria
                 </label>
               </div>
               <select
+                id="pass-form-enfermaria"
                 value={enfermaria}
                 onChange={(e) => setEnfermaria(e.target.value)}
                 className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none cursor-pointer"
@@ -180,10 +200,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label htmlFor="pass-form-nascimento" className="block text-xs font-semibold text-slate-300 mb-1">
                 Data de Nascimento (Cálculo de Idade)
               </label>
               <input
+                id="pass-form-nascimento"
                 type="date"
                 value={dataNascimento}
                 onChange={(e) => setDataNascimento(e.target.value)}
@@ -192,10 +213,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label htmlFor="pass-form-admissao" className="block text-xs font-semibold text-slate-300 mb-1">
                 Data de Admissão (Cálculo de D-Day Internação) *
               </label>
               <input
+                id="pass-form-admissao"
                 type="date"
                 required
                 value={dataAdmissao}
@@ -206,10 +228,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label htmlFor="pass-form-hd" className="block text-xs font-semibold text-slate-300 mb-1">
               Hipótese Diagnóstica (HD) / Cirurgia Realizada *
             </label>
             <input
+              id="pass-form-hd"
               type="text"
               required
               value={hd}
@@ -226,8 +249,9 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
             </h4>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">FC (bpm)</label>
+                <label htmlFor="pass-form-fc" className="block text-[11px] text-slate-400 mb-1">FC (bpm)</label>
                 <input
+                  id="pass-form-fc"
                   type="number"
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -238,8 +262,9 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">SatO2 (%)</label>
+                <label htmlFor="pass-form-sat" className="block text-[11px] text-slate-400 mb-1">SatO2 (%)</label>
                 <input
+                  id="pass-form-sat"
                   type="number"
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -250,8 +275,9 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">PA (mmHg)</label>
+                <label htmlFor="pass-form-pa" className="block text-[11px] text-slate-400 mb-1">PA (mmHg)</label>
                 <input
+                  id="pass-form-pa"
                   type="text"
                   value={pa}
                   onChange={(e) => setPa(e.target.value)}
@@ -411,10 +437,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label htmlFor="pass-form-pendencias" className="block text-xs font-semibold text-slate-300 mb-1">
               Pendências do Paciente (Uma por linha)
             </label>
             <textarea
+              id="pass-form-pendencias"
               rows={2}
               value={pendenciasTexto}
               onChange={(e) => setPendenciasTexto(e.target.value)}
@@ -424,10 +451,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-cyan-300 mb-1">
+            <label htmlFor="pass-form-conduta" className="block text-xs font-semibold text-cyan-300 mb-1">
               Conduta Cirúrgica Proposta
             </label>
             <textarea
+              id="pass-form-conduta"
               rows={2}
               value={conduta}
               onChange={(e) => setConduta(e.target.value)}

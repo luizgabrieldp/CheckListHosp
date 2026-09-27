@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import {
   PacientePassagem,
@@ -83,6 +83,18 @@ export function PassagemPlantaoView() {
   const [modalImpressaoAberto, setModalImpressaoAberto] = useState(false);
   const [modalNovaEnfAberto, setModalNovaEnfAberto] = useState(false);
   const [novaEnfNome, setNovaEnfNome] = useState("");
+
+  // Fechar modais ao pressionar Escape
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        if (modalNovaEnfAberto) setModalNovaEnfAberto(false);
+        else if (modalImpressaoAberto) setModalImpressaoAberto(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalNovaEnfAberto, modalImpressaoAberto]);
 
   // Alternar abertura de sanfona
   function toggleExpandido(id: string) {
@@ -588,11 +600,12 @@ export function PassagemPlantaoView() {
       <div className="space-y-3">
         {/* BUSCA */}
         <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
           <input
             type="text"
             value={termoBusca}
             onChange={(e) => setTermoBusca(e.target.value)}
+            aria-label="Buscar paciente por nome, leito, enfermaria, HD ou motivo"
             placeholder="Buscar paciente por nome, leito, enfermaria, HD ou motivo..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 focus:outline-none transition-all shadow-xs"
           />
@@ -600,10 +613,13 @@ export function PassagemPlantaoView() {
 
         {/* FILTROS DE ENFERMARIA */}
         <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap" role="tablist" aria-label="Filtro de enfermarias da passagem de plantão">
             <button
+              type="button"
+              role="tab"
+              aria-selected={enfermariaFiltro === "TODAS"}
               onClick={() => setEnfermariaFiltro("TODAS")}
-              className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
+              className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
                 enfermariaFiltro === "TODAS"
                   ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-xs"
                   : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -613,11 +629,14 @@ export function PassagemPlantaoView() {
             </button>
 
             <button
+              type="button"
+              role="tab"
+              aria-selected={enfermariaFiltro === "SEM_ENFERMARIA"}
               onClick={() => setEnfermariaFiltro("SEM_ENFERMARIA")}
-              className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
+              className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
                 enfermariaFiltro === "SEM_ENFERMARIA"
-                  ? "bg-slate-900 text-white font-bold shadow-xs"
-                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
+                  ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-xs"
+                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
               }`}
             >
               Sem Enfermaria
@@ -630,11 +649,14 @@ export function PassagemPlantaoView() {
                 return (
                   <button
                     key={enf}
+                    type="button"
+                    role="tab"
+                    aria-selected={isAtiva}
                     onClick={() => setEnfermariaFiltro(enf)}
-                    className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center ${
+                    className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
                       isAtiva
-                        ? "bg-slate-900 text-white font-bold shadow-xs"
-                        : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
+                        ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-xs"
+                        : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                     }`}
                   >
                     {enf}
@@ -645,10 +667,11 @@ export function PassagemPlantaoView() {
 
           {/* BOTÃO NOVA ENFERMARIA */}
           <button
+            type="button"
             onClick={() => setModalNovaEnfAberto(true)}
-            className="min-h-[40px] text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 shrink-0 px-2.5 py-2 rounded-lg hover:bg-sky-50 transition-colors cursor-pointer"
+            className="min-h-[44px] text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 shrink-0 px-2.5 py-2 rounded-lg hover:bg-sky-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Nova Enfermaria</span>
           </button>
         </div>
@@ -706,8 +729,19 @@ export function PassagemPlantaoView() {
                             CABEÇALHO RESUMIDO EM 4 LINHAS (CLICÁVEL)
                         ─────────────────────────────────────────── */}
                         <div
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={isExpandido}
+                          aria-controls={`passagem-body-${paciente.id}`}
+                          aria-label={`Paciente ${nomeExibicao}, Leito ${paciente.leito || "Sem leito"}. ${isExpandido ? "Recolher detalhes" : "Expandir detalhes"}`}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              toggleExpandido(paciente.id);
+                            }
+                          }}
                           onClick={() => toggleExpandido(paciente.id)}
-                          className="p-3.5 sm:p-4 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors space-y-2 select-none"
+                          className="p-3.5 sm:p-4 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors space-y-2 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded-2xl"
                         >
                           {/* LINHA 1: IDENTIFICAÇÃO DO PACIENTE & CIRURGIAS/DPO INDIVIDUAIS */}
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -949,7 +983,10 @@ export function PassagemPlantaoView() {
                             PAINEL EXPANDIDO DA SANFONA (PILHA VERTICAL)
                         ─────────────────────────────────────────── */}
                         {isExpandido && (
-                          <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/50 space-y-4 animate-in fade-in">
+                          <div
+                            id={`passagem-body-${paciente.id}`}
+                            className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/50 space-y-4 animate-in fade-in"
+                          >
                             {/* BLOCO 1: DADOS GERAIS */}
                             <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-3">
                               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -2025,31 +2062,43 @@ export function PassagemPlantaoView() {
           5. MODAL PARA ADICIONAR NOVA ENFERMARIA INLINE
       ────────────────────────────────────────────────────────────── */}
       {modalNovaEnfAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-nova-enf-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in"
+        >
           <div className="bg-white rounded-2xl border border-slate-200 p-5 w-full max-w-sm shadow-xl space-y-4 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between shrink-0">
-              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-sky-600" />
+              <h4 id="modal-nova-enf-title" className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-sky-600" aria-hidden="true" />
                 <span>Nova Enfermaria</span>
               </h4>
               <button
                 type="button"
                 onClick={() => setModalNovaEnfAberto(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+                aria-label="Fechar modal de nova enfermaria"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
 
             <form onSubmit={handleSalvarNovaEnfermaria} className="space-y-3 flex-1 overflow-y-auto">
-              <input
-                type="text"
-                value={novaEnfNome}
-                onChange={(e) => setNovaEnfNome(e.target.value)}
-                placeholder="Ex: NEFRO, UTI, 5º ANDAR..."
-                autoFocus
-                className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
-              />
+              <div>
+                <label htmlFor="nova-enf-input" className="block text-xs font-semibold text-slate-700 mb-1">
+                  Nome da Enfermaria
+                </label>
+                <input
+                  id="nova-enf-input"
+                  type="text"
+                  value={novaEnfNome}
+                  onChange={(e) => setNovaEnfNome(e.target.value)}
+                  placeholder="Ex: NEFRO, UTI, 5º ANDAR..."
+                  autoFocus
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none"
+                />
+              </div>
 
               <div className="flex flex-col-reverse sm:flex-row items-center sm:justify-end gap-2 pt-2 shrink-0">
                 <button

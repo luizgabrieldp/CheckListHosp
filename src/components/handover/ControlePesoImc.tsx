@@ -233,11 +233,15 @@ export function ControlePesoImc({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {/* ALTURA FIXA / REUTILIZÁVEL */}
           <div>
-            <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5 flex items-center justify-between">
+            <label
+              htmlFor={`peso-altura-${paciente.id}`}
+              className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5 flex items-center justify-between"
+            >
               <span>Altura (m)</span>
               <span className="text-[9px] font-normal text-slate-400 dark:text-slate-400">Fixa</span>
             </label>
             <input
+              id={`peso-altura-${paciente.id}`}
               type="text"
               inputMode="decimal"
               value={alturaInput}
@@ -249,10 +253,14 @@ export function ControlePesoImc({
 
           {/* PESO ATUAL */}
           <div>
-            <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5">
+            <label
+              htmlFor={`peso-atual-${paciente.id}`}
+              className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5"
+            >
               Peso (kg)
             </label>
             <input
+              id={`peso-atual-${paciente.id}`}
               type="text"
               inputMode="decimal"
               value={pesoInput}
@@ -264,10 +272,14 @@ export function ControlePesoImc({
 
           {/* DATA DA PESAGEM */}
           <div>
-            <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5">
+            <label
+              htmlFor={`peso-data-${paciente.id}`}
+              className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5"
+            >
               Data da Pesagem
             </label>
             <input
+              id={`peso-data-${paciente.id}`}
               type="date"
               value={dataInput}
               onChange={(e) => setDataInput(e.target.value)}
@@ -281,13 +293,13 @@ export function ControlePesoImc({
               type="button"
               disabled={pesoNum <= 0 || alturaNum <= 0}
               onClick={handleRegistrarPesagem}
-              className={`w-full py-1.5 px-3 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+              className={`w-full min-h-[44px] py-1.5 px-3 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                 pesoNum > 0 && alturaNum > 0
                   ? "bg-teal-600 hover:bg-teal-700 text-white shadow-2xs"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700"
               }`}
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Registrar</span>
             </button>
           </div>
@@ -365,11 +377,17 @@ export function ControlePesoImc({
         <div className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800 space-y-2">
           {/* ABAS RÁPIDAS: PESO (KG) vs IMC */}
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+            <div
+              role="tablist"
+              aria-label="Alternar gráfico entre peso e IMC"
+              className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700"
+            >
               <button
                 type="button"
+                role="tab"
+                aria-selected={abaGrafico === "peso"}
                 onClick={() => setAbaGrafico("peso")}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                className={`min-h-[44px] px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                   abaGrafico === "peso"
                     ? "bg-white dark:bg-slate-700 text-teal-800 dark:text-teal-200 shadow-2xs"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -379,8 +397,10 @@ export function ControlePesoImc({
               </button>
               <button
                 type="button"
+                role="tab"
+                aria-selected={abaGrafico === "imc"}
                 onClick={() => setAbaGrafico("imc")}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                className={`min-h-[44px] px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                   abaGrafico === "imc"
                     ? "bg-white dark:bg-slate-700 text-teal-800 dark:text-teal-200 shadow-2xs"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -392,14 +412,15 @@ export function ControlePesoImc({
 
             <button
               type="button"
+              aria-expanded={mostrarTabelaHistorico}
               onClick={() => setMostrarTabelaHistorico(!mostrarTabelaHistorico)}
-              className="text-[11px] font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-200 flex items-center gap-1 cursor-pointer focus-visible:outline-teal-500"
+              className="min-h-[44px] inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-2"
             >
               <span>{mostrarTabelaHistorico ? "Ocultar tabela" : "Ver registros"}</span>
               {mostrarTabelaHistorico ? (
-                <ChevronUp className="w-3.5 h-3.5" />
+                <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" />
               ) : (
-                <ChevronDown className="w-3.5 h-3.5" />
+                <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
               )}
             </button>
           </div>
@@ -407,9 +428,12 @@ export function ControlePesoImc({
           {/* RENDERIZAÇÃO SVG RESPONSIVA DO GRÁFICO */}
           <div className="w-full relative overflow-visible">
             <svg
+              role="img"
+              aria-label={`Gráfico de curva de ${abaGrafico === "peso" ? "Peso" : "IMC"}`}
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
               className="w-full h-36 overflow-visible"
             >
+              <title>{`Gráfico de curva de ${abaGrafico === "peso" ? "Peso" : "IMC"}`}</title>
               {/* LINHAS DE GRADE E RÓTULOS Y */}
               <line
                 x1={padLeft}

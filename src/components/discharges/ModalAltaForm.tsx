@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { AltaPaciente } from "@/types/hospital";
 import { useAppStore } from "@/store/useAppStore";
 import { comprimirImagemParaWebP, ResultadoCompressao } from "@/lib/image-compressor";
@@ -25,6 +25,16 @@ interface Props {
 }
 
 export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   const enfermarias = useAppStore((s) => s.enfermarias);
   const [leito, setLeito] = useState(altaExistente?.leito || "");
   const [enfermaria, setEnfermaria] = useState(altaExistente?.enfermaria || "");
@@ -146,15 +156,20 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 md:p-6 animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-alta-form-title"
+        className="w-full max-w-2xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden"
+      >
         {/* CABEÇALHO */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400">
-              <Activity className="w-5 h-5" />
+              <Activity className="w-5 h-5" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 id="modal-alta-form-title" className="text-base font-bold text-white">
                 {altaExistente ? "Editar Alta / Evolução PO" : "Nova Alta / Avaliação de Ferida"}
               </h3>
               <p className="text-xs text-slate-400">
@@ -163,10 +178,12 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+            aria-label="Fechar modal de alta"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -176,11 +193,12 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <div className="h-6 flex items-center mb-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label htmlFor="modal-alta-leito" className="text-xs font-semibold text-slate-300">
                   Leito (Opcional)
                 </label>
               </div>
               <input
+                id="modal-alta-leito"
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
@@ -193,11 +211,12 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
 
             <div>
               <div className="h-6 flex items-center mb-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label htmlFor="modal-alta-enfermaria" className="text-xs font-semibold text-slate-300">
                   Enfermaria
                 </label>
               </div>
               <select
+                id="modal-alta-enfermaria"
                 value={enfermaria}
                 onChange={(e) => setEnfermaria(e.target.value)}
                 className="w-full h-[40px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none cursor-pointer"
@@ -215,11 +234,12 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
 
             <div>
               <div className="h-6 flex items-center mb-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label htmlFor="modal-alta-nome" className="text-xs font-semibold text-slate-300">
                   Nome do Paciente *
                 </label>
               </div>
               <input
+                id="modal-alta-nome"
                 type="text"
                 required
                 value={nomePaciente}
@@ -231,10 +251,11 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label htmlFor="modal-alta-procedimento" className="block text-xs font-semibold text-slate-300 mb-1">
               Procedimento / Cirurgia Realizada (PO)
             </label>
             <input
+              id="modal-alta-procedimento"
               type="text"
               value={tipoCirurgia}
               onChange={(e) => setTipoCirurgia(e.target.value)}
@@ -258,8 +279,11 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 <button
                   type="button"
                   key={item.label}
+                  role="button"
+                  aria-pressed={item.val}
+                  aria-label={`${item.label}: ${item.val ? item.sub : "Não / Ausente"}`}
                   onClick={() => item.set(!item.val)}
-                  className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                  className={`min-h-[44px] p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
                     item.val
                       ? "bg-emerald-950/40 border-emerald-500/50 text-emerald-300"
                       : "bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700"
@@ -272,6 +296,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                       className={`w-2 h-2 rounded-full ${
                         item.val ? "bg-emerald-400" : "bg-slate-600"
                       }`}
+                      aria-hidden="true"
                     />
                   </div>
                 </button>
@@ -282,11 +307,12 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
           {/* SINAIS VITAIS */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-                <Heart className="w-3 h-3 text-rose-400" />
+              <label htmlFor="modal-alta-fc" className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                <Heart className="w-3 h-3 text-rose-400" aria-hidden="true" />
                 FC (bpm)
               </label>
               <input
+                id="modal-alta-fc"
                 type="number"
                 inputMode="numeric"
                 pattern="[0-9]*"
@@ -298,11 +324,12 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-                <Activity className="w-3 h-3 text-cyan-400" />
+              <label htmlFor="modal-alta-sato2" className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                <Activity className="w-3 h-3 text-cyan-400" aria-hidden="true" />
                 SatO2 (%)
               </label>
               <input
+                id="modal-alta-sato2"
                 type="number"
                 inputMode="numeric"
                 pattern="[0-9]*"
@@ -314,10 +341,11 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label htmlFor="modal-alta-pa" className="block text-xs font-semibold text-slate-300 mb-1">
                 PA (mmHg)
               </label>
               <input
+                id="modal-alta-pa"
                 type="text"
                 value={pa}
                 onChange={(e) => setPa(e.target.value)}
@@ -340,8 +368,11 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
               </div>
               <button
                 type="button"
+                role="button"
+                aria-pressed={temQueixas}
+                aria-label={`Status de queixas: ${temQueixas ? "Sim, possui" : "Sem queixas"}`}
                 onClick={() => setTemQueixas(!temQueixas)}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`min-h-[44px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
                   temQueixas
                     ? "bg-rose-500 text-white shadow-sm shadow-rose-500/30"
                     : "bg-slate-800 text-slate-400 hover:text-white"
@@ -353,6 +384,8 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
 
             {temQueixas && (
               <textarea
+                id="modal-alta-detalhes-queixas"
+                aria-label="Detalhes das queixas"
                 rows={2}
                 value={detalhesQueixas}
                 onChange={(e) => setDetalhesQueixas(e.target.value)}
@@ -366,7 +399,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
           <div className="p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Camera className="w-4 h-4 text-cyan-400" />
+                <Camera className="w-4 h-4 text-cyan-400" aria-hidden="true" />
                 <span className="text-xs font-bold text-cyan-300">
                   Fotos da Ferida Cirúrgica ({fotosUrls.length}/5)
                 </span>
@@ -403,10 +436,11 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                     <button
                       type="button"
                       onClick={() => handleRemoverFoto(idx)}
-                      className="absolute top-1 right-1 p-1.5 rounded-lg bg-black/75 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                      aria-label={`Excluir foto ${idx + 1}`}
+                      className="absolute top-1 right-1 min-h-[38px] min-w-[38px] flex items-center justify-center p-1.5 rounded-lg bg-black/75 hover:bg-rose-600 text-white transition-colors cursor-pointer"
                       title="Excluir esta foto"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -416,7 +450,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
             {/* AVISO EXPLICATIVO DO ENVIO COM LEGENDA NA ÚLTIMA FOTO */}
             {fotosUrls.length > 1 && (
               <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/30 flex items-center gap-2 text-[11px] text-cyan-300">
-                <Info className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <Info className="w-3.5 h-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
                 <span>
                   Ao compartilhar no WhatsApp, a <strong>foto #{fotosUrls.length}</strong> levará o relatório clínico da alta na legenda como fechamento da mensagem.
                 </span>
@@ -430,9 +464,9 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 <button
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="py-2.5 px-2 rounded-xl bg-slate-900 border border-dashed border-cyan-500/40 hover:border-cyan-400 text-cyan-300 text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+                  className="min-h-[44px] py-2.5 px-2 rounded-xl bg-slate-900 border border-dashed border-cyan-500/40 hover:border-cyan-400 text-cyan-300 text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
                 >
-                  <Camera className="w-4 h-4 text-cyan-400" />
+                  <Camera className="w-4 h-4 text-cyan-400" aria-hidden="true" />
                   <span>Tirar Foto (Câmera)</span>
                 </button>
 
@@ -440,9 +474,9 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="py-2.5 px-2 rounded-xl bg-slate-900 border border-dashed border-slate-700 hover:border-slate-500 text-slate-300 text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+                  className="min-h-[44px] py-2.5 px-2 rounded-xl bg-slate-900 border border-dashed border-slate-700 hover:border-slate-500 text-slate-300 text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
                 >
-                  <Upload className="w-4 h-4 text-slate-400" />
+                  <Upload className="w-4 h-4 text-slate-400" aria-hidden="true" />
                   <span>Galeria (Múltiplas)</span>
                 </button>
               </div>

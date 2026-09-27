@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { PacientePassagem } from "@/types/hospital";
 import { anonimizarNome } from "@/lib/lgpd";
 import {
@@ -38,6 +38,17 @@ interface Props {
 }
 
 export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
+  // Fechamento via teclado ESC
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   // Referência para extração isolada da folha A4 e controle de clique duplo
   const folhaA4Ref = useRef<HTMLDivElement>(null);
   const [isImprimindo, setIsImprimindo] = useState(false);
@@ -192,13 +203,18 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
   return (
     <>
       {/* DIÁLOGO INTERATIVO DE SELEÇÃO - VISÍVEL APENAS NA TELA (TOTALMENTE OCULTO NA IMPRESSÃO) */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in no-print print:hidden">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-impressao-seletiva-title"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in no-print print:hidden"
+      >
         <div className="w-full max-w-3xl rounded-2xl bg-white border border-slate-200 p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92vh]">
           {/* CABEÇALHO DO MODAL */}
           <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-200 shrink-0 gap-3">
           <div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Printer className="w-5 h-5 text-sky-600 shrink-0" />
+            <h3 id="modal-impressao-seletiva-title" className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Printer className="w-5 h-5 text-sky-600 shrink-0" aria-hidden="true" />
               <span>Impressão Seletiva de Passagem</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -208,9 +224,9 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
           <button
             onClick={onClose}
             aria-label="Fechar modal"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -219,22 +235,22 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
           <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2.5">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-sky-600" />
+                <Layers className="w-3.5 h-3.5 text-sky-600" aria-hidden="true" />
                 <span>Sinais e Seções Clínicas para Impressão</span>
               </h4>
               <div className="flex items-center gap-2 text-xs">
                 <button
                   type="button"
                   onClick={marcarTodasCategorias}
-                  className="text-sky-600 hover:text-sky-700 font-semibold hover:underline cursor-pointer"
+                  className="min-h-[44px] inline-flex items-center px-1 text-sky-600 hover:text-sky-700 font-semibold hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded"
                 >
                   Marcar todas
                 </button>
-                <span className="text-slate-300">•</span>
+                <span className="text-slate-300" aria-hidden="true">•</span>
                 <button
                   type="button"
                   onClick={desmarcarTodasCategorias}
-                  className="text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  className="min-h-[44px] inline-flex items-center px-1 text-slate-500 hover:text-slate-700 hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded"
                 >
                   Desmarcar todas
                 </button>
@@ -261,24 +277,26 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                   <button
                     type="button"
                     key={item.id}
+                    role="checkbox"
+                    aria-checked={ativo}
                     onClick={() =>
                       setCategorias((prev) => ({
                         ...prev,
                         [item.id]: !(prev as any)[item.id],
                       }))
                     }
-                    className={`min-h-[44px] p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer text-left ${
+                    className={`min-h-[44px] p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${
                       ativo
                         ? "bg-sky-50 border-sky-300 text-sky-900 shadow-xs"
                         : "bg-white border-slate-200 text-slate-500 hover:bg-slate-100"
                     }`}
                   >
                     {ativo ? (
-                      <CheckSquare className="w-4 h-4 text-sky-600 shrink-0" />
+                      <CheckSquare className="w-4 h-4 text-sky-600 shrink-0" aria-hidden="true" />
                     ) : (
-                      <Square className="w-4 h-4 text-slate-400 shrink-0" />
+                      <Square className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
                     )}
-                    <Icone className="w-3.5 h-3.5 shrink-0 opacity-70" />
+                    <Icone className="w-3.5 h-3.5 shrink-0 opacity-70" aria-hidden="true" />
                     <span className="truncate">{item.label}</span>
                   </button>
                 );
@@ -290,22 +308,22 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-sky-600" />
+                <Building2 className="w-3.5 h-3.5 text-sky-600" aria-hidden="true" />
                 <span>Pacientes Selecionados ({totalSelecionados}/{pacientes.length})</span>
               </h4>
               <div className="flex items-center gap-2 text-xs">
                 <button
                   type="button"
                   onClick={selecionarTodosPacientes}
-                  className="text-sky-600 hover:text-sky-700 font-semibold hover:underline cursor-pointer"
+                  className="min-h-[44px] inline-flex items-center px-1 text-sky-600 hover:text-sky-700 font-semibold hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded"
                 >
                   Selecionar todos
                 </button>
-                <span className="text-slate-300">•</span>
+                <span className="text-slate-300" aria-hidden="true">•</span>
                 <button
                   type="button"
                   onClick={desmarcarTodosPacientes}
-                  className="text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  className="min-h-[44px] inline-flex items-center px-1 text-slate-500 hover:text-slate-700 hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded"
                 >
                   Desmarcar todos
                 </button>
@@ -329,7 +347,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                     {/* CABEÇALHO DA ENFERMARIA */}
                     <div className="bg-slate-50 px-3 py-2 border-b border-slate-200 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-sky-500" />
+                        <span className="w-2 h-2 rounded-full bg-sky-500" aria-hidden="true" />
                         <span className="text-xs font-bold text-slate-800">
                           {grupo.nome}
                         </span>
@@ -341,7 +359,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                       <button
                         type="button"
                         onClick={() => toggleEnfermaria(grupo.pacientes)}
-                        className="text-xs text-sky-600 hover:text-sky-700 font-semibold cursor-pointer"
+                        className="min-h-[44px] inline-flex items-center px-2 text-xs text-sky-600 hover:text-sky-700 font-semibold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded"
                       >
                         {todosDoGrupoSelecionados ? "Desmarcar enfermaria" : "Marcar enfermaria"}
                       </button>
@@ -357,8 +375,17 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                         return (
                           <div
                             key={p.id}
+                            role="checkbox"
+                            aria-checked={isSel}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                togglePaciente(p.id);
+                              }
+                            }}
                             onClick={() => togglePaciente(p.id)}
-                            className={`min-h-[44px] p-2.5 rounded-lg border text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
+                            className={`min-h-[44px] p-2.5 rounded-lg border text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${
                               isSel
                                 ? "bg-sky-50/50 border-sky-300 text-slate-900"
                                 : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"

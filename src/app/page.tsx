@@ -116,6 +116,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex print:m-0 print:p-0">
+      {/* SKIP LINK ACESSÍVEL PARA NAVEGAÇÃO RÁPIDA POR TECLADO E LEITORES DE TELA (WCAG 2.4.1) */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-emerald-700 focus:text-white focus:font-bold focus:text-xs focus:rounded-xl focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 transition-all"
+      >
+        Pular para o conteúdo principal
+      </a>
+
       {/* MODAL GATEKEEPER (SENHA MESTRE "cgimip") */}
       <GatekeeperModal />
 
@@ -133,8 +141,12 @@ export default function HomePage() {
           isSidebarCollapsed ? "md:ml-[68px]" : "md:ml-60"
         } ${!isAuthenticated ? "filter blur-sm select-none pointer-events-none" : ""}`}
       >
-        {/* CONTAINER DO MÓDULO ATIVO */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 pb-[max(1.5rem,env(safe-area-inset-bottom,1.5rem))] print:p-0 print:m-0">
+        {/* CONTAINER DO MÓDULO ATIVO COM FOCO ACESSÍVEL */}
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 p-4 sm:p-6 md:p-8 pb-[max(1.5rem,env(safe-area-inset-bottom,1.5rem))] print:p-0 print:m-0 focus:outline-none"
+        >
           {activeTab === "admissoes" && <AdmissoesView />}
           {activeTab === "altas" && <AltasView />}
           {activeTab === "permanencia" && <PermanenciaView />}

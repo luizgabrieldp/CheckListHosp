@@ -253,6 +253,18 @@ export function AdmissoesView() {
     setTimeout(() => setToastMsg(null), 3500);
   }
 
+  // Acessibilidade por teclado: fechar modais com tecla Escape
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        if (modalImpressaoAberto) setModalImpressaoAberto(false);
+        if (modalNovoPaciente) setModalNovoPaciente(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalImpressaoAberto, modalNovoPaciente]);
+
   // Filtrar pacientes da data selecionada
   const admissoesDaData = useMemo(() => {
     return admissoes.filter((p) => p.dataAdmissaoAgendada === dataSelecionada);
@@ -490,11 +502,12 @@ export function AdmissoesView() {
 
       {/* SELETOR DE DATA NO TOPO (ESTILO BASE44) */}
       <div className="clean-card rounded-xl p-3 flex items-center gap-3 no-print">
-        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-xs font-semibold">
-          <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+        <label htmlFor="data-trabalho-admissoes" className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer">
+          <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
           <span>Data de Trabalho:</span>
-        </div>
+        </label>
         <input
+          id="data-trabalho-admissoes"
           type="date"
           value={dataSelecionada}
           onChange={(e) => setDataSelecionada(e.target.value)}
@@ -515,28 +528,28 @@ export function AdmissoesView() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* CHEGOU */}
           <div className="clean-card rounded-2xl p-4 bg-sky-50/40 dark:bg-sky-950/40 border-sky-100 dark:border-sky-800/60 flex flex-col items-center justify-center text-center">
-            <span className="text-xl mb-1">🏥</span>
+            <span className="text-xl mb-1" aria-hidden="true">🏥</span>
             <span className="text-xl font-bold text-sky-800 dark:text-sky-300 leading-tight">{totalChegou}</span>
             <span className="text-[11px] font-semibold text-sky-700 dark:text-sky-400">Chegou</span>
           </div>
 
           {/* INTERNOU */}
           <div className="clean-card rounded-2xl p-4 bg-indigo-50/40 dark:bg-indigo-950/40 border-indigo-100 dark:border-indigo-800/60 flex flex-col items-center justify-center text-center">
-            <span className="text-xl mb-1">🛏️</span>
+            <span className="text-xl mb-1" aria-hidden="true">🛏️</span>
             <span className="text-xl font-bold text-indigo-800 dark:text-indigo-300 leading-tight">{totalInternou}</span>
             <span className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-400">Internou</span>
           </div>
 
           {/* AIH */}
           <div className="clean-card rounded-2xl p-4 bg-emerald-50/40 dark:bg-emerald-950/40 border-emerald-100 dark:border-emerald-800/60 flex flex-col items-center justify-center text-center">
-            <span className="text-xl mb-1">✅</span>
+            <span className="text-xl mb-1" aria-hidden="true">✅</span>
             <span className="text-xl font-bold text-emerald-800 dark:text-emerald-300 leading-tight">{totalAih}</span>
             <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">AIH</span>
           </div>
 
           {/* ALTA/ADM */}
           <div className="clean-card rounded-2xl p-4 bg-blue-50/40 dark:bg-blue-950/40 border-blue-100 dark:border-blue-800/60 flex flex-col items-center justify-center text-center">
-            <span className="text-xl mb-1">🟦</span>
+            <span className="text-xl mb-1" aria-hidden="true">🟦</span>
             <span className="text-xl font-bold text-blue-800 dark:text-blue-300 leading-tight">{totalAltaAdm}</span>
             <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400">Alta/ADM</span>
           </div>
@@ -549,7 +562,7 @@ export function AdmissoesView() {
           onClick={() => setModalNovoPaciente(true)}
           className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-600 dark:border-emerald-500 shadow-xs transition-colors cursor-pointer"
         >
-          <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
           <span>Adicionar</span>
         </button>
 
@@ -557,7 +570,7 @@ export function AdmissoesView() {
           onClick={handleGerarMensagemWhatsApp}
           className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
         >
-          <Share2 className="w-4 h-4 text-emerald-100" />
+          <Share2 className="w-4 h-4 text-emerald-100" aria-hidden="true" />
           <span>Gerar Mensagem</span>
         </button>
 
@@ -565,7 +578,7 @@ export function AdmissoesView() {
           onClick={handleAbrirModalImpressao}
           className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700 shadow-xs transition-colors cursor-pointer"
         >
-          <Printer className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+          <Printer className="w-4 h-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
           <span>Imprimir Lista</span>
         </button>
       </div>
@@ -573,17 +586,18 @@ export function AdmissoesView() {
       {/* BARRA DE BUSCA E FILTROS */}
       <div className="clean-card rounded-2xl p-3 space-y-3 no-print">
         <div className="relative w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" aria-hidden="true" />
           <input
             type="text"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
+            aria-label="Buscar paciente por nome ou enfermaria"
             placeholder="Buscar paciente..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-label="Filtro de status de admissão">
           {[
             { id: "TODOS", label: "Todos" },
             { id: "AGUARDANDO", label: "Aguardando" },
@@ -595,8 +609,10 @@ export function AdmissoesView() {
           ].map((f) => (
             <button
               key={f.id}
+              role="tab"
+              aria-selected={filtroStatus === f.id}
               onClick={() => setFiltroStatus(f.id)}
-              className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
+              className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
                 filtroStatus === f.id
                   ? "bg-emerald-700 text-white shadow-xs"
                   : "bg-slate-100/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700"
@@ -646,6 +662,17 @@ export function AdmissoesView() {
                       >
                         {/* LINHA RECOLHIDA (ACCORDION HEADER) */}
                         <div
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={isExpandido}
+                          aria-controls={`admissao-body-${paciente.id}`}
+                          aria-label={`Paciente ${paciente.nome}, ${isExpandido ? "recolher detalhes" : "expandir detalhes"}`}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setPacienteExpandidoId(isExpandido ? null : paciente.id);
+                            }
+                          }}
                           onClick={() =>
                             setPacienteExpandidoId(isExpandido ? null : paciente.id)
                           }
@@ -658,7 +685,7 @@ export function AdmissoesView() {
                                 className={`text-xs font-bold block ${
                                   isCancelada
                                     ? "line-through text-slate-400"
-                                    : "text-slate-900"
+                                    : "text-slate-900 dark:text-white"
                                 }`}
                               >
                                 {paciente.nome}
@@ -680,23 +707,27 @@ export function AdmissoesView() {
                             </div>
 
                             {isExpandido ? (
-                              <ChevronUp className="w-4 h-4 text-slate-400" />
+                              <ChevronUp className="w-4 h-4 text-slate-400" aria-hidden="true" />
                             ) : (
-                              <ChevronDown className="w-4 h-4 text-slate-400" />
+                              <ChevronDown className="w-4 h-4 text-slate-400" aria-hidden="true" />
                             )}
                           </div>
                         </div>
 
                         {/* CONTEÚDO EXPANDIDO */}
                         {isExpandido && (
-                          <div className="px-4 pb-4 pt-1 border-t border-slate-100 space-y-4 animate-in fade-in duration-150">
+                          <div
+                            id={`admissao-body-${paciente.id}`}
+                            className="px-4 pb-4 pt-1 border-t border-slate-100 dark:border-slate-800 space-y-4 animate-in fade-in duration-150"
+                          >
                             {/* EDITAR NOME & ENFERMARIA */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                               <div>
-                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                <label htmlFor={`nome-paciente-${paciente.id}`} className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                                   Nome do Paciente
                                 </label>
                                 <input
+                                  id={`nome-paciente-${paciente.id}`}
                                   type="text"
                                   value={paciente.nome}
                                   onChange={(e) => {
@@ -706,13 +737,13 @@ export function AdmissoesView() {
                                       updatedAt: new Date().toISOString(),
                                     });
                                   }}
-                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                                 />
                               </div>
 
                               <div>
                                 <div className="flex items-center justify-between mb-1">
-                                  <label className="block text-[11px] font-semibold text-slate-600">
+                                  <label htmlFor={`enf-paciente-${paciente.id}`} className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">
                                     Enfermaria
                                   </label>
                                   <button
@@ -723,10 +754,10 @@ export function AdmissoesView() {
                                       );
                                       setNomeNovaEnfPaciente("");
                                     }}
-                                    className="text-[10px] text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-0.5"
+                                    className="min-h-[36px] text-[10px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 font-bold flex items-center gap-0.5"
                                     title="Adicionar nova enfermaria na hora"
                                   >
-                                    <Plus className="w-3 h-3" /> Nova
+                                    <Plus className="w-3 h-3" aria-hidden="true" /> Nova
                                   </button>
                                 </div>
 
@@ -738,7 +769,8 @@ export function AdmissoesView() {
                                       value={nomeNovaEnfPaciente}
                                       onChange={(e) => setNomeNovaEnfPaciente(e.target.value)}
                                       placeholder="Nova enfermaria..."
-                                      className="flex-1 px-2.5 py-1 rounded-lg border border-emerald-500 text-xs text-slate-900 bg-white focus:outline-none"
+                                      aria-label="Nome da nova enfermaria"
+                                      className="flex-1 px-2.5 py-1 rounded-lg border border-emerald-500 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none"
                                       onKeyDown={(e) => {
                                         if (e.key === "Enter") {
                                           handleSalvarNovaEnfermariaPaciente(e, paciente);
@@ -755,13 +787,15 @@ export function AdmissoesView() {
                                     <button
                                       type="button"
                                       onClick={() => setAdicionandoEnfPacienteId(null)}
-                                      className="min-h-[38px] min-w-[38px] px-2 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-[11px] hover:bg-slate-200 flex items-center justify-center cursor-pointer"
+                                      aria-label="Cancelar cadastro de enfermaria"
+                                      className="min-h-[38px] min-w-[38px] px-2 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center cursor-pointer"
                                     >
-                                      <X className="w-3.5 h-3.5" />
+                                      <X className="w-3.5 h-3.5" aria-hidden="true" />
                                     </button>
                                   </div>
                                 ) : (
                                   <select
+                                    id={`enf-paciente-${paciente.id}`}
                                     value={paciente.enfermaria || ""}
                                     onChange={(e) => {
                                       salvarAdmissao({
@@ -770,7 +804,7 @@ export function AdmissoesView() {
                                         updatedAt: new Date().toISOString(),
                                       });
                                     }}
-                                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                                   >
                                     <option value="">Sem enfermaria</option>
                                     {enfermarias
@@ -790,56 +824,68 @@ export function AdmissoesView() {
                               {/* CHEGOU */}
                               <button
                                 type="button"
+                                role="button"
+                                aria-pressed={!!paciente.chegou}
+                                aria-label={`Status Chegou: ${paciente.chegou ? "Sim" : "Não"}`}
                                 onClick={() => handleToggleEtapaStatus(paciente, "chegou")}
-                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                                className={`min-h-[44px] p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.chegou
                                     ? "bg-sky-50 dark:bg-sky-950/60 border-sky-400 dark:border-sky-500 text-sky-800 dark:text-sky-300 font-bold shadow-xs"
                                     : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
-                                <span className="text-xl">🏥</span>
+                                <span className="text-xl" aria-hidden="true">🏥</span>
                                 <span className="text-xs">Chegou</span>
                               </button>
 
                               {/* INTERNOU */}
                               <button
                                 type="button"
+                                role="button"
+                                aria-pressed={!!paciente.internou}
+                                aria-label={`Status Internou: ${paciente.internou ? "Sim" : "Não"}`}
                                 onClick={() => handleToggleEtapaStatus(paciente, "internou")}
-                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                                className={`min-h-[44px] p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.internou
                                     ? "bg-indigo-50 dark:bg-indigo-950/60 border-indigo-400 dark:border-indigo-500 text-indigo-800 dark:text-indigo-300 font-bold shadow-xs"
                                     : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
-                                <span className="text-xl">🛏️</span>
+                                <span className="text-xl" aria-hidden="true">🛏️</span>
                                 <span className="text-xs">Internou</span>
                               </button>
 
                               {/* AIH */}
                               <button
                                 type="button"
+                                role="button"
+                                aria-pressed={!!paciente.aih}
+                                aria-label={`Status AIH: ${paciente.aih ? "Sim" : "Não"}`}
                                 onClick={() => handleToggleEtapaStatus(paciente, "aih")}
-                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                                className={`min-h-[44px] p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.aih
                                     ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 dark:border-emerald-500 text-emerald-800 dark:text-emerald-300 font-bold shadow-xs"
                                     : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
-                                <span className="text-xl">✅</span>
+                                <span className="text-xl" aria-hidden="true">✅</span>
                                 <span className="text-xs">AIH</span>
                               </button>
 
                               {/* ALTA/ADM */}
                               <button
                                 type="button"
+                                role="button"
+                                aria-pressed={!!paciente.altaAdm}
+                                aria-label={`Status Alta ou ADM: ${paciente.altaAdm ? "Sim" : "Não"}`}
                                 onClick={() => handleToggleEtapaStatus(paciente, "altaAdm")}
-                                className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                                className={`min-h-[44px] p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.altaAdm
                                     ? "bg-blue-50 dark:bg-blue-950/60 border-blue-400 dark:border-blue-500 text-blue-800 dark:text-blue-300 font-bold shadow-xs"
                                     : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
-                                <span className="text-xl">🟦</span>
+                                <span className="text-xl" aria-hidden="true">🟦</span>
                                 <span className="text-xs">Alta/ADM</span>
                               </button>
                             </div>
@@ -866,10 +912,11 @@ export function AdmissoesView() {
 
                           {/* CAMPO GRANDE DE ANOTAÇÕES (HISTÓRIA DO PACIENTE - TEMPLATE PADRÃO) */}
                           <div className="space-y-1">
-                            <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                            <label htmlFor={`anotacoes-historia-${paciente.id}`} className="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
                               Anotações (História do Paciente)
                             </label>
                             <textarea
+                              id={`anotacoes-historia-${paciente.id}`}
                               rows={14}
                               disabled={isTravada}
                               value={paciente.anotacoesHistoria ?? TEMPLATE_HISTORIA_PADRAO}
@@ -937,16 +984,21 @@ export function AdmissoesView() {
 
       {/* MODAL DE ORDENAÇÃO MANUAL ANTES DA IMPRESSÃO */}
       {modalImpressaoAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in no-print">
-          <div className="w-full max-w-xl rounded-2xl bg-white p-5 sm:p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3 shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-xs p-4 animate-in fade-in no-print">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-impressao-ordem-title"
+            className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3 shrink-0">
               <div className="flex items-center gap-2">
-                <ArrowUpDown className="w-5 h-5 text-emerald-700" />
+                <ArrowUpDown className="w-5 h-5 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 id="modal-impressao-ordem-title" className="text-sm font-bold text-slate-900 dark:text-white">
                     Sequência de Impressão dos Internamentos
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Arraste os nomes para definir a ordem (1º, 2º, 3º...) que sairá na folha A4.
                   </p>
                 </div>
@@ -954,9 +1006,10 @@ export function AdmissoesView() {
               <button
                 type="button"
                 onClick={() => setModalImpressaoAberto(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
+                aria-label="Fechar ordenação de impressão"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -973,11 +1026,11 @@ export function AdmissoesView() {
               </DndContext>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-between gap-2.5 shrink-0">
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => setModalImpressaoAberto(false)}
-                className="min-h-[44px] w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer flex items-center justify-center"
+                className="min-h-[44px] w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center"
               >
                 Cancelar
               </button>
@@ -1048,10 +1101,15 @@ export function AdmissoesView() {
       {/* MODAL ADICIONAR NOVO PACIENTE */}
       {modalNovoPaciente && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-xs p-4 animate-in fade-in no-print">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] flex flex-col">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-novo-paciente-title"
+            className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] flex flex-col"
+          >
             <div className="shrink-0 mb-3 flex items-start justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">
+                <h3 id="modal-novo-paciente-title" className="text-sm font-bold text-slate-900 dark:text-white mb-1">
                   Adicionar Paciente para {dataFormatadaBR}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1061,18 +1119,20 @@ export function AdmissoesView() {
               <button
                 type="button"
                 onClick={() => setModalNovoPaciente(false)}
+                aria-label="Fechar cadastro de paciente"
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 -mr-2 -mt-2 cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
 
             <form onSubmit={handleCriarPaciente} className="space-y-4 flex-1 overflow-y-auto pr-1">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="admissao-novo-nome" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Nome Completo *
                 </label>
                 <input
+                  id="admissao-novo-nome"
                   type="text"
                   required
                   autoFocus
@@ -1085,7 +1145,7 @@ export function AdmissoesView() {
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <label htmlFor="admissao-nova-enfermaria" className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Enfermaria
                   </label>
                   <button
@@ -1097,7 +1157,7 @@ export function AdmissoesView() {
                     className="min-h-[36px] px-2 py-1 text-[11px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 font-bold flex items-center gap-0.5 cursor-pointer"
                     title="Cadastrar nova enfermaria na hora"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Nova
+                    <Plus className="w-3.5 h-3.5" aria-hidden="true" /> Nova
                   </button>
                 </div>
 
@@ -1109,6 +1169,7 @@ export function AdmissoesView() {
                       value={nomeNovaEnfModal}
                       onChange={(e) => setNomeNovaEnfModal(e.target.value)}
                       placeholder="Nome da nova enfermaria..."
+                      aria-label="Nome da nova enfermaria"
                       className="flex-1 px-3 py-2 rounded-xl border border-emerald-500 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -1126,13 +1187,15 @@ export function AdmissoesView() {
                     <button
                       type="button"
                       onClick={() => setAdicionandoEnfModal(false)}
+                      aria-label="Cancelar enfermaria"
                       className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs cursor-pointer flex items-center justify-center"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </div>
                 ) : (
                   <select
+                    id="admissao-nova-enfermaria"
                     value={novaEnfermaria}
                     onChange={(e) => setNovaEnfermaria(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { CategoriaModelo, ModeloTexto } from "@/types/hospital";
 import {
@@ -35,6 +35,17 @@ export function ModelosTextoView() {
 
   // Controle do modal de criação / edição
   const [modalAberto, setModalAberto] = useState(false);
+
+  // Fechamento de modal via teclado ESC
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && modalAberto) {
+        setModalAberto(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalAberto]);
   const [modeloEmEdicao, setModeloEmEdicao] = useState<ModeloTexto | null>(null);
   const [titulo, setTitulo] = useState("");
   const [categoria, setCategoria] = useState<string>("Alta");
@@ -190,11 +201,12 @@ export function ModelosTextoView() {
         <div className="flex flex-col sm:flex-row items-center gap-2.5">
           {/* CAMPO DE BUSCA */}
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
             <input
               type="text"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
+              aria-label="Buscar modelos de texto"
               placeholder="Buscar modelo..."
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 focus:outline-none transition-all"
             />
@@ -205,6 +217,7 @@ export function ModelosTextoView() {
             <select
               value={categoriaSelecionada}
               onChange={(e) => setCategoriaSelecionada(e.target.value)}
+              aria-label="Filtrar por categoria"
               className="min-h-[44px] w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all cursor-pointer"
             >
               <option value="TODAS">Todas as Categorias</option>
@@ -218,10 +231,12 @@ export function ModelosTextoView() {
         </div>
 
         {/* PÍLULAS DE CATEGORIAS RÁPIDAS */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div role="tablist" aria-label="Filtrar por categorias de modelos" className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
+            role="tab"
+            aria-selected={categoriaSelecionada === "TODAS"}
             onClick={() => setCategoriaSelecionada("TODAS")}
-            className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
+            className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
               categoriaSelecionada === "TODAS"
                 ? "bg-emerald-600 text-white font-bold shadow-xs"
                 : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -235,8 +250,10 @@ export function ModelosTextoView() {
             return (
               <button
                 key={cat}
+                role="tab"
+                aria-selected={isAtiva}
                 onClick={() => setCategoriaSelecionada(cat)}
-                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                   isAtiva
                     ? "bg-emerald-600 text-white font-bold shadow-xs"
                     : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -293,8 +310,19 @@ export function ModelosTextoView() {
                       <div className="px-4 py-3 flex items-center justify-between gap-3">
                         {/* TÍTULO DO MODELO (CLICÁVEL PARA EXPANDIR) */}
                         <div
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={isAberto}
+                          aria-controls={`modelo-conteudo-${m.id}`}
+                          aria-label={`Modelo ${m.titulo}. ${isAberto ? "Ocultar conteúdo" : "Visualizar conteúdo"}`}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              toggleExpandido(m.id);
+                            }
+                          }}
                           onClick={() => toggleExpandido(m.id)}
-                          className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer select-none group"
+                          className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer select-none group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg p-1"
                         >
                           <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors truncate">
                             {m.titulo}
@@ -308,7 +336,7 @@ export function ModelosTextoView() {
                             type="button"
                             onClick={() => toggleExpandido(m.id)}
                             aria-label={isAberto ? `Ocultar conteúdo de ${m.titulo}` : `Visualizar conteúdo de ${m.titulo}`}
-                            className={`min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl transition-colors cursor-pointer ${
+                            className={`min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                               isAberto
                                 ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
                                 : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -316,9 +344,9 @@ export function ModelosTextoView() {
                             title={isAberto ? "Ocultar conteúdo" : "Visualizar conteúdo"}
                           >
                             {isAberto ? (
-                              <EyeOff className="w-4 h-4" />
+                              <EyeOff className="w-4 h-4" aria-hidden="true" />
                             ) : (
-                              <Eye className="w-4 h-4" />
+                              <Eye className="w-4 h-4" aria-hidden="true" />
                             )}
                           </button>
 
@@ -327,7 +355,7 @@ export function ModelosTextoView() {
                             type="button"
                             onClick={() => handleCopiar(m.id, m.conteudo)}
                             aria-label={`Copiar texto de ${m.titulo}`}
-                            className={`min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl transition-colors cursor-pointer ${
+                            className={`min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                               isCopiado
                                 ? "bg-emerald-500 text-white font-bold shadow-xs"
                                 : "text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
@@ -335,9 +363,9 @@ export function ModelosTextoView() {
                             title="Copiar texto para área de transferência"
                           >
                             {isCopiado ? (
-                              <Check className="w-4 h-4" />
+                              <Check className="w-4 h-4" aria-hidden="true" />
                             ) : (
-                              <Copy className="w-4 h-4" />
+                              <Copy className="w-4 h-4" aria-hidden="true" />
                             )}
                           </button>
 
@@ -346,10 +374,10 @@ export function ModelosTextoView() {
                             type="button"
                             onClick={() => abrirModal(m)}
                             aria-label={`Editar modelo ${m.titulo}`}
-                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                             title="Editar modelo"
                           >
-                            <Edit3 className="w-4 h-4" />
+                            <Edit3 className="w-4 h-4" aria-hidden="true" />
                           </button>
 
                           {/* 4. APAGAR */}
@@ -361,17 +389,20 @@ export function ModelosTextoView() {
                               }
                             }}
                             aria-label={`Excluir modelo ${m.titulo}`}
-                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                             title="Excluir modelo"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
 
                       {/* ACORDEÃO DESLIZANTE DE VISUALIZAÇÃO DO CONTEÚDO */}
                       {isAberto && (
-                        <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/80 p-3.5 sm:p-4 space-y-2.5 animate-in fade-in">
+                        <div
+                          id={`modelo-conteudo-${m.id}`}
+                          className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/80 p-3.5 sm:p-4 space-y-2.5 animate-in fade-in"
+                        >
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                               Conteúdo Formatado
@@ -418,20 +449,26 @@ export function ModelosTextoView() {
           4. MODAL LIMPO DE CRIAÇÃO / EDIÇÃO DE MODELO
       ────────────────────────────────────────────────────────────── */}
       {modalAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-modelo-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in"
+        >
           <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col">
             {/* CABEÇALHO DO MODAL */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <h3 id="modal-modelo-title" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                 <span>{modeloEmEdicao ? "Editar Modelo de Texto" : "Criar Novo Modelo de Texto"}</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setModalAberto(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer -mr-2"
+                aria-label="Fechar modal de modelo"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer -mr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -441,11 +478,12 @@ export function ModelosTextoView() {
                 {/* TÍTULO DO MODELO */}
                 <div className="sm:col-span-7">
                   <div className="h-7 flex items-center mb-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    <label htmlFor="modelo-form-titulo" className="text-xs font-bold text-slate-700 dark:text-slate-200">
                       Título do Modelo *
                     </label>
                   </div>
                   <input
+                    id="modelo-form-titulo"
                     type="text"
                     required
                     value={titulo}
@@ -458,7 +496,7 @@ export function ModelosTextoView() {
                 {/* CATEGORIA (MENU SUSPENSO COM DADOS DAS CONFIGURAÇÕES) */}
                 <div className="sm:col-span-5">
                   <div className="h-7 flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    <label htmlFor="modelo-form-categoria" className="text-xs font-bold text-slate-700 dark:text-slate-200">
                       Categoria *
                     </label>
                     <button
@@ -477,6 +515,7 @@ export function ModelosTextoView() {
                         autoFocus
                         value={novaCatNome}
                         onChange={(e) => setNovaCatNome(e.target.value)}
+                        aria-label="Nome da nova categoria"
                         placeholder="Nova categoria..."
                         className="flex-1 h-full px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
                         onKeyDown={(e) => {
@@ -496,6 +535,7 @@ export function ModelosTextoView() {
                     </div>
                   ) : (
                     <select
+                      id="modelo-form-categoria"
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
                       className="w-full min-h-[44px] h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all cursor-pointer"
@@ -512,10 +552,11 @@ export function ModelosTextoView() {
 
               {/* CONTEÚDO COMPLETO (TEXTAREA COM PRESERVAÇÃO RIGOROSA DE ESPAÇOS E QUEBRAS) */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                <label htmlFor="modelo-form-conteudo" className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
                   Conteúdo do Modelo *
                 </label>
                 <textarea
+                  id="modelo-form-conteudo"
                   rows={10}
                   required
                   value={conteudo}
@@ -533,13 +574,13 @@ export function ModelosTextoView() {
                 <button
                   type="button"
                   onClick={() => setModalAberto(false)}
-                  className="min-h-[44px] w-full sm:w-auto px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer flex items-center justify-center"
+                  className="min-h-[44px] w-full sm:w-auto px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center justify-center"
+                  className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   {modeloEmEdicao ? "Atualizar Modelo" : "Salvar Modelo"}
                 </button>

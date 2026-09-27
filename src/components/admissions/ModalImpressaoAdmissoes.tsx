@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AdmissaoPaciente } from "@/types/hospital";
 import {
   DndContext,
@@ -51,8 +51,9 @@ function SortableItem({ paciente }: { paciente: AdmissaoPaciente }) {
           {...listeners}
           className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-700/60"
           title="Arrastar para reordenar"
+          aria-label={`Arrastar paciente ${paciente.nome} para reordenar`}
         >
-          <GripVertical className="w-5 h-5" />
+          <GripVertical className="w-5 h-5" aria-hidden="true" />
         </button>
         <div>
           <div className="flex items-center gap-2">
@@ -74,6 +75,16 @@ function SortableItem({ paciente }: { paciente: AdmissaoPaciente }) {
 }
 
 export function ModalImpressaoAdmissoes({ admissoes, onClose, onSalvarOrdem }: Props) {
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   const [itens, setItens] = useState<AdmissaoPaciente[]>(() => [...admissoes]);
 
   const sensors = useSensors(
@@ -111,15 +122,20 @@ export function ModalImpressaoAdmissoes({ admissoes, onClose, onSalvarOrdem }: P
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200 no-print print:hidden">
-      <div className="w-full max-w-2xl rounded-2xl glass-card border border-cyan-500/40 p-6 shadow-2xl flex flex-col max-h-[90vh]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-priorizacao-leitos-title"
+        className="w-full max-w-2xl rounded-2xl glass-card border border-cyan-500/40 p-6 shadow-2xl flex flex-col max-h-[90vh]"
+      >
         {/* CABEÇALHO MODAL */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
-              <ArrowUpDown className="w-5 h-5" />
+              <ArrowUpDown className="w-5 h-5" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 id="modal-priorizacao-leitos-title" className="text-base font-bold text-white">
                 Priorização de Leitos para Impressão
               </h3>
               <p className="text-xs text-slate-400">
@@ -128,10 +144,12 @@ export function ModalImpressaoAdmissoes({ admissoes, onClose, onSalvarOrdem }: P
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            aria-label="Fechar janela"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -149,16 +167,18 @@ export function ModalImpressaoAdmissoes({ admissoes, onClose, onSalvarOrdem }: P
         {/* RODAPÉ COM AÇÕES */}
         <div className="pt-4 border-t border-slate-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-3 shrink-0">
           <button
+            type="button"
             onClick={onClose}
             className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center justify-center"
           >
             Cancelar
           </button>
           <button
+            type="button"
             onClick={handleImprimir}
             className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold shadow-lg shadow-cyan-500/25 active:scale-95 transition-all cursor-pointer"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-4 h-4" aria-hidden="true" />
             <span>Confirmar Ordem & Imprimir Relatório</span>
           </button>
         </div>
