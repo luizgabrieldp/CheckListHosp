@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { RealtimeProvider } from "@/components/providers/RealtimeProvider";
 import { RegisterServiceWorker } from "@/components/pwa/RegisterServiceWorker";
+import { ThemeSync } from "@/components/providers/ThemeSync";
 
 export const metadata: Metadata = {
   title: "CheckList Hospitalar | Gestão de Enfermaria Cirúrgica",
@@ -48,13 +49,18 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var mode = localStorage.getItem('checklist_theme_mode') || 'auto';
-                  var isDark = mode === 'dark' || (mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  var raw = localStorage.getItem('checklist_theme_mode') || 'auto';
+                  var mode = raw.replace(/['"]/g, '').trim();
+                  var isDark = mode === 'dark' || (mode === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
                   if (isDark) {
                     document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
                   } else {
                     document.documentElement.classList.remove('dark');
+                    document.documentElement.style.colorScheme = 'light';
                   }
+                  var meta = document.querySelector('meta[name="theme-color"]');
+                  if (meta) meta.setAttribute('content', isDark ? '#0b1120' : '#0f172a');
                 } catch (e) {}
               })();
             `,
@@ -62,6 +68,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-150">
+        <ThemeSync />
         <RealtimeProvider>{children}</RealtimeProvider>
         <RegisterServiceWorker />
       </body>

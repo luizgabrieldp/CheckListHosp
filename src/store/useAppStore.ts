@@ -161,8 +161,10 @@ export function aplicarTemaNoDocumento(modo: ThemeMode) {
 
   if (efetivo === "dark") {
     document.documentElement.classList.add("dark");
+    document.documentElement.style.colorScheme = "dark";
   } else {
     document.documentElement.classList.remove("dark");
+    document.documentElement.style.colorScheme = "light";
   }
 
   // Atualiza a meta tag theme-color na barra de status do celular
@@ -275,7 +277,10 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     }
   },
 
-  themeMode: (typeof window !== "undefined" && (localStorage.getItem("checklist_theme_mode") as ThemeMode)) || "auto",
+  themeMode:
+    (typeof window !== "undefined" &&
+      (((localStorage.getItem("checklist_theme_mode") || "auto").replace(/['"]/g, "").trim()) as ThemeMode)) ||
+    "auto",
   setThemeMode: (mode: ThemeMode) => {
     set({ themeMode: mode });
     if (typeof window !== "undefined") {
@@ -626,16 +631,23 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
 
 if (typeof window !== "undefined") {
   try {
-    const modoSalvo = (localStorage.getItem("checklist_theme_mode") as ThemeMode) || "auto";
+    const raw = localStorage.getItem("checklist_theme_mode") || "auto";
+    const modoSalvo = (raw.replace(/['"]/g, "").trim() as ThemeMode) || "auto";
     aplicarTemaNoDocumento(modoSalvo);
 
     const mql = window.matchMedia("(prefers-color-scheme: dark)");
-    mql.addEventListener("change", () => {
+    const handleMqlChange = () => {
       const modoAtual = useAppStore.getState().themeMode;
       if (modoAtual === "auto") {
         aplicarTemaNoDocumento("auto");
       }
-    });
+    };
+
+    if (mql.addEventListener) {
+      mql.addEventListener("change", handleMqlChange);
+    } else if ((mql as any).addListener) {
+      (mql as any).addListener(handleMqlChange);
+    }
   } catch {}
 }
 

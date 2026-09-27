@@ -3359,6 +3359,53 @@ assert(s42_controlePesoCheckContent.includes("min-h-[44px] min-w-[44px] flex ite
 const s42_metricasLgpdCheckContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "metrics", "MetricasLgpdView.tsx"), "utf-8");
 assert(s42_metricasLgpdCheckContent.includes("text-slate-500 dark:text-slate-400"), "MetricasLgpdView possui contraste compatível com WCAG AA para textos secundários");
 
+// =========================================================================
+// SEÇÃO 43: CORREÇÃO DEFINITIVA DA INICIALIZAÇÃO DO MODO ESCURO (THEMESYNC)
+// =========================================================================
+console.log("\n--- 43. Guardião Contínuo de Modo Escuro (ThemeSync & Pós-Hidratação) ---");
+
+// Teste 43.1: Existência física do arquivo ThemeSync.tsx
+const themeSyncPath = path.join(process.cwd(), "src", "components", "providers", "ThemeSync.tsx");
+assert(fs.existsSync(themeSyncPath), "Arquivo ThemeSync.tsx existe");
+
+const themeSyncContent = fs.readFileSync(themeSyncPath, "utf-8");
+
+// Teste 43.2: useLayoutEffect garante re-aplicação antes da primeira pintura no cliente
+assert(themeSyncContent.includes("useLayoutEffect"), "ThemeSync utiliza useLayoutEffect para re-aplicar o tema pré-pintura");
+assert(themeSyncContent.includes("aplicarTemaNoDocumento(themeMode)"), "ThemeSync chama aplicarTemaNoDocumento sincronizado com o themeMode");
+
+// Teste 43.3: MutationObserver de segurança contra remoção indevida da classe dark
+assert(themeSyncContent.includes("new MutationObserver"), "ThemeSync instancia MutationObserver para monitorar a tag <html>");
+assert(themeSyncContent.includes("document.documentElement.classList.add(\"dark\")"), "MutationObserver restaura class 'dark' imediatamente se for removida");
+
+// Teste 43.4: Suporte duplo a eventos de prefers-color-scheme (addEventListener + addListener)
+assert(themeSyncContent.includes("mql.addEventListener"), "ThemeSync suporta mql.addEventListener('change')");
+assert(themeSyncContent.includes("mql.addListener") || themeSyncContent.includes("(mql as any).addListener"), "ThemeSync suporta mql.addListener para versões legadas do WebKit/iOS");
+
+// Teste 43.5: Sincronização em tempo real entre abas via storage event
+assert(themeSyncContent.includes('window.addEventListener("storage"'), "ThemeSync escuta evento storage para sincronizar abas");
+
+// Teste 43.6: Integração no layout.tsx
+const layoutThemeCheckContent = fs.readFileSync(path.join(process.cwd(), "src", "app", "layout.tsx"), "utf-8");
+assert(layoutThemeCheckContent.includes("<ThemeSync />") || layoutThemeCheckContent.includes("<ThemeSync/>"), "layout.tsx renderiza ThemeSync dentro do body");
+assert(layoutThemeCheckContent.includes("colorScheme"), "layout.tsx inline script define colorScheme nativo");
+
+// Teste 43.7: page.tsx possui classes escuras na div raiz
+const pageThemeCheckContent = fs.readFileSync(path.join(process.cwd(), "src", "app", "page.tsx"), "utf-8");
+assert(pageThemeCheckContent.includes("dark:bg-slate-950"), "page.tsx possui dark:bg-slate-950 na div raiz");
+assert(pageThemeCheckContent.includes("dark:text-slate-100"), "page.tsx possui dark:text-slate-100 na div raiz");
+
+// Teste 43.8: aplicarTemaNoDocumento define colorScheme no documentElement
+const storeThemeCheckContent = fs.readFileSync(path.join(process.cwd(), "src", "store", "useAppStore.ts"), "utf-8");
+assert(storeThemeCheckContent.includes('document.documentElement.style.colorScheme = "dark"'), "aplicarTemaNoDocumento define colorScheme dark");
+assert(storeThemeCheckContent.includes('document.documentElement.style.colorScheme = "light"'), "aplicarTemaNoDocumento define colorScheme light");
+
+// Teste 43.9: useAppStore sanitiza aspas na chave checklist_theme_mode
+assert(storeThemeCheckContent.includes(".replace(/['\"]/g, \"\")"), "useAppStore sanitiza aspas em checklist_theme_mode");
+
+// Teste 43.10: useAppStore possui fallback mql.addListener no listener global
+assert(storeThemeCheckContent.includes("(mql as any).addListener"), "useAppStore global listener possui fallback addListener");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

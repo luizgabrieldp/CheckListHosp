@@ -115,7 +115,7 @@ export default function HomePage() {
   }, [setSidebarCollapsed]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex print:m-0 print:p-0">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex print:m-0 print:p-0">
       {/* SKIP LINK ACESSÍVEL PARA NAVEGAÇÃO RÁPIDA POR TECLADO E LEITORES DE TELA (WCAG 2.4.1) */}
       <a
         href="#main-content"
