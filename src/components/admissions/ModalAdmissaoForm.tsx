@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { AdmissaoPaciente, StatusAdmissao } from "@/types/hospital";
 import { obterDataLocalHoje } from "@/lib/utils";
 import { useModalA11y } from "@/lib/useFocusTrap";
+import { useAppStore } from "@/store/useAppStore";
 import {
   X,
   Save,
@@ -24,6 +25,7 @@ interface Props {
 
 export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Props) {
   const modalRef = useModalA11y<HTMLDivElement>({ isOpen: true, onClose });
+  const { enfermarias } = useAppStore();
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -131,7 +133,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
         className="w-full max-w-3xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden"
       >
         {/* CABEÇALHO */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800 px-1">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
               <Stethoscope className="w-5 h-5" aria-hidden="true" />
@@ -177,7 +179,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
         )}
 
         {/* ABAS DE NAVEGAÇÃO INTERNA */}
-        <div className="flex items-center gap-2 border-b border-slate-800/80 py-2.5 overflow-x-auto scrollbar-none" role="tablist" aria-label="Seções do prontuário cirúrgico">
+        <div className="flex items-center gap-2 border-b border-slate-800/80 py-2.5 overflow-x-auto scrollbar-none px-1" role="tablist" aria-label="Seções do prontuário cirúrgico">
           {[
             { id: "geral", label: "Identificação & Status" },
             { id: "historia", label: "HD & HDA" },
@@ -221,7 +223,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Ex: João Carlos Silva Santos"
-                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                   />
                 </div>
 
@@ -238,7 +240,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     disabled={isBloqueado}
                     value={dataAdmissaoAgendada}
                     onChange={(e) => setDataAdmissaoAgendada(e.target.value)}
-                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                   />
                 </div>
               </div>
@@ -255,12 +257,19 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     disabled={isBloqueado}
                     value={enfermaria}
                     onChange={(e) => setEnfermaria(e.target.value)}
-                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60 cursor-pointer"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60 cursor-pointer"
                   >
-                    <option value="Cirurgia Geral 1">Cirurgia Geral 1</option>
-                    <option value="Cirurgia Geral 2">Cirurgia Geral 2</option>
-                    <option value="Enfermaria Especialidades">Enfermaria Especialidades</option>
-                    <option value="Hospital Dia / Observação">Hospital Dia / Observação</option>
+                    <option value="">Sem enfermaria</option>
+                    {enfermarias
+                      .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+                      .map((enf) => (
+                        <option key={enf} value={enf}>
+                          {enf}
+                        </option>
+                      ))}
+                    {enfermaria && !enfermarias.includes(enfermaria) && enfermaria.trim().toLowerCase() !== "sem enfermaria" && (
+                      <option value={enfermaria}>{enfermaria}</option>
+                    )}
                   </select>
                 </div>
 
@@ -279,7 +288,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={leito}
                     onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                     placeholder="Ex: 03"
-                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                   />
                 </div>
 
@@ -295,7 +304,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     disabled={isBloqueado}
                     value={dataNascimento}
                     onChange={(e) => setDataNascimento(e.target.value)}
-                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                   />
                 </div>
               </div>
@@ -312,7 +321,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     disabled={isBloqueado}
                     value={status}
                     onChange={(e) => setStatus(e.target.value as StatusAdmissao)}
-                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60 cursor-pointer"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60 cursor-pointer"
                   >
                     <option value="Aguardando">Aguardando</option>
                     <option value="Chegou">Chegou</option>
@@ -345,30 +354,36 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
           {secaoAtiva === "historia" && (
             <div className="space-y-4 animate-in fade-in duration-150">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Hipótese Diagnóstica (HD) *
-                </label>
+                <div className="h-7 flex items-center mb-1.5">
+                  <label htmlFor="admissao-modal-hd" className="text-xs font-semibold text-slate-300">
+                    Hipótese Diagnóstica (HD) *
+                  </label>
+                </div>
                 <input
+                  id="admissao-modal-hd"
                   type="text"
                   disabled={isBloqueado}
                   value={hd}
                   onChange={(e) => setHd(e.target.value)}
                   placeholder="Ex: Colecistite Crônica Calculosa sintomática"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                  className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  História da Doença Atual (HDA)
-                </label>
+                <div className="h-7 flex items-center mb-1.5">
+                  <label htmlFor="admissao-modal-hda" className="text-xs font-semibold text-slate-300">
+                    História da Doença Atual (HDA)
+                  </label>
+                </div>
                 <textarea
+                  id="admissao-modal-hda"
                   rows={5}
                   disabled={isBloqueado}
                   value={hda}
                   onChange={(e) => setHda(e.target.value)}
                   placeholder="Descreva o quadro clínico, início dos sintomas, evolução..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                 />
               </div>
             </div>
@@ -378,17 +393,20 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
           {secaoAtiva === "antecedentes" && (
             <div className="space-y-4 animate-in fade-in duration-150">
               <div>
-                <label className="block text-xs font-bold text-rose-400 mb-1.5 flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-                  Alergias Medicamentosas / Alimentares
-                </label>
+                <div className="h-7 flex items-center mb-1.5">
+                  <label htmlFor="admissao-modal-alergias" className="text-xs font-bold text-rose-400 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                    Alergias Medicamentosas / Alimentares
+                  </label>
+                </div>
                 <input
+                  id="admissao-modal-alergias"
                   type="text"
                   disabled={isBloqueado}
                   value={alergias}
                   onChange={(e) => setAlergias(e.target.value)}
                   placeholder="Ex: Dipirona (choque anafilático), Penicilina..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-rose-950/20 border border-rose-500/50 text-rose-100 placeholder-rose-400/50 text-sm focus:border-rose-400 focus:outline-none disabled:opacity-60"
+                  className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-rose-950/20 border border-rose-500/50 text-rose-100 placeholder-rose-400/50 text-sm focus:border-rose-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                 />
               </div>
 
@@ -405,7 +423,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={comorbidades}
                     onChange={(e) => setComorbidades(e.target.value)}
                     placeholder="Ex: HAS, DM2, Asma..."
-                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                   />
                 </div>
 
@@ -421,7 +439,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={cirurgiasPrevias}
                     onChange={(e) => setCirurgiasPrevias(e.target.value)}
                     placeholder="Ex: Apendicectomia há 5 anos, Cesárea..."
-                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
+                    className="w-full min-h-[44px] h-11 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                   />
                 </div>
               </div>
@@ -439,7 +457,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={muc}
                     onChange={(e) => setMuc(e.target.value)}
                     placeholder="Ex: Losartana 50mg 1x/dia, Metformina 850mg..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                   />
                 </div>
 
@@ -455,7 +473,7 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
                     value={habitos}
                     onChange={(e) => setHabitos(e.target.value)}
                     placeholder="Ex: Ex-tabagista, nega etilismo. HF de neoplasia colorretal..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border disabled:opacity-60"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                   />
                 </div>
               </div>
@@ -466,44 +484,53 @@ export function ModalAdmissaoForm({ pacienteExistente, onSalvar, onClose }: Prop
           {secaoAtiva === "exames" && (
             <div className="space-y-4 animate-in fade-in duration-150">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Exame Físico Dirigido
-                </label>
+                <div className="h-7 flex items-center mb-1.5">
+                  <label htmlFor="admissao-modal-exame-fisico" className="text-xs font-semibold text-slate-300">
+                    Exame Físico Dirigido
+                  </label>
+                </div>
                 <textarea
+                  id="admissao-modal-exame-fisico"
                   rows={3}
                   disabled={isBloqueado}
                   value={exameFisico}
                   onChange={(e) => setExameFisico(e.target.value)}
                   placeholder="BEG, anictérico, abdome flácido, indolor, RHA presentes..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Exames Complementares (Laboratório e Imagem)
-                </label>
+                <div className="h-7 flex items-center mb-1.5">
+                  <label htmlFor="admissao-modal-exames-comp" className="text-xs font-semibold text-slate-300">
+                    Exames Complementares (Laboratório e Imagem)
+                  </label>
+                </div>
                 <textarea
+                  id="admissao-modal-exames-comp"
                   rows={3}
                   disabled={isBloqueado}
                   value={examesComplementares}
                   onChange={(e) => setExamesComplementares(e.target.value)}
                   placeholder="USG: Colelitíase calculosa. Hb: 13.5, Leucócitos: 6.800..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none disabled:opacity-60"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-cyan-300 mb-1.5">
-                  Conduta Cirúrgica Proposta
-                </label>
+                <div className="h-7 flex items-center mb-1.5">
+                  <label htmlFor="admissao-modal-conduta" className="text-xs font-semibold text-cyan-300">
+                    Conduta Cirúrgica Proposta
+                  </label>
+                </div>
                 <textarea
+                  id="admissao-modal-conduta"
                   rows={3}
                   disabled={isBloqueado}
                   value={conduta}
                   onChange={(e) => setConduta(e.target.value)}
                   placeholder="Programada colecistectomia VLP para amanhã. Jejum a partir das 00:00..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-cyan-950/20 border border-cyan-500/40 text-white text-sm focus:border-cyan-400 focus:outline-none disabled:opacity-60"
+                  className="w-full px-3.5 py-2 rounded-xl bg-cyan-950/20 border border-cyan-500/40 text-white text-sm focus:border-cyan-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border disabled:opacity-60"
                 />
               </div>
             </div>

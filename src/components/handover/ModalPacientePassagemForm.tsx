@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { PacientePassagem, PrescricaoAntibiotico } from "@/types/hospital";
 import { obterDataLocalHoje } from "@/lib/utils";
 import { useModalA11y } from "@/lib/useFocusTrap";
+import { useAppStore } from "@/store/useAppStore";
 import { X, Save, Plus, Trash2, Pill, Activity, Stethoscope } from "lucide-react";
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 
 export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose }: Props) {
   const modalRef = useModalA11y<HTMLDivElement>({ isOpen: true, onClose });
+  const { enfermarias } = useAppStore();
 
   // Fechamento via teclado ESC
   useEffect(() => {
@@ -124,7 +126,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
         className="w-full max-w-3xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden outline-none"
       >
         {/* CABEÇALHO */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0 px-1">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
               <Stethoscope className="w-5 h-5" aria-hidden="true" />
@@ -163,7 +165,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Ex: Carlos Eduardo de Oliveira"
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
 
@@ -182,7 +184,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 value={leito}
                 onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                 placeholder="Ex: 08"
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
 
@@ -196,11 +198,19 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 id="pass-form-enfermaria"
                 value={enfermaria}
                 onChange={(e) => setEnfermaria(e.target.value)}
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset cursor-pointer box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset cursor-pointer box-border"
               >
-                <option value="Cirurgia Geral 1">Cirurgia Geral 1</option>
-                <option value="Cirurgia Geral 2">Cirurgia Geral 2</option>
-                <option value="Enfermaria Especialidades">Enfermaria Especialidades</option>
+                <option value="">Sem enfermaria</option>
+                {enfermarias
+                  .filter((e) => e.trim().toLowerCase() !== "sem enfermaria")
+                  .map((enf) => (
+                    <option key={enf} value={enf}>
+                      {enf}
+                    </option>
+                  ))}
+                {enfermaria && !enfermarias.includes(enfermaria) && enfermaria.trim().toLowerCase() !== "sem enfermaria" && (
+                  <option value={enfermaria}>{enfermaria}</option>
+                )}
               </select>
             </div>
           </div>
@@ -217,7 +227,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 type="date"
                 value={dataNascimento}
                 onChange={(e) => setDataNascimento(e.target.value)}
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
 
@@ -233,7 +243,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 required
                 value={dataAdmissao}
                 onChange={(e) => setDataAdmissao(e.target.value)}
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
           </div>
@@ -251,7 +261,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
               value={hd}
               onChange={(e) => setHd(e.target.value)}
               placeholder="Ex: PO 3 Apendicectomia por apendicite complicada"
-              className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+              className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
             />
           </div>
 
@@ -273,7 +283,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                   value={fc}
                   onChange={(e) => setFc(e.target.value)}
                   placeholder="Ex: 78"
-                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
                 />
               </div>
               <div>
@@ -288,7 +298,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                   value={satO2}
                   onChange={(e) => setSatO2(e.target.value)}
                   placeholder="Ex: 98"
-                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
                 />
               </div>
               <div>
@@ -301,7 +311,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                   value={pa}
                   onChange={(e) => setPa(e.target.value)}
                   placeholder="Ex: 120/80"
-                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
                 />
               </div>
             </div>

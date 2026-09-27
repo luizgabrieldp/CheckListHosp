@@ -619,7 +619,7 @@ export function AltasView() {
                                     });
                                   }}
                                   placeholder="Ex: 15"
-                                  className="w-full h-9 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border"
+                                  className="w-full h-9 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border"
                                 />
                               </div>
 
@@ -652,7 +652,7 @@ export function AltasView() {
                                       onChange={(e) => setNomeNovaEnfPaciente(e.target.value)}
                                       placeholder="Nova enfermaria..."
                                       aria-label="Nome da nova enfermaria"
-                                      className="flex-1 h-9 px-3 py-1.5 rounded-lg border border-emerald-500 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border"
+                                      className="flex-1 h-9 px-3 py-1.5 rounded-lg border border-emerald-500 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border"
                                       onKeyDown={(e) => {
                                         if (e.key === "Enter") {
                                           handleSalvarNovaEnfermariaPaciente(e, paciente);
@@ -662,7 +662,7 @@ export function AltasView() {
                                     <button
                                       type="button"
                                       onClick={(e) => handleSalvarNovaEnfermariaPaciente(e, paciente)}
-                                      className="h-9 px-3.5 rounded-lg bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 shrink-0"
+                                      className="h-9 px-3.5 rounded-lg bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 box-border shrink-0"
                                     >
                                       OK
                                     </button>
@@ -670,7 +670,7 @@ export function AltasView() {
                                       type="button"
                                       onClick={() => setAdicionandoEnfPacienteId(null)}
                                       aria-label="Cancelar cadastro de enfermaria"
-                                      className="h-9 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 shrink-0"
+                                      className="h-9 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 box-border shrink-0"
                                     >
                                       <X className="w-4 h-4" aria-hidden="true" />
                                     </button>
@@ -685,7 +685,7 @@ export function AltasView() {
                                         updatedAt: new Date().toISOString(),
                                       });
                                     }}
-                                    className="w-full h-9 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset cursor-pointer box-border"
+                                    className="w-full h-9 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset cursor-pointer box-border"
                                   >
                                     <option value="">Sem enfermaria</option>
                                     {enfermarias
@@ -702,9 +702,11 @@ export function AltasView() {
 
                             {/* LINHA 2: TIPO DE CIRURGIA (PO) */}
                             <div>
-                              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                Tipo de Cirurgia (PO)
-                              </label>
+                              <div className="h-7 flex items-center mb-1">
+                                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                                  Tipo de Cirurgia (PO)
+                                </label>
+                              </div>
                               <input
                                 type="text"
                                 value={paciente.tipoCirurgia}
@@ -716,7 +718,7 @@ export function AltasView() {
                                   });
                                 }}
                                 placeholder="Ex: HIB+Hu"
-                                className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                className="w-full h-9 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border"
                               />
                             </div>
 
@@ -1147,7 +1149,7 @@ export function AltasView() {
             aria-labelledby="modal-novo-paciente-alta-title"
             className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] flex flex-col focus:outline-none"
           >
-            <div className="shrink-0 mb-3 flex items-start justify-between">
+            <div className="shrink-0 mb-3 flex items-start justify-between px-1">
               <div>
                 <h3 id="modal-novo-paciente-alta-title" className="text-sm font-bold text-slate-900 dark:text-white mb-1">
                   Novo Paciente de Alta / PO
@@ -1181,7 +1183,7 @@ export function AltasView() {
                   value={novoNome}
                   onChange={(e) => setNovoNome(e.target.value)}
                   placeholder="Ex: Renata Camila"
-                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border"
+                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border"
                 />
               </div>
 
@@ -1200,7 +1202,7 @@ export function AltasView() {
                     value={novoLeito}
                     onChange={(e) => setNovoLeito(e.target.value.replace(/\D/g, ""))}
                     placeholder="Ex: 15"
-                    className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border"
+                    className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border"
                   />
                 </div>
 
@@ -1231,7 +1233,7 @@ export function AltasView() {
                         onChange={(e) => setNomeNovaEnfModal(e.target.value)}
                         placeholder="Nome..."
                         aria-label="Nome da nova enfermaria"
-                        className="flex-1 min-h-[44px] h-11 px-3 py-2 rounded-xl border border-emerald-500 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border"
+                        className="flex-1 min-h-[44px] h-11 px-3 py-2 rounded-xl border border-emerald-500 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") handleSalvarNovaEnfermariaModal(e);
                         }}
@@ -1239,7 +1241,7 @@ export function AltasView() {
                       <button
                         type="button"
                         onClick={handleSalvarNovaEnfermariaModal}
-                        className="min-h-[44px] h-11 min-w-[44px] px-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold cursor-pointer transition-colors shrink-0 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                        className="min-h-[44px] h-11 min-w-[44px] px-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold cursor-pointer transition-colors shrink-0 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 box-border"
                       >
                         OK
                       </button>
@@ -1247,7 +1249,7 @@ export function AltasView() {
                         type="button"
                         onClick={() => setAdicionandoEnfModal(false)}
                         aria-label="Cancelar cadastro de enfermaria"
-                        className="min-h-[44px] h-11 min-w-[44px] p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 shrink-0"
+                        className="min-h-[44px] h-11 min-w-[44px] p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 box-border shrink-0"
                       >
                         <X className="w-4 h-4" aria-hidden="true" />
                       </button>
@@ -1257,7 +1259,7 @@ export function AltasView() {
                       id="novo-paciente-alta-enfermaria"
                       value={novaEnfermaria}
                       onChange={(e) => setNovaEnfermaria(e.target.value)}
-                      className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset cursor-pointer box-border"
+                      className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset cursor-pointer box-border"
                     >
                       <option value="">Sem enfermaria</option>
                       {enfermarias
@@ -1284,7 +1286,7 @@ export function AltasView() {
                   value={novoPO}
                   onChange={(e) => setNovoPO(e.target.value)}
                   placeholder="Ex: HIB+Hu"
-                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border"
+                  className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border"
                 />
               </div>
 

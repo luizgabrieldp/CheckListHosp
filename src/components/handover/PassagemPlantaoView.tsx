@@ -1010,7 +1010,7 @@ export function PassagemPlantaoView() {
                                       handleSalvarCampo(paciente, "nome", e.target.value)
                                     }
                                     placeholder="Nome completo do paciente..."
-                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
+                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
                                   />
                                 </div>
 
@@ -1035,7 +1035,7 @@ export function PassagemPlantaoView() {
                                       )
                                     }
                                     placeholder="Ex: 25"
-                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
+                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
                                   />
                                 </div>
 
@@ -1052,7 +1052,7 @@ export function PassagemPlantaoView() {
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "enfermaria", e.target.value)
                                     }
-                                    className="w-full h-9 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
+                                    className="w-full h-9 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
                                   >
                                     <option value="">Sem enfermaria</option>
                                     {enfermarias
@@ -1082,7 +1082,7 @@ export function PassagemPlantaoView() {
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "dataAdmissao", e.target.value)
                                     }
-                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
+                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
                                   />
                                 </div>
 
@@ -1105,7 +1105,7 @@ export function PassagemPlantaoView() {
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "dataNascimento", e.target.value)
                                     }
-                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset box-border focus:outline-none"
+                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
                                   />
                                 </div>
                               </div>
@@ -2087,7 +2087,7 @@ export function PassagemPlantaoView() {
             tabIndex={-1}
             className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 w-full max-w-sm shadow-xl space-y-4 max-h-[90vh] flex flex-col focus:outline-none"
           >
-            <div className="flex items-center justify-between shrink-0">
+            <div className="flex items-center justify-between shrink-0 px-1">
               <h4 id="modal-nova-enf-title" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                 <Building2 className="w-4 h-4 text-sky-600 dark:text-sky-400" aria-hidden="true" />
                 <span>Nova Enfermaria</span>
@@ -2116,7 +2116,7 @@ export function PassagemPlantaoView() {
                   onChange={(e) => setNovaEnfNome(e.target.value)}
                   placeholder="Ex: NEFRO, UTI, 5º ANDAR..."
                   autoFocus
-                  className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border text-xs font-medium"
+                  className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border text-xs font-medium"
                 />
               </div>
 
@@ -2124,14 +2124,14 @@ export function PassagemPlantaoView() {
                 <button
                   type="button"
                   onClick={() => setModalNovaEnfAberto(false)}
-                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 box-border"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={!novaEnfNome.trim()}
-                  className="w-full sm:w-auto min-h-[44px] px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                  className="w-full sm:w-auto min-h-[44px] px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 box-border"
                 >
                   Salvar
                 </button>

@@ -811,7 +811,7 @@ export function PermanenciaView() {
                       value={novoLeitoNumero}
                       onChange={(e) => setNovoLeitoNumero(e.target.value.replace(/\D/g, ""))}
                       placeholder="Ex: 08"
-                      className="w-full h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
+                      className="w-full h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border"
                     />
                   </div>
 
@@ -827,7 +827,7 @@ export function PermanenciaView() {
                       id="nova-enfermaria-pendencia"
                       value={novaEnfermaria}
                       onChange={(e) => setNovaEnfermaria(e.target.value)}
-                      className="w-full h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
+                      className="w-full h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border"
                     >
                       <option value="">Sem enfermaria</option>
                       {enfermarias
@@ -852,7 +852,7 @@ export function PermanenciaView() {
                       <select
                         value={responsavelSelecionadoCriacao}
                         onChange={(e) => setResponsavelSelecionadoCriacao(e.target.value)}
-                        className="flex-1 h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
+                        className="flex-1 h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border"
                       >
                         <option value="">Selecione um profissional</option>
                         {todosOsMembros.map((m, idx) => (
@@ -908,12 +908,16 @@ export function PermanenciaView() {
 
                   {/* PRIORIDADE */}
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Prioridade</label>
+                    <div className="h-7 flex items-center mb-1">
+                      <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                        Prioridade
+                      </label>
+                    </div>
                     <div className="grid grid-cols-2 gap-1">
                       <button
                         type="button"
                         onClick={() => setNovaPrioridade("Normal")}
-                        className={`min-h-[44px] py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center ${
+                        className={`h-11 min-h-[44px] box-border py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center ${
                           novaPrioridade === "Normal"
                             ? "bg-slate-800 dark:bg-slate-700 text-white border-slate-800 dark:border-slate-700"
                             : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -924,7 +928,7 @@ export function PermanenciaView() {
                       <button
                         type="button"
                         onClick={() => setNovaPrioridade("Urgente")}
-                        className={`min-h-[44px] py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-0.5 cursor-pointer ${
+                        className={`h-11 min-h-[44px] box-border py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-0.5 cursor-pointer ${
                           novaPrioridade === "Urgente"
                             ? "bg-rose-600 text-white border-rose-600 shadow-xs"
                             : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -1220,7 +1224,7 @@ export function PermanenciaView() {
                               handleAtualizarCampo(p, { leito: num });
                             }}
                             placeholder="Ex: 08"
-                            className="w-full h-10 min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
+                            className="w-full h-10 min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border"
                           />
                         </div>
 
@@ -1257,7 +1261,7 @@ export function PermanenciaView() {
                                   if (e.key === "Escape") setMostrandoNovaEnfId(null);
                                 }}
                                 placeholder="Nome da enfermaria..."
-                                className="flex-1 h-10 min-h-[40px] px-2 py-1 bg-white dark:bg-slate-800 border border-sky-400 dark:border-sky-600 text-slate-900 dark:text-slate-100 rounded-lg text-xs uppercase focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
+                                className="flex-1 h-10 min-h-[40px] px-2 py-1 bg-white dark:bg-slate-800 border border-sky-400 dark:border-sky-600 text-slate-900 dark:text-slate-100 rounded-lg text-xs uppercase focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border"
                               />
                               <button
                                 type="button"
@@ -1280,7 +1284,7 @@ export function PermanenciaView() {
                             <select
                               value={p.enfermaria || ""}
                               onChange={(e) => handleAtualizarCampo(p, { enfermaria: e.target.value })}
-                              className="w-full h-10 min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
+                              className="w-full h-10 min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border"
                             >
                               <option value="">Sem enfermaria</option>
                               {enfermarias
@@ -1311,7 +1315,7 @@ export function PermanenciaView() {
                                   [p.id]: e.target.value,
                                 }))
                               }
-                              className="flex-1 h-10 min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset box-border"
+                              className="flex-1 h-10 min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border"
                             >
                               <option value="">Selecione um profissional</option>
                               {todosOsMembros.map((m, idx) => (

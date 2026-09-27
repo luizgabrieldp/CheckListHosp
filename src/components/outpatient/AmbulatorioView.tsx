@@ -326,7 +326,7 @@ export function AmbulatorioView() {
             tabIndex={-1}
             className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col outline-none"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3 shrink-0">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3 shrink-0 px-1">
               <h4 id="modal-medico-title" className="text-base font-bold text-slate-900 dark:text-white">
                 {medicoEmEdicao ? "Editar Médico Ambulatorial" : "Cadastrar Médico no Ambulatório"}
               </h4>
@@ -354,7 +354,7 @@ export function AmbulatorioView() {
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Ex: Dr. Bernardo Silva"
-                  className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-colors"
+                  className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border transition-colors"
                 />
               </div>
 
@@ -371,7 +371,7 @@ export function AmbulatorioView() {
                     value={especialidade}
                     onChange={(e) => setEspecialidade(e.target.value)}
                     placeholder="Ex: Cirurgia Geral"
-                    className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-colors"
+                    className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border transition-colors"
                   />
                 </div>
 
@@ -387,7 +387,7 @@ export function AmbulatorioView() {
                     value={sala}
                     onChange={(e) => setSala(e.target.value)}
                     placeholder="Ex: Consultório 103"
-                    className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-colors"
+                    className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border transition-colors"
                   />
                 </div>
               </div>

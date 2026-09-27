@@ -168,7 +168,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
         className="w-full max-w-2xl rounded-2xl glass-card border border-cyan-500/40 p-5 md:p-7 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden focus:outline-none"
       >
         {/* CABEÇALHO */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800 px-1">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400">
               <Activity className="w-5 h-5" aria-hidden="true" />
@@ -210,7 +210,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={leito}
                 onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                 placeholder="Ex: 04"
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
 
@@ -224,7 +224,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 id="modal-alta-enfermaria"
                 value={enfermaria}
                 onChange={(e) => setEnfermaria(e.target.value)}
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset cursor-pointer box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset cursor-pointer box-border"
               >
                 <option value="">Sem enfermaria</option>
                 {enfermarias
@@ -250,22 +250,24 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={nomePaciente}
                 onChange={(e) => setNomePaciente(e.target.value)}
                 placeholder="Nome do paciente"
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="modal-alta-procedimento" className="block text-xs font-semibold text-slate-300 mb-1">
-              Procedimento / Cirurgia Realizada (PO)
-            </label>
+            <div className="h-7 flex items-center mb-1">
+              <label htmlFor="modal-alta-procedimento" className="text-xs font-semibold text-slate-300">
+                Procedimento / Cirurgia Realizada (PO)
+              </label>
+            </div>
             <input
               id="modal-alta-procedimento"
               type="text"
               value={tipoCirurgia}
               onChange={(e) => setTipoCirurgia(e.target.value)}
               placeholder="Ex: PO 1 Colecistectomia Videolaparoscópica"
-              className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+              className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
             />
           </div>
 
@@ -326,7 +328,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={fc}
                 onChange={(e) => setFc(e.target.value)}
                 placeholder="Ex: 78"
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
 
@@ -345,7 +347,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={satO2}
                 onChange={(e) => setSatO2(e.target.value)}
                 placeholder="Ex: 98"
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
 
@@ -361,7 +363,7 @@ export function ModalAltaForm({ altaExistente, onSalvar, onClose }: Props) {
                 value={pa}
                 onChange={(e) => setPa(e.target.value)}
                 placeholder="Ex: 120/80"
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset box-border"
+                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder:text-slate-500 placeholder:opacity-50 focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
           </div>

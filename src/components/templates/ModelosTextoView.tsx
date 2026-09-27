@@ -467,7 +467,7 @@ export function ModelosTextoView() {
             className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col outline-none"
           >
             {/* CABEÇALHO DO MODAL */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0 px-1">
               <h3 id="modal-modelo-title" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                 <span>{modeloEmEdicao ? "Editar Modelo de Texto" : "Criar Novo Modelo de Texto"}</span>
@@ -499,7 +499,7 @@ export function ModelosTextoView() {
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ex: BARIÁTRICA, COLELAP, Padrão..."
-                    className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-all"
+                    className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border transition-all"
                   />
                 </div>
 
@@ -527,7 +527,7 @@ export function ModelosTextoView() {
                         onChange={(e) => setNovaCatNome(e.target.value)}
                         aria-label="Nome da nova categoria"
                         placeholder="Nova categoria..."
-                        className="flex-1 h-11 min-h-[44px] px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border"
+                        className="flex-1 h-11 min-h-[44px] px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
@@ -548,7 +548,7 @@ export function ModelosTextoView() {
                       id="modelo-form-categoria"
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
-                      className="w-full h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-all cursor-pointer"
+                      className="w-full h-11 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border transition-all cursor-pointer"
                     >
                       {categoriasModelos.map((cat) => (
                         <option key={cat} value={cat}>
@@ -574,7 +574,7 @@ export function ModelosTextoView() {
                   value={conteudo}
                   onChange={(e) => setConteudo(e.target.value)}
                   placeholder="Escreva a anotação completa do modelo. As quebras de linha, recuos e espaços serão 100% preservados para receituários e prontuários..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-mono text-xs leading-relaxed focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset box-border transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-mono text-xs leading-relaxed focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset ring-inset box-border transition-all"
                 />
                 <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">
                   Preserva integralmente quebras de linhas e tabulações para copiar e colar diretamente no prontuário.
