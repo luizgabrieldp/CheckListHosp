@@ -463,16 +463,16 @@ export function MetricasLgpdView() {
           {/* INTERNOS */}
           {(equipe.doutorandos || []).length > 0 && (
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
                 INTERNOS
               </span>
               <div className="flex items-center gap-2 flex-wrap">
                 {equipe.doutorandos.map((nome, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50/70 border border-purple-200 text-purple-700 text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50/70 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 text-xs font-semibold shadow-2xs"
                   >
-                    <span className="w-2 h-2 rounded-full bg-purple-600" />
+                    <span className="w-2 h-2 rounded-full bg-purple-600 dark:bg-purple-400" />
                     <span>{nome}</span>
                   </span>
                 ))}
@@ -483,16 +483,16 @@ export function MetricasLgpdView() {
           {/* RESIDENTES */}
           {(equipe.residentes || []).length > 0 && (
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
                 RESIDENTES
               </span>
               <div className="flex items-center gap-2 flex-wrap">
                 {equipe.residentes.map((nome, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/70 border border-blue-200 text-blue-700 text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 text-xs font-semibold shadow-2xs"
                   >
-                    <span className="w-2 h-2 rounded-full bg-blue-600" />
+                    <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" />
                     <span>{nome}</span>
                   </span>
                 ))}
@@ -503,16 +503,16 @@ export function MetricasLgpdView() {
           {/* PRECEPTORES */}
           {(equipe.preceptores || []).length > 0 && (
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
                 PRECEPTORES
               </span>
               <div className="flex items-center gap-2 flex-wrap">
                 {equipe.preceptores.map((nome, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50/70 border border-emerald-200 text-emerald-700 text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50/70 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold shadow-2xs"
                   >
-                    <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400" />
                     <span>{nome}</span>
                   </span>
                 ))}
@@ -524,7 +524,7 @@ export function MetricasLgpdView() {
           {(!equipe.doutorandos?.length &&
             !equipe.residentes?.length &&
             !equipe.preceptores?.length) && (
-            <span className="text-xs text-slate-400 italic block py-1">
+            <span className="text-xs text-slate-400 dark:text-slate-400 italic block py-1">
               Nenhum membro cadastrado na equipe do dia. Configure na aba Permanência.
             </span>
           )}

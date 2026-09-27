@@ -788,8 +788,8 @@ export function PassagemPlantaoView() {
                           <div className="flex items-center gap-2 flex-wrap text-xs pt-0.5">
                             {/* ALERTA DE ALERGIA */}
                             {paciente.temAlergia && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[11px]">
-                                <AlertTriangle className="w-3 h-3 text-amber-700" />
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 font-bold text-[11px]">
+                                <AlertTriangle className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                                 <span>
                                   Alergia{paciente.descricaoAlergia ? `: ${paciente.descricaoAlergia}` : ""}
                                 </span>
@@ -798,8 +798,8 @@ export function PassagemPlantaoView() {
 
                             {/* PRECAUÇÃO DE CONTATO */}
                             {paciente.precaucaoContato && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-900 border border-rose-300 font-bold text-[11px]">
-                                <ShieldAlert className="w-3 h-3 text-rose-700" />
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-900 dark:text-rose-200 border border-rose-300 dark:border-rose-800 font-bold text-[11px]">
+                                <ShieldAlert className="w-3 h-3 text-rose-700 dark:text-rose-400" />
                                 <span>Precaução de Contato</span>
                               </span>
                             )}
@@ -1061,14 +1061,14 @@ export function PassagemPlantaoView() {
                             </div>
 
                             {/* BLOCO 2: ALERTAS MÉDICOS E MÚLTIPLAS CIRURGIAS / REOPERAÇÕES */}
-                            <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-3">
+                            <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
                               {/* TOGGLES DE ALERGIA E PRECAUÇÃO */}
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {/* ALERGIA */}
-                                <div className="p-2.5 rounded-lg bg-amber-50/50 border border-amber-200 space-y-2">
+                                <div className="p-2.5 rounded-lg bg-amber-50/50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 space-y-2">
                                   <label className="flex items-center justify-between cursor-pointer">
-                                    <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                                    <span className="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                                       <span>Paciente com Alergia</span>
                                     </span>
                                     <input
@@ -1077,7 +1077,7 @@ export function PassagemPlantaoView() {
                                       onChange={(e) =>
                                         handleSalvarCampo(paciente, "temAlergia", e.target.checked)
                                       }
-                                      className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+                                      className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer dark:bg-slate-800 dark:border-slate-600"
                                     />
                                   </label>
                                   {paciente.temAlergia && (
@@ -1092,15 +1092,15 @@ export function PassagemPlantaoView() {
                                         )
                                       }
                                       placeholder="Ex: Dipirona, Penicilina, Iodo..."
-                                      className="w-full px-2.5 py-1 rounded bg-white border border-amber-300 text-slate-800 text-xs focus:outline-none"
+                                      className="w-full px-2.5 py-1 rounded bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 text-slate-800 dark:text-white text-xs focus:outline-none"
                                     />
                                   )}
                                 </div>
 
                                 {/* PRECAUÇÃO DE CONTATO */}
-                                <div className="p-2.5 rounded-lg bg-rose-50/50 border border-rose-200 flex items-center justify-between">
-                                  <span className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
-                                    <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                                <div className="p-2.5 rounded-lg bg-rose-50/50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/70 flex items-center justify-between">
+                                  <span className="text-xs font-bold text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
+                                    <ShieldAlert className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                                     <span>Precaução de Contato</span>
                                   </span>
                                   <input
@@ -1113,7 +1113,7 @@ export function PassagemPlantaoView() {
                                         e.target.checked
                                       )
                                     }
-                                    className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer"
+                                    className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer dark:bg-slate-800 dark:border-slate-600"
                                   />
                                 </div>
                               </div>
@@ -1253,10 +1253,10 @@ export function PassagemPlantaoView() {
                             {/* ──────────────────────────────────────────
                                 BLOCO 3: PILHA VERTICAL DE TEXTOS CLÍNICOS E SINAIS VITAIS
                             ─────────────────────────────────────────── */}
-                            <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-3.5">
+                            <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3.5">
                               {/* 1. MOTIVO DO INTERNAMENTO */}
                               <div>
-                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                   Motivo do Internamento
                                 </label>
                                 <AutoResizeTextarea
@@ -1270,13 +1270,13 @@ export function PassagemPlantaoView() {
                                     )
                                   }
                                   placeholder="PO colecistectomia, abdome agudo obstrutivo..."
-                                  className="text-slate-900 font-medium"
+                                  className="text-slate-900 dark:text-slate-100 font-medium"
                                 />
                               </div>
 
                               {/* 2. HIPÓTESE DIAGNÓSTICA (HD) */}
                               <div>
-                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                   Hipótese Diagnóstica (HD)
                                 </label>
                                 <AutoResizeTextarea
@@ -1286,12 +1286,13 @@ export function PassagemPlantaoView() {
                                     handleSalvarCampo(paciente, "hd", e.target.value)
                                   }
                                   placeholder="colelitíase, apendicite aguda perfurada..."
+                                  className="text-slate-900 dark:text-slate-100"
                                 />
                               </div>
 
                               {/* 3. HISTÓRIA DA DOENÇA ATUAL (HDA) */}
                               <div>
-                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                   História da Doença Atual (HDA)
                                 </label>
                                 <AutoResizeTextarea
@@ -1301,12 +1302,13 @@ export function PassagemPlantaoView() {
                                     handleSalvarCampo(paciente, "hda", e.target.value)
                                   }
                                   placeholder="dor abdominal de forte intensidade associada a vômitos..."
+                                  className="text-slate-900 dark:text-slate-100"
                                 />
                               </div>
 
                               {/* 4. EVOLUÇÃO */}
                               <div>
-                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                   Evolução
                                 </label>
                                 <AutoResizeTextarea
@@ -1316,14 +1318,15 @@ export function PassagemPlantaoView() {
                                     handleSalvarCampo(paciente, "evolucao", e.target.value)
                                   }
                                   placeholder="Descreva a evolução..."
+                                  className="text-slate-900 dark:text-slate-100"
                                 />
                               </div>
 
                               {/* 5. SINAIS VITAIS (EXAME FÍSICO) - POSICIONADO LOGO ABAIXO DA EVOLUÇÃO */}
-                              <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                              <div className="p-3 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                                 <div className="flex items-center justify-between gap-2 mb-2">
-                                  <h5 className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                                    <Activity className="w-3.5 h-3.5 text-sky-600" />
+                                  <h5 className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                    <Activity className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
                                     <span>Sinais Vitais (Exame Físico)</span>
                                   </h5>
 

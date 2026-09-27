@@ -3126,6 +3126,73 @@ assert(altasContent.includes("dark:bg-slate-800/95"), "AltasView possui acordeã
 assert(metricasContent.includes("dark:bg-slate-800"), "MetricasLgpdView possui cards e gráfico de tendência com suporte dark");
 assert(passagemContent.includes("dark:bg-slate-800"), "PassagemPlantaoView possui cards de resumo e leitos com suporte dark");
 
+// 40. TESTES DE ACESSIBILIDADE, NAVEGABILIDADE E ALTO CONTRASTE DARK MODE
+console.log("\n--- 40. Acessibilidade, Navegabilidade e Alto Contraste Dark Mode (Ambulatório, Modelos, Passagem, Permanência, Altas, Métricas) ---");
+
+// Teste 40.1: Verificação de contraste e tokens universais em src/app/globals.css
+assert(globalsContent.includes(".dark .text-slate-400") && globalsContent.includes("#94a3b8 !important"), "globals.css define text-slate-400 para #94a3b8 (contraste > 5:1 WCAG AA no dark mode)");
+assert(globalsContent.includes(".dark .text-amber-900") && globalsContent.includes("#fde68a !important"), "globals.css mapeia text-amber-900 para tom luminoso no escuro");
+assert(globalsContent.includes(".dark .text-rose-900") && globalsContent.includes("#fecdd3 !important"), "globals.css mapeia text-rose-900 para tom luminoso no escuro");
+assert(globalsContent.includes(".dark .text-sky-950") && globalsContent.includes("#bae6fd !important"), "globals.css mapeia text-sky-950 para tom luminoso no escuro");
+assert(globalsContent.includes(".dark .text-teal-950") && globalsContent.includes("#5eead4 !important"), "globals.css mapeia text-teal-950 para tom luminoso no escuro");
+assert(globalsContent.includes(".dark .text-purple-700") && globalsContent.includes("#d8b4fe !important"), "globals.css mapeia text-purple-700 para tom luminoso no escuro");
+assert(globalsContent.includes(":focus-visible"), "globals.css possui estilização global de foco acessível :focus-visible");
+
+// Teste 40.2: Verificação do Ambulatório (AmbulatorioView.tsx)
+const ambulatorioPath = path.join(process.cwd(), "src", "components", "outpatient", "AmbulatorioView.tsx");
+assert(fs.existsSync(ambulatorioPath), "Arquivo AmbulatorioView.tsx existe");
+const ambulatorioContent = fs.readFileSync(ambulatorioPath, "utf-8");
+assert(ambulatorioContent.includes("dark:bg-slate-900"), "AmbulatorioView possui containers principais adaptados para dark mode");
+assert(ambulatorioContent.includes("dark:text-slate-100"), "AmbulatorioView possui tipografia de alto contraste para nomes de médicos");
+assert(ambulatorioContent.includes("dark:text-slate-200"), "AmbulatorioView possui cabeçalhos de dia da semana legíveis no dark mode");
+assert(ambulatorioContent.includes("dark:border-slate-700"), "AmbulatorioView possui bordas bem delineadas no dark mode");
+
+// Teste 40.3: Verificação de Modelos de Texto (ModelosTextoView.tsx)
+const modelosPath = path.join(process.cwd(), "src", "components", "templates", "ModelosTextoView.tsx");
+assert(fs.existsSync(modelosPath), "Arquivo ModelosTextoView.tsx existe");
+const modelosContent = fs.readFileSync(modelosPath, "utf-8");
+assert(modelosContent.includes("dark:bg-slate-950"), "ModelosTextoView possui caixa de pré-visualização de texto dark:bg-slate-950");
+assert(modelosContent.includes("dark:border-slate-800"), "ModelosTextoView possui borda de pré-visualização dark:border-slate-800");
+assert(modelosContent.includes("dark:text-slate-100"), "ModelosTextoView possui texto de pré-visualização luminoso dark:text-slate-100");
+
+// Teste 40.4: Verificação de Passagem de Plantão e Textareas Clínicas (PassagemPlantaoView.tsx & AutoResizeTextarea.tsx & ControlePesoImc.tsx)
+const autoResizePath = path.join(process.cwd(), "src", "components", "ui", "AutoResizeTextarea.tsx");
+assert(fs.existsSync(autoResizePath), "Arquivo AutoResizeTextarea.tsx existe");
+const autoResizeContent = fs.readFileSync(autoResizePath, "utf-8");
+assert(autoResizeContent.includes("dark:bg-slate-950"), "AutoResizeTextarea possui fundo escuro nítido dark:bg-slate-950");
+assert(autoResizeContent.includes("dark:border-slate-800"), "AutoResizeTextarea possui borda dark:border-slate-800");
+assert(autoResizeContent.includes("dark:text-slate-100"), "AutoResizeTextarea possui tipografia luminosa dark:text-slate-100");
+
+const controlePesoPath = path.join(process.cwd(), "src", "components", "handover", "ControlePesoImc.tsx");
+assert(fs.existsSync(controlePesoPath), "Arquivo ControlePesoImc.tsx existe");
+const controlePesoContent = fs.readFileSync(controlePesoPath, "utf-8");
+assert(controlePesoContent.includes("dark:bg-slate-900"), "ControlePesoImc possui cards com suporte a dark mode");
+assert(controlePesoContent.includes("dark:fill-slate-200"), "ControlePesoImc possui rótulos de gráfico SVG visíveis no escuro");
+assert(controlePesoContent.includes("dark:text-teal-200"), "ControlePesoImc possui abas de gráfico contrastantes no escuro");
+
+// Teste 40.5: Verificação da Permanência e Round Cirúrgico (PermanenciaView.tsx)
+const permanenciaPath = path.join(process.cwd(), "src", "components", "permanence", "PermanenciaView.tsx");
+assert(fs.existsSync(permanenciaPath), "Arquivo PermanenciaView.tsx existe");
+const permanenciaContent = fs.readFileSync(permanenciaPath, "utf-8");
+assert(permanenciaContent.includes("dark:text-sky-200"), "PermanenciaView possui chips de residentes com texto luminoso no dark mode");
+assert(permanenciaContent.includes("dark:text-teal-200"), "PermanenciaView possui chips de internos com texto luminoso no dark mode");
+assert(permanenciaContent.includes("dark:bg-slate-800"), "PermanenciaView possui chips de profissionais com fundo slate-800 no escuro");
+assert(permanenciaContent.includes("dark:bg-slate-900"), "PermanenciaView possui formulário de criação rápida e lista com suporte dark");
+
+// Teste 40.6: Verificação de Altas (AltasView.tsx)
+assert(altasContent.includes("dark:text-slate-300"), "AltasView possui subtítulo do paciente com excelente contraste no escuro");
+assert(altasContent.includes("dark:text-emerald-400"), "AltasView possui toggles fisiológicos 'Sim' com alto contraste");
+assert(altasContent.includes("dark:border-slate-700"), "AltasView possui bordas bem contrastadas nos acordeões");
+assert(altasContent.includes("dark:bg-slate-900"), "AltasView possui modal de novo paciente com dark mode completo");
+
+// Teste 40.7: Verificação da Equipe do Dia nas Métricas LGPD (MetricasLgpdView.tsx)
+assert(metricasContent.includes("dark:bg-purple-950/50"), "MetricasLgpdView possui chip de internos da equipe do dia adaptado ao dark mode");
+assert(metricasContent.includes("dark:text-purple-300"), "MetricasLgpdView possui texto luminoso de internos no dark mode");
+assert(metricasContent.includes("dark:bg-blue-950/50"), "MetricasLgpdView possui chip de residentes da equipe do dia adaptado ao dark mode");
+assert(metricasContent.includes("dark:text-blue-300"), "MetricasLgpdView possui texto luminoso de residentes no dark mode");
+assert(metricasContent.includes("dark:bg-emerald-950/50"), "MetricasLgpdView possui chip de preceptores da equipe do dia adaptado ao dark mode");
+assert(metricasContent.includes("dark:text-emerald-300"), "MetricasLgpdView possui texto luminoso de preceptores no dark mode");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
