@@ -205,7 +205,7 @@ export function ModelosTextoView() {
             <select
               value={categoriaSelecionada}
               onChange={(e) => setCategoriaSelecionada(e.target.value)}
-              className="min-h-[40px] w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all cursor-pointer"
+              className="min-h-[44px] w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all cursor-pointer"
             >
               <option value="TODAS">Todas as Categorias</option>
               {categoriasModelos.map((cat) => (
@@ -221,7 +221,7 @@ export function ModelosTextoView() {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => setCategoriaSelecionada("TODAS")}
-            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
+            className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
               categoriaSelecionada === "TODAS"
                 ? "bg-emerald-600 text-white font-bold shadow-xs"
                 : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -236,7 +236,7 @@ export function ModelosTextoView() {
               <button
                 key={cat}
                 onClick={() => setCategoriaSelecionada(cat)}
-                className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
                   isAtiva
                     ? "bg-emerald-600 text-white font-bold shadow-xs"
                     : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -273,7 +273,7 @@ export function ModelosTextoView() {
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
                   {nomeCat}
                 </h3>
-                <span className="text-[11px] font-bold text-slate-400 dark:text-slate-400">
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300">
                   ({listaModelos.length})
                 </span>
               </div>
@@ -307,7 +307,8 @@ export function ModelosTextoView() {
                           <button
                             type="button"
                             onClick={() => toggleExpandido(m.id)}
-                            className={`min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            aria-label={isAberto ? `Ocultar conteúdo de ${m.titulo}` : `Visualizar conteúdo de ${m.titulo}`}
+                            className={`min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl transition-colors cursor-pointer ${
                               isAberto
                                 ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
                                 : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -325,7 +326,8 @@ export function ModelosTextoView() {
                           <button
                             type="button"
                             onClick={() => handleCopiar(m.id, m.conteudo)}
-                            className={`min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            aria-label={`Copiar texto de ${m.titulo}`}
+                            className={`min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl transition-colors cursor-pointer ${
                               isCopiado
                                 ? "bg-emerald-500 text-white font-bold shadow-xs"
                                 : "text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
@@ -343,7 +345,8 @@ export function ModelosTextoView() {
                           <button
                             type="button"
                             onClick={() => abrirModal(m)}
-                            className="min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer"
+                            aria-label={`Editar modelo ${m.titulo}`}
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer"
                             title="Editar modelo"
                           >
                             <Edit3 className="w-4 h-4" />
@@ -357,7 +360,8 @@ export function ModelosTextoView() {
                                 removerModelo(m.id);
                               }
                             }}
-                            className="min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                            aria-label={`Excluir modelo ${m.titulo}`}
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                             title="Excluir modelo"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -396,7 +400,7 @@ export function ModelosTextoView() {
                           </div>
 
                           {/* TEXTO FORMATADO PRESERVANDO WHITE-SPACE E RECUOS */}
-                          <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-100 font-sans leading-relaxed whitespace-pre-wrap select-text shadow-2xs">
+                          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-100 font-sans leading-relaxed whitespace-pre-wrap select-text shadow-2xs">
                             {m.conteudo}
                           </div>
                         </div>
@@ -447,7 +451,7 @@ export function ModelosTextoView() {
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ex: BARIÁTRICA, COLELAP, Padrão..."
-                    className="w-full h-[42px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all"
+                    className="w-full min-h-[44px] h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all"
                   />
                 </div>
 
@@ -467,7 +471,7 @@ export function ModelosTextoView() {
                   </div>
 
                   {criandoNovaCat ? (
-                    <div className="flex items-center gap-1.5 h-[42px]">
+                    <div className="flex items-center gap-1.5 min-h-[44px] h-[44px]">
                       <input
                         type="text"
                         autoFocus
@@ -494,7 +498,7 @@ export function ModelosTextoView() {
                     <select
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
-                      className="w-full h-[42px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all cursor-pointer"
+                      className="w-full min-h-[44px] h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all cursor-pointer"
                     >
                       {categoriasModelos.map((cat) => (
                         <option key={cat} value={cat}>
@@ -519,7 +523,7 @@ export function ModelosTextoView() {
                   placeholder="Escreva a anotação completa do modelo. As quebras de linha, recuos e espaços serão 100% preservados para receituários e prontuários..."
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-mono text-xs leading-relaxed focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none transition-all"
                 />
-                <p className="text-[11px] text-slate-400 dark:text-slate-400 mt-1">
+                <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">
                   Preserva integralmente quebras de linhas e tabulações para copiar e colar diretamente no prontuário.
                 </p>
               </div>

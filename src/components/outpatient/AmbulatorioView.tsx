@@ -168,7 +168,7 @@ export function AmbulatorioView() {
                       >
                         <div className="space-y-1.5">
                           {medicosOrdenados.length === 0 ? (
-                            <span className="text-[11px] text-slate-400 dark:text-slate-400 italic block py-6 text-center">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-300 italic block py-6 text-center font-medium">
                               Sem ambulatório
                             </span>
                           ) : (
@@ -187,7 +187,8 @@ export function AmbulatorioView() {
                                   <button
                                     onClick={() => abrirModal(m)}
                                     title="Editar médico"
-                                    className="opacity-70 group-hover:opacity-100 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-opacity w-6 h-6 shrink-0 flex items-center justify-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
+                                    aria-label={`Editar ${m.nome}`}
+                                    className="opacity-70 group-hover:opacity-100 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-opacity min-h-[36px] min-w-[36px] -mr-1 shrink-0 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
                                   </button>
@@ -198,8 +199,8 @@ export function AmbulatorioView() {
                                   </p>
                                 )}
                                 {m.sala && (
-                                  <p className="text-[9px] text-slate-500 dark:text-slate-400 whitespace-nowrap truncate mt-0.5 flex items-center gap-1">
-                                    <Building2 className="w-2.5 h-2.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                                  <p className="text-[9px] text-slate-500 dark:text-slate-300 font-medium whitespace-nowrap truncate mt-0.5 flex items-center gap-1">
+                                    <Building2 className="w-2.5 h-2.5 text-slate-400 dark:text-slate-400 shrink-0" />
                                     <span>{m.sala}</span>
                                   </p>
                                 )}
@@ -208,7 +209,7 @@ export function AmbulatorioView() {
                           )}
                         </div>
 
-                        <span className="text-[9px] font-medium text-slate-400 dark:text-slate-400 text-right mt-2 block">
+                        <span className="text-[9px] font-medium text-slate-500 dark:text-slate-300 text-right mt-2 block">
                           {medicosOrdenados.length} médico{medicosOrdenados.length !== 1 ? "s" : ""}
                         </span>
                       </div>
@@ -233,7 +234,7 @@ export function AmbulatorioView() {
         </div>
 
         {medicosCadastradosOrdenados.length === 0 ? (
-          <p className="text-xs text-slate-400 dark:text-slate-400 italic py-4 text-center">
+          <p className="text-xs text-slate-500 dark:text-slate-300 italic py-4 text-center font-medium">
             Nenhum médico cadastrado no ambulatório até o momento.
           </p>
         ) : (
@@ -246,7 +247,7 @@ export function AmbulatorioView() {
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{m.nome}</h4>
                   {(m.especialidade || m.sala) && (
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-300 font-medium block mt-0.5">
                       {[m.especialidade, m.sala].filter(Boolean).join(" • ")}
                     </span>
                   )}
@@ -262,7 +263,7 @@ export function AmbulatorioView() {
                         </span>
                       ))
                     ) : (
-                      <span className="text-[10px] text-slate-400 dark:text-slate-400 italic">Sem turno escalado</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-300 italic font-medium">Sem turno escalado</span>
                     )}
                   </div>
                 </div>
@@ -271,9 +272,10 @@ export function AmbulatorioView() {
                   <button
                     onClick={() => abrirModal(m)}
                     title="Editar médico"
-                    className="min-h-[38px] min-w-[38px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700/60 transition-colors cursor-pointer"
+                    aria-label={`Editar ${m.nome}`}
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700/60 transition-colors cursor-pointer"
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
+                    <Edit3 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => {
@@ -282,9 +284,10 @@ export function AmbulatorioView() {
                       }
                     }}
                     title="Excluir médico"
-                    className="min-h-[38px] min-w-[38px] flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                    aria-label={`Excluir ${m.nome}`}
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -337,7 +340,7 @@ export function AmbulatorioView() {
                     value={especialidade}
                     onChange={(e) => setEspecialidade(e.target.value)}
                     placeholder="Ex: Cirurgia Geral"
-                    className="w-full h-[42px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    className="w-full min-h-[44px] h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
                   />
                 </div>
 
@@ -352,7 +355,7 @@ export function AmbulatorioView() {
                     value={sala}
                     onChange={(e) => setSala(e.target.value)}
                     placeholder="Ex: Consultório 103"
-                    className="w-full h-[42px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    className="w-full min-h-[44px] h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
                   />
                 </div>
               </div>
@@ -379,7 +382,7 @@ export function AmbulatorioView() {
                               type="button"
                               key={turno}
                               onClick={() => toggleHorario(dia, turno)}
-                              className={`min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
+                              className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
                                 selecionado
                                   ? "bg-emerald-600 text-white font-bold shadow-xs"
                                   : "bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300/80 dark:hover:bg-slate-600"

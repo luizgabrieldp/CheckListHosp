@@ -470,7 +470,7 @@ export function MetricasLgpdView() {
                 {equipe.doutorandos.map((nome, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50/70 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50/70 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-700/80 text-purple-700 dark:text-purple-300 text-xs font-semibold shadow-2xs"
                   >
                     <span className="w-2 h-2 rounded-full bg-purple-600 dark:bg-purple-400" />
                     <span>{nome}</span>
@@ -490,7 +490,7 @@ export function MetricasLgpdView() {
                 {equipe.residentes.map((nome, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-700/80 text-blue-700 dark:text-blue-300 text-xs font-semibold shadow-2xs"
                   >
                     <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" />
                     <span>{nome}</span>
@@ -510,7 +510,7 @@ export function MetricasLgpdView() {
                 {equipe.preceptores.map((nome, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50/70 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50/70 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-700/80 text-emerald-700 dark:text-emerald-300 text-xs font-semibold shadow-2xs"
                   >
                     <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400" />
                     <span>{nome}</span>
@@ -524,7 +524,7 @@ export function MetricasLgpdView() {
           {(!equipe.doutorandos?.length &&
             !equipe.residentes?.length &&
             !equipe.preceptores?.length) && (
-            <span className="text-xs text-slate-400 dark:text-slate-400 italic block py-1">
+            <span className="text-xs text-slate-500 dark:text-slate-300 italic block py-1">
               Nenhum membro cadastrado na equipe do dia. Configure na aba Permanência.
             </span>
           )}
@@ -669,15 +669,15 @@ export function MetricasLgpdView() {
 
           {/* LEGENDA DAS CURVAS */}
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap text-xs">
-            <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
               <span className="w-2.5 h-2.5 rounded-full bg-[#0d9488]" />
               <span>Admissões</span>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
               <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1]" />
               <span>Altas</span>
             </div>
-            <div className="flex items-center gap-1.5 text-rose-600 font-medium">
+            <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-medium">
               <span className="w-3.5 h-1 border-t-2 border-dashed border-[#f43f5e]" />
               <span>
                 Cirurgias canceladas{totalCanceladasPeriodo > 0 ? ` (${totalCanceladasPeriodo})` : ""}
@@ -702,7 +702,7 @@ export function MetricasLgpdView() {
                 y1={paddingTop}
                 x2={svgWidth - paddingRight}
                 y2={paddingTop}
-                stroke="#f1f5f9"
+                className="stroke-slate-100 dark:stroke-slate-800"
                 strokeDasharray="4 4"
                 strokeWidth="1"
               />
@@ -711,7 +711,7 @@ export function MetricasLgpdView() {
                 y1={paddingTop + chartHeight / 2}
                 x2={svgWidth - paddingRight}
                 y2={paddingTop + chartHeight / 2}
-                stroke="#f1f5f9"
+                className="stroke-slate-100 dark:stroke-slate-800"
                 strokeDasharray="4 4"
                 strokeWidth="1"
               />
@@ -720,7 +720,7 @@ export function MetricasLgpdView() {
                 y1={paddingTop + chartHeight}
                 x2={svgWidth - paddingRight}
                 y2={paddingTop + chartHeight}
-                stroke="#e2e8f0"
+                className="stroke-slate-200 dark:stroke-slate-700"
                 strokeWidth="1"
               />
 

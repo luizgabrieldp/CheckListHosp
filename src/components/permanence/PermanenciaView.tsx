@@ -518,17 +518,31 @@ export function PermanenciaView() {
                   return (
                     <span
                       key={idx}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Editar residente ${membro}`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setMembroEditando({ categoria: "residentes", index: idx, nome: membro });
+                        }
+                      }}
                       onClick={() =>
                         setMembroEditando({ categoria: "residentes", index: idx, nome: membro })
                       }
                       title="Clique para editar o nome"
-                      className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700/80 text-sky-950 dark:text-sky-200 text-xs font-semibold shadow-xs hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/40 dark:hover:bg-sky-950/40 transition-all cursor-pointer"
+                      className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700/80 text-sky-950 dark:text-sky-200 text-xs font-semibold shadow-xs hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/40 dark:hover:bg-sky-950/40 transition-all cursor-pointer focus-visible:outline-sky-500"
                     >
                       <span>{membro}</span>
                       <Pencil className="w-2.5 h-2.5 text-slate-400 dark:text-slate-400 group-hover:text-sky-500 dark:group-hover:text-sky-300 transition-colors" />
                       <button
-                        onClick={(e) => handleRemoverMembro("residentes", idx, e)}
-                        className="text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoverMembro("residentes", idx, e);
+                        }}
+                        aria-label={`Remover residente ${membro}`}
+                        className="p-1 -mr-1 text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                         title="Remover residente"
                       >
                         <X className="w-3 h-3" />
@@ -538,7 +552,7 @@ export function PermanenciaView() {
                 })}
                 {(!equipe.residentes || equipe.residentes.length === 0) &&
                   categoriaAdicionando !== "residentes" && (
-                    <span className="text-xs text-slate-400 dark:text-slate-400 italic">Nenhum residente cadastrado</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-300 italic">Nenhum residente cadastrado</span>
                   )}
               </div>
             </div>
@@ -646,17 +660,31 @@ export function PermanenciaView() {
                   return (
                     <span
                       key={idx}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Editar interno ${membro}`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setMembroEditando({ categoria: "doutorandos", index: idx, nome: membro });
+                        }
+                      }}
                       onClick={() =>
                         setMembroEditando({ categoria: "doutorandos", index: idx, nome: membro })
                       }
                       title="Clique para editar o nome"
-                      className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-700/80 text-teal-950 dark:text-teal-200 text-xs font-semibold shadow-xs hover:border-teal-300 dark:hover:border-teal-600 hover:bg-teal-50/40 dark:hover:bg-teal-950/40 transition-all cursor-pointer"
+                      className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-700/80 text-teal-950 dark:text-teal-200 text-xs font-semibold shadow-xs hover:border-teal-300 dark:hover:border-teal-600 hover:bg-teal-50/40 dark:hover:bg-teal-950/40 transition-all cursor-pointer focus-visible:outline-teal-500"
                     >
                       <span>{membro}</span>
                       <Pencil className="w-2.5 h-2.5 text-slate-400 dark:text-slate-400 group-hover:text-teal-500 dark:group-hover:text-teal-300 transition-colors" />
                       <button
-                        onClick={(e) => handleRemoverMembro("doutorandos", idx, e)}
-                        className="text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoverMembro("doutorandos", idx, e);
+                        }}
+                        aria-label={`Remover interno ${membro}`}
+                        className="p-1 -mr-1 text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                         title="Remover interno"
                       >
                         <X className="w-3 h-3" />
@@ -666,7 +694,7 @@ export function PermanenciaView() {
                 })}
                 {(!equipe.doutorandos || equipe.doutorandos.length === 0) &&
                   categoriaAdicionando !== "doutorandos" && (
-                    <span className="text-xs text-slate-400 dark:text-slate-400 italic">Nenhum interno cadastrado</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-300 italic">Nenhum interno cadastrado</span>
                   )}
               </div>
             </div>
@@ -756,7 +784,7 @@ export function PermanenciaView() {
                       value={novoLeitoNumero}
                       onChange={(e) => setNovoLeitoNumero(e.target.value.replace(/\D/g, ""))}
                       placeholder="Ex: 08"
-                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none"
+                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none"
                     />
                   </div>
 
@@ -769,7 +797,7 @@ export function PermanenciaView() {
                     <select
                       value={novaEnfermaria}
                       onChange={(e) => setNovaEnfermaria(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none"
+                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none"
                     >
                       <option value="">Sem enfermaria</option>
                       {enfermarias
@@ -813,6 +841,7 @@ export function PermanenciaView() {
                           }
                         }}
                         disabled={!responsavelSelecionadoCriacao}
+                        aria-label="Adicionar responsável à pendência"
                         className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-sky-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-700 cursor-pointer shrink-0"
                         title="Adicionar responsável"
                       >
@@ -834,6 +863,7 @@ export function PermanenciaView() {
                               onClick={() =>
                                 setNovosResponsaveis(novosResponsaveis.filter((r) => r !== resp))
                               }
+                              aria-label={`Remover responsável ${resp}`}
                               className="p-1 -mr-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -851,7 +881,7 @@ export function PermanenciaView() {
                       <button
                         type="button"
                         onClick={() => setNovaPrioridade("Normal")}
-                        className={`py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                        className={`min-h-[44px] py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center ${
                           novaPrioridade === "Normal"
                             ? "bg-slate-800 dark:bg-slate-700 text-white border-slate-800 dark:border-slate-700"
                             : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -862,7 +892,7 @@ export function PermanenciaView() {
                       <button
                         type="button"
                         onClick={() => setNovaPrioridade("Urgente")}
-                        className={`py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center justify-center gap-0.5 cursor-pointer ${
+                        className={`min-h-[44px] py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-0.5 cursor-pointer ${
                           novaPrioridade === "Urgente"
                             ? "bg-rose-600 text-white border-rose-600 shadow-xs"
                             : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -1027,7 +1057,7 @@ export function PermanenciaView() {
                               </span>
                             ))
                           ) : (
-                            <span className="text-xs text-slate-400 dark:text-slate-400 italic">
+                            <span className="text-xs text-slate-500 dark:text-slate-300 font-medium italic">
                               Sem responsável atribuído
                             </span>
                           )}
@@ -1037,9 +1067,11 @@ export function PermanenciaView() {
 
                     {/* AÇÕES DA LINHA: BADGE DE STATUS + SETA SANFONA */}
                     <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                      <span
+                      <button
+                        type="button"
                         onClick={(e) => handleAvancarStatus(p, e)}
-                        className={`min-h-[36px] flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                        aria-label={`Alterar status da pendência "${p.titulo}", atual: ${p.status}`}
+                        className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center ${
                           p.status === "Feito"
                             ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
                             : p.status === "Em Realização"
@@ -1048,7 +1080,7 @@ export function PermanenciaView() {
                         }`}
                       >
                         {p.status}
-                      </span>
+                      </button>
 
                       <div
                         className={`min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 dark:text-slate-400 transition-transform duration-200 ${
@@ -1122,8 +1154,8 @@ export function PermanenciaView() {
                       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
                         {/* LEITO (APENAS NÚMERO) */}
                         <div className="sm:col-span-3">
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                            <Bed className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1">
+                            <Bed className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
                             <span>Leito (Apenas Número)</span>
                           </label>
                           <input
@@ -1143,8 +1175,8 @@ export function PermanenciaView() {
                         {/* ENFERMARIA DAS CONFIGURAÇÕES */}
                         <div className="sm:col-span-4">
                           <div className="flex items-center justify-between mb-1">
-                            <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                              <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                            <label className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                              <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
                               <span>Enfermaria</span>
                             </label>
                             {mostrandoNovaEnfId !== p.id && (
@@ -1202,18 +1234,18 @@ export function PermanenciaView() {
                               {enfermarias
                                 .filter((enf) => enf.trim().toLowerCase() !== "sem enfermaria")
                                 .map((enf) => (
-                                 <option key={enf} value={enf}>
-                                   {enf}
-                                 </option>
-                              ))}
+                                  <option key={enf} value={enf}>
+                                    {enf}
+                                  </option>
+                                ))}
                             </select>
                           )}
                         </div>
 
                         {/* MÚLTIPLOS RESPONSÁVEIS */}
                         <div className="sm:col-span-5">
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                            <UserCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1">
+                            <UserCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
                             <span>Responsáveis</span>
                           </label>
                           <div className="flex items-center gap-1.5">
@@ -1260,6 +1292,7 @@ export function PermanenciaView() {
                                   <button
                                     type="button"
                                     onClick={(e) => handleRemoverResponsavel(p, resp, e)}
+                                    aria-label={`Remover responsável ${resp}`}
                                     className="p-1 -mr-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer"
                                     title="Remover responsável"
                                   >
@@ -1268,7 +1301,7 @@ export function PermanenciaView() {
                                 </span>
                               ))
                             ) : (
-                              <span className="text-[11px] text-slate-400 dark:text-slate-400 italic">
+                              <span className="text-[11px] text-slate-500 dark:text-slate-300 italic font-medium">
                                 Nenhum responsável vinculado
                               </span>
                             )}

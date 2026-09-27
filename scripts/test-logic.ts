@@ -3193,6 +3193,15 @@ assert(metricasContent.includes("dark:text-blue-300"), "MetricasLgpdView possui 
 assert(metricasContent.includes("dark:bg-emerald-950/50"), "MetricasLgpdView possui chip de preceptores da equipe do dia adaptado ao dark mode");
 assert(metricasContent.includes("dark:text-emerald-300"), "MetricasLgpdView possui texto luminoso de preceptores no dark mode");
 
+// Teste 40.8: Verificação de Acessibilidade e Navegabilidade Geral (WCAG AA/AAA, Touch Targets >= 44px, Foco e ARIA)
+assert(ambulatorioContent.includes("min-h-[44px]") && ambulatorioContent.includes("aria-label={`Editar ${m.nome}`}"), "AmbulatorioView possui touch targets >= 44px e aria-labels acessíveis");
+assert(modelosContent.includes("min-h-[44px]") && modelosContent.includes("aria-label={`Copiar texto de ${m.titulo}`}"), "ModelosTextoView possui touch targets >= 44px e botões com aria-label");
+assert(permanenciaContent.includes('role="button"') && permanenciaContent.includes("tabIndex={0}") && permanenciaContent.includes("aria-label={`Editar residente ${membro}`}"), "PermanenciaView possui chips de equipe operáveis por teclado e leitores de tela");
+assert(permanenciaContent.includes("aria-label={`Remover responsável ${resp}`}"), "PermanenciaView possui botões de remoção de responsável com aria-label");
+assert(passagemContent.includes('aria-label="Salvar alteração da pendência"') && passagemContent.includes('aria-label="Fechar painel de medicação"'), "PassagemPlantaoView possui ações de edição e painéis com rótulos acessíveis");
+assert(altasContent.includes("aria-label={`Excluir foto ${idx + 1}`}"), "AltasView possui botões de fotos com aria-labels");
+assert(metricasContent.includes("stroke-slate-100 dark:stroke-slate-800"), "MetricasLgpdView possui linhas de grade de tendência adaptadas ao dark mode");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

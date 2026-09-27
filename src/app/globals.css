@@ -269,6 +269,29 @@
   border-color: rgba(251, 191, 36, 0.4) !important;
 }
 
+/* Suporte de Alto Contraste para Classificação Nutricional IMC (Sobrepeso e Obesidade I) */
+.dark .text-yellow-700,
+.dark .text-yellow-800 {
+  color: #fef08a !important;
+}
+.dark .bg-yellow-50,
+.dark .bg-yellow-50\/40,
+.dark .bg-yellow-100 {
+  background-color: rgba(113, 63, 18, 0.35) !important;
+  border-color: rgba(234, 179, 8, 0.4) !important;
+}
+
+.dark .text-orange-700,
+.dark .text-orange-800 {
+  color: #fdba74 !important;
+}
+.dark .bg-orange-50,
+.dark .bg-orange-50\/40,
+.dark .bg-orange-100 {
+  background-color: rgba(124, 45, 18, 0.35) !important;
+  border-color: rgba(249, 115, 22, 0.4) !important;
+}
+
 .dark .text-rose-950,
 .dark .text-rose-900 {
   color: #fecdd3 !important;

@@ -719,7 +719,7 @@ export function AltasView() {
                                     className={`text-[11px] font-bold ${
                                       paciente.parametros.dieta
                                         ? "text-emerald-700 dark:text-emerald-400"
-                                        : "text-slate-500 dark:text-slate-400"
+                                        : "text-slate-600 dark:text-slate-300 font-semibold"
                                     }`}
                                   >
                                     {paciente.parametros.dieta ? "Sim" : "Não"}
@@ -751,7 +751,7 @@ export function AltasView() {
                                     className={`text-[11px] font-bold ${
                                       paciente.parametros.deambulou
                                         ? "text-emerald-700 dark:text-emerald-400"
-                                        : "text-slate-500 dark:text-slate-400"
+                                        : "text-slate-600 dark:text-slate-300 font-semibold"
                                     }`}
                                   >
                                     {paciente.parametros.deambulou ? "Sim" : "Não"}
@@ -783,7 +783,7 @@ export function AltasView() {
                                     className={`text-[11px] font-bold ${
                                       paciente.parametros.diurese
                                         ? "text-emerald-700 dark:text-emerald-400"
-                                        : "text-slate-500 dark:text-slate-400"
+                                        : "text-slate-600 dark:text-slate-300 font-semibold"
                                     }`}
                                   >
                                     {paciente.parametros.diurese ? "Sim" : "Não"}
@@ -815,7 +815,7 @@ export function AltasView() {
                                     className={`text-[11px] font-bold ${
                                       paciente.parametros.evacuacao
                                         ? "text-emerald-700 dark:text-emerald-400"
-                                        : "text-slate-500 dark:text-slate-400"
+                                        : "text-slate-600 dark:text-slate-300 font-semibold"
                                     }`}
                                   >
                                     {paciente.parametros.evacuacao ? "Sim" : "Não"}
@@ -967,10 +967,10 @@ export function AltasView() {
                                       {fotosDoPaciente.map((url, idx) => (
                                         <div
                                           key={idx}
-                                          className="relative rounded-xl overflow-hidden border border-slate-200 bg-white p-1 flex flex-col group shadow-2xs"
+                                          className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 flex flex-col group shadow-2xs"
                                         >
                                           <div
-                                            className="relative aspect-square w-full rounded-lg overflow-hidden cursor-pointer bg-slate-100"
+                                            className="relative aspect-square w-full rounded-lg overflow-hidden cursor-pointer bg-slate-100 dark:bg-slate-900"
                                             onClick={() => abrirVisualizadorFoto(fotosDoPaciente, idx)}
                                           >
                                             <img
@@ -994,15 +994,16 @@ export function AltasView() {
                                           <div className="flex items-center justify-between mt-1 px-1">
                                             <span className="text-[10px] font-medium truncate flex-1">
                                               {idx === qtd - 1 && qtd > 1 ? (
-                                                <span className="text-emerald-700 font-bold">Com Legenda</span>
+                                                <span className="text-emerald-700 dark:text-emerald-400 font-bold">Com Legenda</span>
                                               ) : (
-                                                <span className="text-slate-500">Foto {idx + 1}</span>
+                                                <span className="text-slate-500 dark:text-slate-300">Foto {idx + 1}</span>
                                               )}
                                             </span>
                                             <button
                                               type="button"
                                               onClick={() => handleRemoverFoto(paciente, idx)}
-                                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
+                                              aria-label={`Excluir foto ${idx + 1}`}
+                                              className="p-1 rounded text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer transition-colors"
                                               title="Excluir esta foto"
                                             >
                                               <Trash2 className="w-3.5 h-3.5" />
@@ -1012,22 +1013,22 @@ export function AltasView() {
                                       ))}
                                     </div>
                                   ) : (
-                                    <p className="text-[11px] text-slate-400 italic">
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-300 italic">
                                       Nenhuma foto anexada. Tire fotos com a câmera ou selecione da galeria para enviar junto no WhatsApp (máximo de 5 fotos).
                                     </p>
                                   )}
 
                                   {/* AVISO DO BLOCO DE FOTOS COM LEGENDA NA ÚLTIMA FOTO */}
                                   {qtd > 1 ? (
-                                    <div className="p-2 rounded-lg bg-emerald-50/80 border border-emerald-200/80 flex items-center gap-2 text-[11px] text-emerald-800">
-                                      <Info className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    <div className="p-2 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center gap-2 text-[11px] text-emerald-800 dark:text-emerald-300">
+                                      <Info className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                                       <span>
                                         O bloco de <strong>{qtd} fotos</strong> será enviado junto, e a <strong>última foto (#{qtd})</strong> levará o relatório clínico completo na legenda, finalizando a mensagem.
                                       </span>
                                     </div>
                                   ) : qtd === 1 ? (
-                                    <div className="p-2 rounded-lg bg-emerald-50/80 border border-emerald-200/80 flex items-center gap-2 text-[11px] text-emerald-800">
-                                      <Info className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    <div className="p-2 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center gap-2 text-[11px] text-emerald-800 dark:text-emerald-300">
+                                      <Info className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                                       <span>A foto será enviada com a legenda contendo os dados clínicos da alta.</span>
                                     </div>
                                   ) : null}

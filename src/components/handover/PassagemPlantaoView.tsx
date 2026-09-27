@@ -1160,10 +1160,10 @@ export function PassagemPlantaoView() {
                                     {cirurgiasDoPaciente.map((cx, idx) => (
                                       <div
                                         key={cx.id || idx}
-                                        className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-2.5 rounded-xl bg-slate-50 border border-slate-200"
+                                        className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700"
                                       >
                                         <div className="sm:col-span-5">
-                                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
+                                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5">
                                             Procedimento #{idx + 1}
                                           </label>
                                           <input
@@ -1178,12 +1178,12 @@ export function PassagemPlantaoView() {
                                               )
                                             }
                                             placeholder="Ex: Colecistectomia VLP..."
-                                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                            className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
                                           />
                                         </div>
 
                                         <div className="sm:col-span-4">
-                                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
+                                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5">
                                             Data da Cirurgia
                                           </label>
                                           <input
@@ -1197,16 +1197,16 @@ export function PassagemPlantaoView() {
                                                 e.target.value
                                               )
                                             }
-                                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                            className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
                                           />
                                         </div>
 
                                         <div className="sm:col-span-2">
                                           <div className="flex items-center justify-between mb-0.5">
-                                            <label className="text-[10px] font-bold text-slate-600">
+                                            <label className="text-[10px] font-bold text-slate-600 dark:text-slate-300">
                                               DPO
                                             </label>
-                                            <span className="text-[10px] font-bold text-amber-700">
+                                            <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300">
                                               {calcularDPO(cx.dataCirurgia, cx.dpoManual) || "D0"}
                                             </span>
                                           </div>
@@ -1229,7 +1229,7 @@ export function PassagemPlantaoView() {
                                               );
                                             }}
                                             placeholder="Ajuste..."
-                                            className="w-full px-2 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs focus:outline-none"
+                                            className="w-full px-2 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
                                           />
                                         </div>
 
@@ -1237,7 +1237,8 @@ export function PassagemPlantaoView() {
                                           <button
                                             type="button"
                                             onClick={() => handleRemoverCirurgia(paciente, cx.id)}
-                                            className="min-h-[38px] min-w-[38px] flex items-center justify-center p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                            aria-label={`Remover procedimento ${cx.tipoCirurgia || idx + 1}`}
+                                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                                             title="Remover este procedimento"
                                           >
                                             <Trash2 className="w-3.5 h-3.5" />
@@ -1352,7 +1353,7 @@ export function PassagemPlantaoView() {
 
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                                   <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-300 mb-1">
                                       FC (bpm)
                                     </label>
                                     <input
@@ -1369,11 +1370,11 @@ export function PassagemPlantaoView() {
                                         );
                                       }}
                                       placeholder="Ex: 78"
-                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-300 mb-1">
                                       SatO2 (%)
                                     </label>
                                     <input
@@ -1390,11 +1391,11 @@ export function PassagemPlantaoView() {
                                         );
                                       }}
                                       placeholder="Ex: 98"
-                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-300 mb-1">
                                       PA (mmHg)
                                     </label>
                                     <input
@@ -1410,11 +1411,11 @@ export function PassagemPlantaoView() {
                                         );
                                       }}
                                       placeholder="Ex: 120/80"
-                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-300 mb-1">
                                       Tax (ºC)
                                     </label>
                                     <input
@@ -1439,7 +1440,7 @@ export function PassagemPlantaoView() {
                                         );
                                       }}
                                       placeholder="Ex: 36,5"
-                                      className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
+                                      className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:opacity-50 focus:outline-none focus:border-indigo-500"
                                     />
                                   </div>
                                 </div>
@@ -1455,7 +1456,7 @@ export function PassagemPlantaoView() {
 
                               {/* 6. PRINCIPAIS EXAMES REALIZADOS */}
                               <div>
-                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                   Principais Exames Realizados
                                 </label>
                                 <AutoResizeTextarea
@@ -1474,7 +1475,7 @@ export function PassagemPlantaoView() {
 
                               {/* 7. MEDICAÇÕES EM USO (GERAL) */}
                               <div>
-                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                   Medicações em Uso
                                 </label>
                                 <AutoResizeTextarea
@@ -1494,10 +1495,10 @@ export function PassagemPlantaoView() {
                               {/* ──────────────────────────────────────────
                                   8. SUB-PAINEL: ADICIONAR/EDITAR MEDICAÇÃO DE CONTROLE
                               ─────────────────────────────────────────── */}
-                              <div className="pt-2 border-t border-slate-100 space-y-3">
+                              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <Pill className="w-3.5 h-3.5 text-teal-600" />
+                                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                    <Pill className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                                     <span>
                                       Medicações de Controle (
                                       {paciente.antibioticos?.length || 0})
@@ -1508,7 +1509,7 @@ export function PassagemPlantaoView() {
                                     <button
                                       type="button"
                                       onClick={() => abrirNovoSubPainelMed(paciente.id)}
-                                      className="px-3 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                      className="min-h-[44px] px-3.5 py-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-teal-800 dark:text-teal-200 border border-teal-200 dark:border-teal-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                                     >
                                       <Plus className="w-3.5 h-3.5" />
                                       <span>Adicionar medicação</span>
@@ -1518,17 +1519,17 @@ export function PassagemPlantaoView() {
 
                                 {/* FORMULÁRIO DO SUB-PAINEL (NOVA OU EDIÇÃO) */}
                                 {pacienteAdicionandoMed === paciente.id && (
-                                  <div className="p-3.5 rounded-xl border border-teal-300 bg-teal-50/20 space-y-3 animate-in fade-in overflow-hidden w-full max-w-full box-border">
+                                  <div className="p-3.5 rounded-xl border border-teal-300 dark:border-teal-700/80 bg-teal-50/20 dark:bg-teal-950/30 space-y-3 animate-in fade-in overflow-hidden w-full max-w-full box-border">
                                     <div className="flex items-center justify-between">
-                                      <h6 className="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+                                      <h6 className="text-xs font-bold text-teal-900 dark:text-teal-200 flex items-center gap-1.5">
                                         {medEmEdicaoId ? (
                                           <>
-                                            <Edit3 className="w-3.5 h-3.5 text-teal-600" />
+                                            <Edit3 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                                             <span>Editar Medicação de Controle</span>
                                           </>
                                         ) : (
                                           <>
-                                            <Plus className="w-3.5 h-3.5 text-teal-600" />
+                                            <Plus className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                                             <span>Nova Medicação de Controle</span>
                                           </>
                                         )}
@@ -1539,7 +1540,8 @@ export function PassagemPlantaoView() {
                                           setPacienteAdicionandoMed(null);
                                           setMedEmEdicaoId(null);
                                         }}
-                                        className="p-1 rounded text-slate-400 hover:text-slate-600"
+                                        aria-label="Fechar painel de medicação"
+                                        className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                                       >
                                         <X className="w-3.5 h-3.5" />
                                       </button>
@@ -1547,7 +1549,7 @@ export function PassagemPlantaoView() {
 
                                     {/* NOME DO MEDICAMENTO */}
                                     <div className="min-w-0 w-full max-w-full">
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                         Nome do medicamento
                                       </label>
                                       <input
@@ -1556,14 +1558,14 @@ export function PassagemPlantaoView() {
                                         onChange={(e) => setMedNome(e.target.value)}
                                         placeholder="Ex: Dipirona"
                                         autoFocus
-                                        className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:border-teal-500 focus:outline-none"
+                                        className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:border-teal-500 focus:outline-none"
                                       />
                                     </div>
 
                                     {/* DOSE E FREQUÊNCIA (HORAS) */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
                                       <div className="min-w-0 w-full max-w-full">
-                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                           Dose
                                         </label>
                                         <input
@@ -1571,12 +1573,12 @@ export function PassagemPlantaoView() {
                                           value={medDose}
                                           onChange={(e) => setMedDose(e.target.value)}
                                           placeholder="Ex: 500mg"
-                                          className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                          className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none"
                                         />
                                       </div>
 
                                       <div className="min-w-0 w-full max-w-full">
-                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                           Frequência (horas)
                                         </label>
                                         <input
@@ -1591,7 +1593,7 @@ export function PassagemPlantaoView() {
                                             )
                                           }
                                           placeholder="Ex: 6"
-                                          className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                          className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none"
                                         />
                                       </div>
                                     </div>
@@ -1599,7 +1601,7 @@ export function PassagemPlantaoView() {
                                     {/* 1ª DOSE (HORÁRIO) E DATA DE INÍCIO */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
                                       <div className="min-w-0 w-full max-w-full">
-                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                           1ª dose (horário)
                                         </label>
                                         <input
@@ -1608,12 +1610,12 @@ export function PassagemPlantaoView() {
                                           onChange={(e) =>
                                             setMedHorario1aDose(e.target.value)
                                           }
-                                          className="w-full max-w-full min-w-0 box-border block px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none appearance-none"
+                                          className="w-full max-w-full min-w-0 box-border block px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none appearance-none"
                                         />
                                       </div>
 
                                       <div className="min-w-0 w-full max-w-full">
-                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                           Data de início
                                         </label>
                                         <input
@@ -1622,7 +1624,7 @@ export function PassagemPlantaoView() {
                                           onChange={(e) =>
                                             handleMudarDataInicio(e.target.value)
                                           }
-                                          className="w-full max-w-full min-w-0 box-border block px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none appearance-none"
+                                          className="w-full max-w-full min-w-0 box-border block px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none appearance-none"
                                         />
                                       </div>
                                     </div>
@@ -1630,7 +1632,7 @@ export function PassagemPlantaoView() {
                                     {/* DURAÇÃO (DIAS) E DATA DE TÉRMINO (SINCRONIZAÇÃO BIDIRECIONAL) */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
                                       <div className="min-w-0 w-full max-w-full">
-                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                           Duração (dias)
                                         </label>
                                         <input
@@ -1651,12 +1653,12 @@ export function PassagemPlantaoView() {
                                             }
                                           }}
                                           placeholder="Ex: 7"
-                                          className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                          className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none"
                                         />
                                       </div>
 
                                       <div className="min-w-0 w-full max-w-full">
-                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                           Data de término
                                         </label>
                                         <input
@@ -1665,14 +1667,14 @@ export function PassagemPlantaoView() {
                                           onChange={(e) =>
                                             handleMudarDataTermino(e.target.value)
                                           }
-                                          className="w-full max-w-full min-w-0 box-border block px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none appearance-none"
+                                          className="w-full max-w-full min-w-0 box-border block px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none appearance-none"
                                         />
                                       </div>
                                     </div>
 
                                     {/* DOSES PERDIDAS (QTD) */}
                                     <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                         Doses perdidas (qtd)
                                       </label>
                                       <input
@@ -1687,7 +1689,7 @@ export function PassagemPlantaoView() {
                                           )
                                         }
                                         placeholder="0"
-                                        className="w-full sm:w-1/2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none"
+                                        className="w-full sm:w-1/2 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none"
                                       />
                                     </div>
 
@@ -1699,7 +1701,7 @@ export function PassagemPlantaoView() {
                                           setPacienteAdicionandoMed(null);
                                           setMedEmEdicaoId(null);
                                         }}
-                                        className="min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer flex items-center justify-center"
+                                        className="min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold cursor-pointer flex items-center justify-center"
                                       >
                                         Cancelar
                                       </button>
@@ -1719,7 +1721,7 @@ export function PassagemPlantaoView() {
                                 {(!paciente.antibioticos ||
                                   paciente.antibioticos.length === 0) &&
                                   pacienteAdicionandoMed !== paciente.id && (
-                                    <p className="text-xs text-slate-400 italic py-1">
+                                    <p className="text-xs text-slate-500 dark:text-slate-300 italic py-1">
                                       Nenhuma medicação cadastrada.
                                     </p>
                                   )}
@@ -1734,41 +1736,41 @@ export function PassagemPlantaoView() {
                                         key={atb.id}
                                         className={`p-3 rounded-xl border transition-all ${
                                           isDesescalonar
-                                            ? "bg-rose-50/60 border-rose-300 shadow-xs"
-                                            : "bg-slate-50 border-slate-200"
+                                            ? "bg-rose-50/60 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 shadow-xs"
+                                            : "bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700"
                                         }`}
                                       >
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                           <div>
                                             <div className="flex items-center gap-2 flex-wrap">
-                                              <span className="font-bold text-xs text-slate-900 flex items-center gap-1">
-                                                <Pill className="w-3.5 h-3.5 text-teal-600" />
+                                              <span className="font-bold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                                                <Pill className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                                                 <span>{atb.nome}</span>
                                               </span>
-                                              <span className="text-[11px] text-slate-600">
+                                              <span className="text-[11px] text-slate-600 dark:text-slate-300">
                                                 {atb.dose} ({atb.frequenciaHoras}/{atb.frequenciaHoras}h)
                                               </span>
                                               <span
                                                 className={`font-bold px-2 py-0.5 rounded text-[10px] ${
                                                   isDesescalonar
                                                     ? "bg-rose-600 text-white"
-                                                    : "bg-teal-100 text-teal-900 border border-teal-300"
+                                                    : "bg-teal-100 dark:bg-teal-950/70 text-teal-900 dark:text-teal-200 border border-teal-300 dark:border-teal-700"
                                                 }`}
                                               >
                                                 {res.rotuloDDay}/{atb.duracaoDias}d
                                               </span>
                                             </div>
 
-                                            <div className="text-[11px] text-slate-500 mt-0.5">
+                                            <div className="text-[11px] text-slate-500 dark:text-slate-300 font-medium mt-0.5">
                                               Início: {atb.dataInicio} às {atb.horarioPrimeiraDose || "20:00"} → Término:{" "}
-                                              <strong className="text-slate-700">{res.dataTerminoFormatada}</strong>
+                                              <strong className="text-slate-700 dark:text-slate-200">{res.dataTerminoFormatada}</strong>
                                             </div>
                                           </div>
 
                                           {/* DOSES PERDIDAS, BOTÃO EDITAR & BOTÃO REMOVER */}
                                           <div className="flex items-center gap-2.5 self-end sm:self-auto flex-wrap">
                                             <div className="flex items-center gap-1.5 text-xs">
-                                              <span className="text-[11px] text-slate-500">Perdidas:</span>
+                                              <span className="text-[11px] text-slate-500 dark:text-slate-300 font-medium">Perdidas:</span>
                                               <div className="flex items-center gap-1">
                                                 <button
                                                   type="button"
@@ -1776,11 +1778,12 @@ export function PassagemPlantaoView() {
                                                     handleAjustarDosePerdida(paciente, atb.id, -1)
                                                   }
                                                   disabled={(atb.dosesPerdidas || 0) <= 0}
-                                                  className="w-8 h-8 sm:w-7 sm:h-7 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-30 text-xs font-bold flex items-center justify-center cursor-pointer"
+                                                  aria-label={`Diminuir doses perdidas de ${atb.nome}`}
+                                                  className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 disabled:opacity-30 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center justify-center cursor-pointer"
                                                 >
                                                   -
                                                 </button>
-                                                <span className="font-bold text-slate-800 text-xs px-1">
+                                                <span className="font-bold text-slate-800 dark:text-slate-100 text-xs px-1">
                                                   {atb.dosesPerdidas || 0}
                                                 </span>
                                                 <button
@@ -1788,7 +1791,8 @@ export function PassagemPlantaoView() {
                                                   onClick={() =>
                                                     handleAjustarDosePerdida(paciente, atb.id, 1)
                                                   }
-                                                  className="w-8 h-8 sm:w-7 sm:h-7 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-rose-600 flex items-center justify-center cursor-pointer"
+                                                  aria-label={`Aumentar doses perdidas de ${atb.nome}`}
+                                                  className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center justify-center cursor-pointer"
                                                 >
                                                   +
                                                 </button>
@@ -1801,7 +1805,8 @@ export function PassagemPlantaoView() {
                                               onClick={() =>
                                                 abrirEdicaoSubPainelMed(paciente.id, atb)
                                               }
-                                              className="min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
+                                              aria-label={`Editar medicação ${atb.nome}`}
+                                              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer"
                                               title="Editar medicação"
                                             >
                                               <Edit3 className="w-4 h-4" />
@@ -1811,7 +1816,8 @@ export function PassagemPlantaoView() {
                                             <button
                                               type="button"
                                               onClick={() => handleRemoverAtb(paciente, atb.id)}
-                                              className="min-h-[38px] min-w-[38px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                              aria-label={`Remover medicação ${atb.nome}`}
+                                              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                                               title="Remover medicação"
                                             >
                                               <Trash2 className="w-4 h-4" />
@@ -1821,8 +1827,8 @@ export function PassagemPlantaoView() {
 
                                         {/* ALERTA DE DESESCALONAR */}
                                         {isDesescalonar && (
-                                          <div className="mt-2 pt-1.5 border-t border-rose-200/80 flex items-center gap-1 text-[11px] font-bold text-rose-700">
-                                            <Flame className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
+                                          <div className="mt-2 pt-1.5 border-t border-rose-200/80 dark:border-rose-900/60 flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300">
+                                            <Flame className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 animate-pulse" />
                                             <span>⚠ Lembrar de desescalonar / reavaliar prescrição</span>
                                           </div>
                                         )}
@@ -1835,9 +1841,9 @@ export function PassagemPlantaoView() {
                               {/* ──────────────────────────────────────────
                                   9. CONDUTAS / PENDÊNCIAS
                               ─────────────────────────────────────────── */}
-                              <div className="pt-2 border-t border-slate-100 space-y-3">
+                              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
                                 <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">
                                     Condutas / Decisões do Round
                                   </label>
                                   <AutoResizeTextarea
@@ -1852,7 +1858,7 @@ export function PassagemPlantaoView() {
 
                                 {/* PENDÊNCIAS DO LEITO */}
                                 <div className="space-y-2">
-                                  <label className="block text-[11px] font-bold text-slate-700">
+                                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-200">
                                     Pendências do Leito
                                   </label>
                                   <div className="space-y-1.5">
@@ -1865,7 +1871,7 @@ export function PassagemPlantaoView() {
                                         return (
                                           <div
                                             key={idx}
-                                            className="flex items-center gap-2 p-1.5 rounded-lg bg-sky-50 border border-sky-300"
+                                            className="flex items-center gap-2 p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/50 border border-sky-300 dark:border-sky-700"
                                           >
                                             <input
                                               type="text"
@@ -1885,12 +1891,13 @@ export function PassagemPlantaoView() {
                                                   handleCancelarEdicaoPendencia();
                                                 }
                                               }}
-                                              className="flex-1 px-2.5 py-1 text-xs rounded-md border border-slate-300 bg-white text-slate-900 focus:outline-none focus:border-sky-500 font-medium"
+                                              className="flex-1 px-2.5 py-1 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 font-medium"
                                             />
                                             <button
                                               type="button"
                                               onClick={() => handleSalvarEdicaoPendencia(paciente)}
-                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 rounded hover:bg-sky-200 text-sky-700 transition-colors cursor-pointer"
+                                              aria-label="Salvar alteração da pendência"
+                                              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-sky-200 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 transition-colors cursor-pointer"
                                               title="Salvar alteração"
                                             >
                                               <Check className="w-4 h-4" />
@@ -1898,7 +1905,8 @@ export function PassagemPlantaoView() {
                                             <button
                                               type="button"
                                               onClick={handleCancelarEdicaoPendencia}
-                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 rounded hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer"
+                                              aria-label="Cancelar edição da pendência"
+                                              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 transition-colors cursor-pointer"
                                               title="Cancelar edição"
                                             >
                                               <X className="w-4 h-4" />
@@ -1910,7 +1918,7 @@ export function PassagemPlantaoView() {
                                       return (
                                         <div
                                           key={idx}
-                                          className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700 hover:border-slate-300 transition-colors group"
+                                          className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition-colors group"
                                         >
                                           <span
                                             onClick={() =>
@@ -1919,8 +1927,8 @@ export function PassagemPlantaoView() {
                                             className="flex items-center gap-1.5 cursor-pointer flex-1 min-h-[36px]"
                                             title="Clique para editar esta pendência"
                                           >
-                                            <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                                            <span className="group-hover:text-slate-900 font-medium">
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                                            <span className="group-hover:text-slate-900 dark:group-hover:text-white font-medium">
                                               {pend}
                                             </span>
                                           </span>
@@ -1930,7 +1938,8 @@ export function PassagemPlantaoView() {
                                               onClick={() =>
                                                 handleIniciarEdicaoPendencia(paciente.id, idx, pend)
                                               }
-                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-sky-600 transition-colors cursor-pointer"
+                                              aria-label={`Editar pendência ${pend}`}
+                                              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
                                               title="Editar pendência"
                                             >
                                               <Edit3 className="w-3.5 h-3.5" />
@@ -1938,7 +1947,8 @@ export function PassagemPlantaoView() {
                                             <button
                                               type="button"
                                               onClick={() => handleRemoverPendencia(paciente, idx)}
-                                              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                              aria-label={`Remover pendência ${pend}`}
+                                              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                                               title="Remover pendência"
                                             >
                                               <X className="w-3.5 h-3.5" />
@@ -1962,7 +1972,7 @@ export function PassagemPlantaoView() {
                                           (e.target as HTMLInputElement).value = "";
                                         }
                                       }}
-                                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-dashed border-slate-300 text-slate-800 text-xs placeholder-slate-400 focus:bg-white focus:border-sky-500 focus:outline-none"
+                                      className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-sky-500 focus:outline-none"
                                     />
                                   </div>
                                 </div>
