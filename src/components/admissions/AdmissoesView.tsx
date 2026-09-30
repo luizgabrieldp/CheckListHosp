@@ -1156,7 +1156,6 @@ export function AdmissoesView() {
                   id="admissao-novo-nome"
                   type="text"
                   required
-                  autoFocus
                   value={novoNome}
                   onChange={(e) => setNovoNome(e.target.value)}
                   placeholder="Ex: TAMIRES SILVA SAMPAIO SANTOS"

@@ -77,42 +77,13 @@ export function normalizarEnfermariaPaciente<T extends { enfermaria?: string }>(
 }
 
 export function limparSinaisVitaisLegadosAlta(alta: AltaPaciente): AltaPaciente {
-  const normalizada = normalizarEnfermariaPaciente(alta);
-  const sv = normalizada.sinaisVitais;
-  if (!sv) return normalizada;
-
-  // Se possui exatamente o valor padrão legado falso (FC: 75 e Sat: 98), limpa para não induzir a erro clínico
-  if (sv.frequenciaCardiaca === 75 && sv.saturacaoO2 === 98) {
-    return {
-      ...normalizada,
-      sinaisVitais: {
-        ...sv,
-        frequenciaCardiaca: undefined,
-        saturacaoO2: undefined,
-      },
-    };
-  }
-  return normalizada;
+  // Preserva rigorosamente os valores reais digitados pelo usuário (não apaga FC ou Sat)
+  return normalizarEnfermariaPaciente(alta);
 }
 
 export function limparSinaisVitaisLegadosPassagem(paciente: PacientePassagem): PacientePassagem {
-  const normalizado = normalizarEnfermariaPaciente(paciente);
-  const sv = normalizado.sinaisVitais;
-  if (!sv) return normalizado;
-
-  // Se possui exatamente o combo padrão legado falso (FC: 75, Sat: 98, PA: 120/80 e Tax: 36.5 ou sem tax)
-  const isFcPadrao = sv.fc === 75;
-  const isSatPadrao = sv.satO2 === 98;
-  const isPaPadrao = sv.pa === "120/80";
-  const isTaxPadrao = sv.tax === 36.5 || !sv.tax || sv.tax === 0;
-
-  if (isFcPadrao && isSatPadrao && isPaPadrao && isTaxPadrao) {
-    return {
-      ...normalizado,
-      sinaisVitais: undefined,
-    };
-  }
-  return normalizado;
+  // Preserva rigorosamente os valores reais digitados pelo usuário
+  return normalizarEnfermariaPaciente(paciente);
 }
 
 function carregarListaLocalStorage(chave: string, padrao: string[]): string[] {

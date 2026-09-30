@@ -1179,7 +1179,6 @@ export function AltasView() {
                   id="novo-paciente-alta-nome"
                   type="text"
                   required
-                  autoFocus
                   value={novoNome}
                   onChange={(e) => setNovoNome(e.target.value)}
                   placeholder="Ex: Renata Camila"

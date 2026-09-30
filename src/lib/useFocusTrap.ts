@@ -49,6 +49,10 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
       );
 
       const timer = setTimeout(() => {
+        // Se o foco já está dentro do container (ex: usuário digitando em outro input), não roubar o foco
+        if (typeof document !== "undefined" && document.activeElement && container.contains(document.activeElement)) {
+          return;
+        }
         if (focusables.length > 0) {
           focusables[0].focus();
         } else {

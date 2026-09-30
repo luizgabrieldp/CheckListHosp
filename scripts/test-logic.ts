@@ -2940,14 +2940,14 @@ const altaComFcSat: AltaPaciente = {
 const msgComFcSat = gerarMensagemAlta(altaComFcSat);
 assert(msgComFcSat.includes("FC: 72 / Sat: 97%"), "WhatsApp com FC e Sat exibe formato combinado 'FC: 72 / Sat: 97%'");
 
-// Teste 37.7: Limpeza retroativa de alta com valor padrão falso antigo (75 e 98)
-const altaLegadaFalsa: AltaPaciente = {
+// Teste 37.7: Preservação estrita de sinais vitais de alta mesmo com valores comuns (FC 75 e Sat 98)
+const altaComFc75Sat98: AltaPaciente = {
   ...altaCriadaSemSv,
   sinaisVitais: { frequenciaCardiaca: 75, saturacaoO2: 98 },
 };
-const altaLimpa = limparSinaisVitaisLegadosAlta(altaLegadaFalsa);
-assert(altaLimpa.sinaisVitais?.frequenciaCardiaca === undefined, "limparSinaisVitaisLegadosAlta removeu FC 75 fictício");
-assert(altaLimpa.sinaisVitais?.saturacaoO2 === undefined, "limparSinaisVitaisLegadosAlta removeu Sat 98 fictício");
+const altaPreservada75 = limparSinaisVitaisLegadosAlta(altaComFc75Sat98);
+assert(altaPreservada75.sinaisVitais?.frequenciaCardiaca === 75, "limparSinaisVitaisLegadosAlta preserva FC 75 preenchida pelo médico");
+assert(altaPreservada75.sinaisVitais?.saturacaoO2 === 98, "limparSinaisVitaisLegadosAlta preserva Sat 98 preenchida pelo médico");
 
 // Teste 37.8: Preservação de valores reais medidos na alta (ex: 78 e 96)
 const altaReal: AltaPaciente = {
@@ -2958,13 +2958,15 @@ const altaRealPreservada = limparSinaisVitaisLegadosAlta(altaReal);
 assert(altaRealPreservada.sinaisVitais?.frequenciaCardiaca === 78, "limparSinaisVitaisLegadosAlta preservou FC real 78");
 assert(altaRealPreservada.sinaisVitais?.saturacaoO2 === 96, "limparSinaisVitaisLegadosAlta preservou Sat real 96");
 
-// Teste 37.9: Limpeza retroativa de passagem com combo padrão falso antigo (75, 98, 120/80, 36.5)
-const passagemLegadaFalsa: PacientePassagem = {
+// Teste 37.9: Preservação de sinais vitais de passagem mesmo com valores padrão normais
+const passagemValoresNormais: PacientePassagem = {
   ...passagemCriadaSemSv,
   sinaisVitais: { fc: 75, satO2: 98, pa: "120/80", tax: 36.5 },
 };
-const passagemLimpa = limparSinaisVitaisLegadosPassagem(passagemLegadaFalsa);
-assert(passagemLimpa.sinaisVitais === undefined, "limparSinaisVitaisLegadosPassagem higienizou combo fictício de sinais vitais");
+const passagemPreservadaNormais = limparSinaisVitaisLegadosPassagem(passagemValoresNormais);
+assert(passagemPreservadaNormais.sinaisVitais?.fc === 75, "limparSinaisVitaisLegadosPassagem preserva FC 75");
+assert(passagemPreservadaNormais.sinaisVitais?.satO2 === 98, "limparSinaisVitaisLegadosPassagem preserva SatO2 98");
+assert(passagemPreservadaNormais.sinaisVitais?.pa === "120/80", "limparSinaisVitaisLegadosPassagem preserva PA 120/80");
 
 // Teste 37.10: Preservação de valores reais medidos na passagem
 const passagemReal: PacientePassagem = {
@@ -3432,6 +3434,25 @@ assert(pageContentCheck.includes("w-full max-w-full overflow-x-hidden"), "page.t
 // Teste 44.4: Header móvel com box-border e largura restrita
 const sidebarContentCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "layout", "Sidebar.tsx"), "utf-8");
 assert(sidebarContentCheck.includes("w-full max-w-full box-border"), "Sidebar.tsx define w-full max-w-full box-border no header móvel impedindo cortes laterais");
+
+// 45. PREVENÇÃO DE ROUBO DE FOCO AO DIGITAR CIRURGIA E PRESERVAÇÃO DE SINAIS VITAIS
+console.log("\n--- 45. Prevenção de Roubo de Foco ao Digitar Cirurgia e Preservação de Sinais Vitais ---");
+
+// Teste 45.1: Ausência de autoFocus nocivo no input de Nome do modal de alta
+const altasViewContentCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "discharges", "AltasView.tsx"), "utf-8");
+assert(!altasViewContentCheck.includes('id="novo-paciente-alta-nome"\n                  type="text"\n                  required\n                  autoFocus'), "AltasView não possui autoFocus nocivo no input de nome do novo paciente");
+
+// Teste 45.2: Ausência de autoFocus nocivo no input de Nome do modal de admissão
+const admissoesViewContentCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "admissions", "AdmissoesView.tsx"), "utf-8");
+assert(!admissoesViewContentCheck.includes('id="admissao-novo-nome"\n                  type="text"\n                  required\n                  autoFocus'), "AdmissoesView não possui autoFocus nocivo no input de nome do novo paciente");
+
+// Teste 45.3: useModalA11y possui proteção para não roubar foco se o usuário já estiver dentro do modal
+const useFocusTrapCheck = fs.readFileSync(path.join(process.cwd(), "src", "lib", "useFocusTrap.ts"), "utf-8");
+assert(useFocusTrapCheck.includes("container.contains(document.activeElement)"), "useFocusTrap impede roubo de foco se usuário já estiver digitando em outro campo");
+
+// Teste 45.4: Preservação estrita de dados em useAppStore
+const useAppStoreCheck = fs.readFileSync(path.join(process.cwd(), "src", "store", "useAppStore.ts"), "utf-8");
+assert(!useAppStoreCheck.includes("sv.frequenciaCardiaca === 75 && sv.saturacaoO2 === 98"), "useAppStore não apaga FC 75 e Sat 98 digitados pelo usuário");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
