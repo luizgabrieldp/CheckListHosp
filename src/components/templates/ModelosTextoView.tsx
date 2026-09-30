@@ -522,7 +522,6 @@ export function ModelosTextoView() {
                     <div className="flex items-center gap-1.5 h-11 min-h-[44px]">
                       <input
                         type="text"
-                        autoFocus
                         value={novaCatNome}
                         onChange={(e) => setNovaCatNome(e.target.value)}
                         aria-label="Nome da nova categoria"

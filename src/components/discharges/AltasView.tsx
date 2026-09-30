@@ -647,7 +647,6 @@ export function AltasView() {
                                   <div className="flex gap-1.5 h-9 items-center">
                                     <input
                                       type="text"
-                                      autoFocus
                                       value={nomeNovaEnfPaciente}
                                       onChange={(e) => setNomeNovaEnfPaciente(e.target.value)}
                                       placeholder="Nova enfermaria..."
@@ -759,7 +758,6 @@ export function AltasView() {
                               {paciente.temQueixas && (
                                 <input
                                   type="text"
-                                  autoFocus
                                   value={paciente.detalhesQueixas || ""}
                                   onChange={(e) => {
                                     salvarAlta({
@@ -1227,7 +1225,6 @@ export function AltasView() {
                     <div className="flex gap-1.5 min-h-[44px] h-11 items-center">
                       <input
                         type="text"
-                        autoFocus
                         value={nomeNovaEnfModal}
                         onChange={(e) => setNomeNovaEnfModal(e.target.value)}
                         placeholder="Nome..."

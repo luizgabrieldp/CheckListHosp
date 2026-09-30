@@ -78,7 +78,6 @@ export function GatekeeperModal() {
                   if (erro) setErro(false);
                 }}
                 placeholder="Digite a senha"
-                autoFocus
                 aria-invalid={erro}
                 aria-describedby={erro ? "senha-erro-msg" : undefined}
                 className={`w-full pl-10 pr-4 py-2.5 min-h-[46px] rounded-xl border text-slate-900 dark:text-white dark:bg-slate-800/90 placeholder-slate-400 dark:placeholder-slate-500 text-base md:text-sm focus:outline-none transition-all ${

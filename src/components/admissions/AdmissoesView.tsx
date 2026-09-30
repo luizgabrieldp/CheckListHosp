@@ -779,7 +779,6 @@ export function AdmissoesView() {
                                   <div className="flex gap-1.5 h-9 items-center">
                                     <input
                                       type="text"
-                                      autoFocus
                                       value={nomeNovaEnfPaciente}
                                       onChange={(e) => setNomeNovaEnfPaciente(e.target.value)}
                                       placeholder="Nova enfermaria..."
@@ -1185,7 +1184,6 @@ export function AdmissoesView() {
                   <div className="flex gap-2 h-11 items-center">
                     <input
                       type="text"
-                      autoFocus
                       value={nomeNovaEnfModal}
                       onChange={(e) => setNomeNovaEnfModal(e.target.value)}
                       placeholder="Nome da nova enfermaria..."

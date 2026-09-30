@@ -448,7 +448,6 @@ export function PermanenciaView() {
                   <div className="flex items-center gap-1.5">
                     <input
                       type="text"
-                      autoFocus
                       value={nomeMembroInline}
                       onChange={(e) => setNomeMembroInline(e.target.value)}
                       onKeyDown={(e) => {
@@ -599,7 +598,6 @@ export function PermanenciaView() {
                   <div className="flex items-center gap-1.5">
                     <input
                       type="text"
-                      autoFocus
                       value={nomeMembroInline}
                       onChange={(e) => setNomeMembroInline(e.target.value)}
                       onKeyDown={(e) => {
@@ -1253,7 +1251,6 @@ export function PermanenciaView() {
                             <div className="flex items-center gap-1 animate-in fade-in">
                               <input
                                 type="text"
-                                autoFocus
                                 value={enfParaCriar}
                                 onChange={(e) => setEnfParaCriar(e.target.value)}
                                 onKeyDown={(e) => {

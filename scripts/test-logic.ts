@@ -3454,6 +3454,28 @@ assert(useFocusTrapCheck.includes("container.contains(document.activeElement)"),
 const useAppStoreCheck = fs.readFileSync(path.join(process.cwd(), "src", "store", "useAppStore.ts"), "utf-8");
 assert(!useAppStoreCheck.includes("sv.frequenciaCardiaca === 75 && sv.saturacaoO2 === 98"), "useAppStore não apaga FC 75 e Sat 98 digitados pelo usuário");
 
+// Teste 45.5: Ausência de autoFocus em medicamentos e nova enfermaria de PassagemPlantaoView
+const passagemViewCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "PassagemPlantaoView.tsx"), "utf-8");
+assert(!passagemViewCheck.includes('placeholder="Ex: Dipirona"\n                                        autoFocus'), "PassagemPlantaoView não possui autoFocus nocivo no input de medicamento");
+assert(!passagemViewCheck.includes('placeholder="Ex: NEFRO, UTI, 5º ANDAR..."\n                  autoFocus'), "PassagemPlantaoView não possui autoFocus nocivo na criação de enfermaria");
+
+// Teste 45.6: Ausência de autoFocus em membros de permanência e enfermaria inline de PermanenciaView
+const permViewCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "permanence", "PermanenciaView.tsx"), "utf-8");
+assert(!permViewCheck.includes('value={nomeMembroInline}\n                      autoFocus'), "PermanenciaView não possui autoFocus nocivo na adição inline de membros");
+assert(!permViewCheck.includes('value={enfParaCriar}\n                                autoFocus'), "PermanenciaView não possui autoFocus nocivo na criação rápida de enfermaria");
+
+// Teste 45.7: Ausência de autoFocus em nova categoria de ModelosTextoView
+const modelosCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "templates", "ModelosTextoView.tsx"), "utf-8");
+assert(!modelosCheck.includes('value={novaCatNome}\n                        autoFocus'), "ModelosTextoView não possui autoFocus nocivo no input de categoria");
+
+// Teste 45.8: Ausência de autoFocus em GatekeeperModal
+const gatekeeperCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "auth", "GatekeeperModal.tsx"), "utf-8");
+assert(!gatekeeperCheck.includes('placeholder="Digite a senha"\n                autoFocus'), "GatekeeperModal não possui autoFocus nativo, delegando foco ao useModalA11y");
+
+// Teste 45.9: Preservação de sinais vitais com nullish coalescing em PassagemPlantaoView
+assert(passagemViewCheck.includes('value={paciente.sinaisVitais?.fc ?? ""}'), "PassagemPlantaoView utiliza ?? para preservar FC 0 ou preenchida");
+assert(passagemViewCheck.includes('value={paciente.sinaisVitais?.satO2 ?? ""}'), "PassagemPlantaoView utiliza ?? para preservar SatO2 0 ou preenchida");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);

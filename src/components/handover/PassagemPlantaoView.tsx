@@ -1411,7 +1411,7 @@ export function PassagemPlantaoView() {
                                       type="text"
                                       inputMode="numeric"
                                       pattern="[0-9]*"
-                                      value={paciente.sinaisVitais?.fc || ""}
+                                      value={paciente.sinaisVitais?.fc ?? ""}
                                       onChange={(e) => {
                                         const num = parseInt(e.target.value.replace(/\D/g, ""), 10);
                                         handleSalvarSinaisVitais(
@@ -1432,7 +1432,7 @@ export function PassagemPlantaoView() {
                                       type="text"
                                       inputMode="numeric"
                                       pattern="[0-9]*"
-                                      value={paciente.sinaisVitais?.satO2 || ""}
+                                      value={paciente.sinaisVitais?.satO2 ?? ""}
                                       onChange={(e) => {
                                         const num = parseInt(e.target.value.replace(/\D/g, ""), 10);
                                         handleSalvarSinaisVitais(
@@ -1473,7 +1473,7 @@ export function PassagemPlantaoView() {
                                       type="text"
                                       inputMode="decimal"
                                       value={
-                                        paciente.sinaisVitais?.tax !== undefined && paciente.sinaisVitais?.tax !== null && paciente.sinaisVitais?.tax !== 0
+                                        paciente.sinaisVitais?.tax !== undefined && paciente.sinaisVitais?.tax !== null
                                           ? String(paciente.sinaisVitais.tax).replace(".", ",")
                                           : ""
                                       }
@@ -1608,7 +1608,6 @@ export function PassagemPlantaoView() {
                                         value={medNome}
                                         onChange={(e) => setMedNome(e.target.value)}
                                         placeholder="Ex: Dipirona"
-                                        autoFocus
                                         className="w-full max-w-full min-w-0 box-border px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:border-teal-500 focus:outline-none"
                                       />
                                     </div>
@@ -2115,7 +2114,6 @@ export function PassagemPlantaoView() {
                   value={novaEnfNome}
                   onChange={(e) => setNovaEnfNome(e.target.value)}
                   placeholder="Ex: NEFRO, UTI, 5º ANDAR..."
-                  autoFocus
                   className="w-full h-11 min-h-[44px] px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border text-xs font-medium"
                 />
               </div>
