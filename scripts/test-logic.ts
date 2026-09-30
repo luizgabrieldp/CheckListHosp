@@ -3476,6 +3476,17 @@ assert(!gatekeeperCheck.includes('placeholder="Digite a senha"\n                
 assert(passagemViewCheck.includes('value={paciente.sinaisVitais?.fc ?? ""}'), "PassagemPlantaoView utiliza ?? para preservar FC 0 ou preenchida");
 assert(passagemViewCheck.includes('value={paciente.sinaisVitais?.satO2 ?? ""}'), "PassagemPlantaoView utiliza ?? para preservar SatO2 0 ou preenchida");
 
+// Teste 45.10: useModalA11y isola onClose em ref e não recria listener de teclado na digitação
+assert(useFocusTrapCheck.includes("const onCloseRef = useRef(onClose);"), "useModalA11y isola onClose em ref prevenindo desmontes em re-render");
+assert(useFocusTrapCheck.includes("}, [isOpen]);"), "useModalA11y depende apenas de isOpen no listener de teclado");
+
+// Teste 45.11: useModalA11y não possui triggerRef.current.focus() no cleanup de keydown (evita fechar teclado mobile)
+const keydownBlock = useFocusTrapCheck.split('window.addEventListener("keydown", handleKeyDown);')[1]?.split("return () =>")[1]?.split("};")[0] || "";
+assert(!keydownBlock.includes("triggerRef.current.focus()"), "useModalA11y não fecha teclado virtual chamando triggerRef.focus no cleanup de keydown");
+
+// Teste 45.12: Restauração de foco estritamente na transição de fechamento do modal
+assert(useFocusTrapCheck.includes("!isOpen && wasOpenRef.current"), "useModalA11y restaura foco estritamente quando o modal fecha");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
