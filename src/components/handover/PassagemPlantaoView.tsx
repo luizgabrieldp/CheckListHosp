@@ -991,15 +991,15 @@ export function PassagemPlantaoView() {
                         {isExpandido && (
                           <div
                             id={`passagem-body-${paciente.id}`}
-                            className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/50 space-y-4 animate-in fade-in"
+                            className="p-3 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60 space-y-3 sm:space-y-4 animate-in fade-in"
                           >
                             {/* BLOCO 1: DADOS GERAIS */}
-                            <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-3">
+                            <div className="bg-white dark:bg-slate-900/90 p-3 sm:p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
                               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                                 {/* NOME DO PACIENTE */}
-                                <div className="sm:col-span-6">
+                                <div className="sm:col-span-6 min-w-0">
                                   <div className="h-7 flex items-center mb-1">
-                                    <label className="text-[11px] font-bold text-slate-700">
+                                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
                                       Nome do Paciente (Anonimizado na tela)
                                     </label>
                                   </div>
@@ -1010,14 +1010,14 @@ export function PassagemPlantaoView() {
                                       handleSalvarCampo(paciente, "nome", e.target.value)
                                     }
                                     placeholder="Nome completo do paciente..."
-                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
+                                    className="w-full min-w-0 max-w-full box-border h-9 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset focus:outline-none"
                                   />
                                 </div>
 
                                 {/* LEITO */}
-                                <div className="sm:col-span-3">
+                                <div className="sm:col-span-3 min-w-0">
                                   <div className="h-7 flex items-center mb-1">
-                                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                                       <Bed className="w-3 h-3 text-slate-400" />
                                       <span>Leito</span>
                                     </label>
@@ -1035,14 +1035,14 @@ export function PassagemPlantaoView() {
                                       )
                                     }
                                     placeholder="Ex: 25"
-                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-xs font-medium focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
+                                    className="w-full min-w-0 max-w-full box-border h-9 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset focus:outline-none"
                                   />
                                 </div>
 
                                 {/* ENFERMARIA */}
-                                <div className="sm:col-span-3">
+                                <div className="sm:col-span-3 min-w-0">
                                   <div className="h-7 flex items-center mb-1">
-                                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                                       <Building2 className="w-3 h-3 text-slate-400" />
                                       <span>Enfermaria</span>
                                     </label>
@@ -1052,7 +1052,7 @@ export function PassagemPlantaoView() {
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "enfermaria", e.target.value)
                                     }
-                                    className="w-full h-9 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
+                                    className="w-full min-w-0 max-w-full box-border h-9 px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset focus:outline-none"
                                   >
                                     <option value="">Sem enfermaria</option>
                                     {enfermarias
@@ -1067,11 +1067,11 @@ export function PassagemPlantaoView() {
                               </div>
 
                               {/* DATAS & CÁLCULO DE IDADE */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                                 {/* DATA DE ADMISSÃO */}
-                                <div>
+                                <div className="min-w-0">
                                   <div className="h-7 flex items-center mb-1">
-                                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                                       <Calendar className="w-3 h-3 text-slate-400" />
                                       <span>Data de Admissão</span>
                                     </label>
@@ -1082,19 +1082,19 @@ export function PassagemPlantaoView() {
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "dataAdmissao", e.target.value)
                                     }
-                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
+                                    className="w-full min-w-0 max-w-full box-border block h-9 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset focus:outline-none appearance-none"
                                   />
                                 </div>
 
                                 {/* DATA DE NASCIMENTO */}
-                                <div>
+                                <div className="min-w-0">
                                   <div className="h-7 flex items-center justify-between mb-1">
-                                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                                       <Calendar className="w-3 h-3 text-slate-400" />
                                       <span>Data de Nascimento</span>
                                     </label>
                                     {idade !== "-" && (
-                                      <span className="text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                                      <span className="text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800">
                                         Idade: {idade}
                                       </span>
                                     )}
@@ -1105,18 +1105,18 @@ export function PassagemPlantaoView() {
                                     onChange={(e) =>
                                       handleSalvarCampo(paciente, "dataNascimento", e.target.value)
                                     }
-                                    className="w-full h-9 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset box-border focus:outline-none"
+                                    className="w-full min-w-0 max-w-full box-border block h-9 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus-visible:ring-1 focus-visible:ring-sky-500 focus-visible:ring-inset ring-inset focus:outline-none appearance-none"
                                   />
                                 </div>
                               </div>
                             </div>
 
                             {/* BLOCO 2: ALERTAS MÉDICOS E MÚLTIPLAS CIRURGIAS / REOPERAÇÕES */}
-                            <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                            <div className="bg-white dark:bg-slate-900/90 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
                               {/* TOGGLES DE ALERGIA E PRECAUÇÃO */}
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {/* ALERGIA */}
-                                <div className="p-2.5 rounded-lg bg-amber-50/50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 space-y-2">
+                                <div className="min-w-0 p-2.5 rounded-lg bg-amber-50/50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 space-y-2">
                                   <label className="flex items-center justify-between cursor-pointer">
                                     <span className="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
                                       <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
@@ -1143,13 +1143,13 @@ export function PassagemPlantaoView() {
                                         )
                                       }
                                       placeholder="Ex: Dipirona, Penicilina, Iodo..."
-                                      className="w-full px-2.5 py-1 rounded bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 text-slate-800 dark:text-white text-xs focus:outline-none"
+                                      className="w-full min-w-0 max-w-full box-border px-2.5 py-1 rounded bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 text-slate-800 dark:text-white text-xs focus:outline-none"
                                     />
                                   )}
                                 </div>
 
                                 {/* PRECAUÇÃO DE CONTATO */}
-                                <div className="p-2.5 rounded-lg bg-rose-50/50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/70 flex items-center justify-between">
+                                <div className="min-w-0 p-2.5 rounded-lg bg-rose-50/50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/70 flex items-center justify-between">
                                   <span className="text-xs font-bold text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
                                     <ShieldAlert className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                                     <span>Precaução de Contato</span>
@@ -1170,8 +1170,8 @@ export function PassagemPlantaoView() {
                               </div>
 
                               {/* SEÇÃO CIRÚRGICA COM SUPORTE A MÚLTIPLAS REOPERAÇÕES */}
-                              <div className="pt-2 border-t border-slate-100 space-y-2.5">
-                                <div className="flex items-center justify-between">
+                              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                                   <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                       type="checkbox"
@@ -1186,8 +1186,8 @@ export function PassagemPlantaoView() {
                                       }}
                                       className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
                                     />
-                                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                      <Scissors className="w-3.5 h-3.5 text-sky-600" />
+                                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                      <Scissors className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
                                       <span>
                                         Paciente Cirúrgico (Pós-Operatórios: {cirurgiasDoPaciente.length})
                                       </span>
@@ -1198,7 +1198,7 @@ export function PassagemPlantaoView() {
                                     <button
                                       type="button"
                                       onClick={() => handleAdicionarCirurgia(paciente)}
-                                      className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                      className="w-full sm:w-auto justify-center px-3 py-1.5 sm:py-1 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                                     >
                                       <Plus className="w-3.5 h-3.5" />
                                       <span>Adicionar Cirurgia / Reoperação</span>
@@ -1213,7 +1213,7 @@ export function PassagemPlantaoView() {
                                         key={cx.id || idx}
                                         className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700"
                                       >
-                                        <div className="sm:col-span-5">
+                                        <div className="sm:col-span-5 min-w-0">
                                           <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5">
                                             Procedimento #{idx + 1}
                                           </label>
@@ -1229,11 +1229,11 @@ export function PassagemPlantaoView() {
                                               )
                                             }
                                             placeholder="Ex: Colecistectomia VLP..."
-                                            className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                            className="w-full min-w-0 max-w-full box-border px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
                                           />
                                         </div>
 
-                                        <div className="sm:col-span-4">
+                                        <div className="sm:col-span-4 min-w-0">
                                           <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-0.5">
                                             Data da Cirurgia
                                           </label>
@@ -1248,11 +1248,11 @@ export function PassagemPlantaoView() {
                                                 e.target.value
                                               )
                                             }
-                                            className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                            className="w-full min-w-0 max-w-full box-border block px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500 appearance-none"
                                           />
                                         </div>
 
-                                        <div className="sm:col-span-2">
+                                        <div className="sm:col-span-2 min-w-0">
                                           <div className="flex items-center justify-between mb-0.5">
                                             <label className="text-[10px] font-bold text-slate-600 dark:text-slate-300">
                                               DPO
@@ -1280,11 +1280,11 @@ export function PassagemPlantaoView() {
                                               );
                                             }}
                                             placeholder="Ajuste..."
-                                            className="w-full px-2 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                            className="w-full min-w-0 max-w-full box-border px-2 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
                                           />
                                         </div>
 
-                                        <div className="sm:col-span-1 text-right flex items-center justify-end">
+                                        <div className="sm:col-span-1 min-w-0 text-right flex items-center justify-end">
                                           <button
                                             type="button"
                                             onClick={() => handleRemoverCirurgia(paciente, cx.id)}
@@ -2030,7 +2030,7 @@ export function PassagemPlantaoView() {
                             </div>
 
                             {/* RODAPÉ DO CARD EXPANDIDO */}
-                            <div className="flex items-center justify-between pt-2 border-t border-slate-100 flex-wrap gap-2">
+                            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 flex-wrap gap-2">
                               <button
                                 type="button"
                                 onClick={() => {
@@ -2044,7 +2044,7 @@ export function PassagemPlantaoView() {
                                     removerPaciente(paciente.id);
                                   }
                                 }}
-                                className="min-h-[44px] text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                                className="min-h-[44px] text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                               >
                                 <Trash2 className="w-4 h-4" />
                                 <span>Excluir Paciente</span>
@@ -2053,7 +2053,7 @@ export function PassagemPlantaoView() {
                               <button
                                 type="button"
                                 onClick={() => toggleExpandido(paciente.id)}
-                                className="min-h-[44px] text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                                className="min-h-[44px] text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                               >
                                 <ChevronUp className="w-4 h-4" />
                                 <span>Recolher Detalhes</span>

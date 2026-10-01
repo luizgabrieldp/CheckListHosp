@@ -90,7 +90,7 @@ export function Sidebar() {
             aria-label={mobileOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-navigation"
-            className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-slate-800 dark:text-slate-200 bg-white/70 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 transition-all flex items-center justify-center cursor-pointer shadow-2xs active:scale-95"
+            className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-slate-800 dark:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
           </button>
@@ -101,18 +101,18 @@ export function Sidebar() {
         </div>
 
         {/* Ações Direitas: Botão de Tema Rápido + Indicador de Conexão no Header Mobile */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={alternarTema}
             aria-label={`Alternar tema: atualmente ${currentTheme.label}`}
             title={`Tema: ${currentTheme.label} (toque para alternar)`}
-            className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-slate-700 dark:text-slate-200 bg-white/70 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 transition-all flex items-center justify-center cursor-pointer shadow-2xs active:scale-95"
+            className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             <ThemeIcon className={`w-4 h-4 ${currentTheme.color}`} aria-hidden="true" />
           </button>
 
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-300 shadow-2xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/40 dark:border-slate-700/40 text-[11px] font-medium text-slate-700 dark:text-slate-300"
             role="status"
             aria-label={isConnected ? "Status: Conectado ao vivo" : "Status: Desconectado offline"}
           >

@@ -152,7 +152,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 p-1">
           {/* IDENTIFICAÇÃO BÁSICA */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
+            <div className="min-w-0">
               <div className="h-7 flex items-center mb-1">
                 <label htmlFor="pass-form-nome" className="text-xs font-semibold text-slate-300">
                   Nome do Paciente *
@@ -165,11 +165,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Ex: Carlos Eduardo de Oliveira"
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
+                className="w-full min-w-0 max-w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <div className="h-7 flex items-center mb-1">
                 <label htmlFor="pass-form-leito" className="text-xs font-semibold text-slate-300">
                   Leito *
@@ -184,11 +184,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 value={leito}
                 onChange={(e) => setLeito(e.target.value.replace(/\D/g, ""))}
                 placeholder="Ex: 08"
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
+                className="w-full min-w-0 max-w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
               />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <div className="h-7 flex items-center mb-1">
                 <label htmlFor="pass-form-enfermaria" className="text-xs font-semibold text-slate-300">
                   Enfermaria
@@ -198,7 +198,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 id="pass-form-enfermaria"
                 value={enfermaria}
                 onChange={(e) => setEnfermaria(e.target.value)}
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset cursor-pointer box-border"
+                className="w-full min-w-0 max-w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset cursor-pointer box-border"
               >
                 <option value="">Sem enfermaria</option>
                 {enfermarias
@@ -216,7 +216,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
+            <div className="min-w-0">
               <div className="h-7 flex items-center mb-1">
                 <label htmlFor="pass-form-nascimento" className="text-xs font-semibold text-slate-300 truncate">
                   Data de Nascimento (Cálculo de Idade)
@@ -227,11 +227,11 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 type="date"
                 value={dataNascimento}
                 onChange={(e) => setDataNascimento(e.target.value)}
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
+                className="w-full min-w-0 max-w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border block appearance-none"
               />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <div className="h-7 flex items-center mb-1">
                 <label htmlFor="pass-form-admissao" className="text-xs font-semibold text-slate-300 truncate">
                   Data de Admissão (Cálculo de D-Day Internação) *
@@ -243,7 +243,7 @@ export function ModalPacientePassagemForm({ pacienteExistente, onSalvar, onClose
                 required
                 value={dataAdmissao}
                 onChange={(e) => setDataAdmissao(e.target.value)}
-                className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border"
+                className="w-full min-w-0 max-w-full min-h-[44px] h-11 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-cyan-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-inset ring-inset box-border block appearance-none"
               />
             </div>
           </div>

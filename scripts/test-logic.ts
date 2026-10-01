@@ -3487,6 +3487,30 @@ assert(!keydownBlock.includes("triggerRef.current.focus()"), "useModalA11y não 
 // Teste 45.12: Restauração de foco estritamente na transição de fechamento do modal
 assert(useFocusTrapCheck.includes("!isOpen && wasOpenRef.current"), "useModalA11y restaura foco estritamente quando o modal fecha");
 
+// 46. CALIBRAÇÃO VISUAL DO CABEÇALHO LIQUID GLASS E LAYOUT DE PASSAGEM DE PLANTÃO
+console.log("\n--- 46. Calibração Visual: Cabeçalho Liquid Glass & Layout Cirúrgico ---");
+
+// Teste 46.1: Regras CSS WebKit para inputs de data e time em globals.css
+const globalsCssCalib = fs.readFileSync(path.join(process.cwd(), "src", "app", "globals.css"), "utf-8");
+assert(globalsCssCalib.includes('input[type="date"],'), "globals.css inclui regra estrita para input[type='date']");
+assert(globalsCssCalib.includes('::-webkit-date-and-time-value'), "globals.css inclui suporte a ::-webkit-date-and-time-value para WebKit/iOS");
+assert(globalsCssCalib.includes('box-sizing: border-box;'), "globals.css define box-sizing: border-box para prevenir estouro horizontal");
+
+// Teste 46.2: Botões do cabeçalho móvel integrados ao Liquid Glass sem blocos opacos
+const sidebarContentCalib = fs.readFileSync(path.join(process.cwd(), "src", "components", "layout", "Sidebar.tsx"), "utf-8");
+assert(!sidebarContentCalib.includes("bg-white/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700"), "Sidebar móvel não possui fundos pesados em bloco nos botões, mantendo estilo liquid glass");
+assert(sidebarContentCalib.includes("text-slate-700 dark:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800/50"), "Sidebar móvel possui botões transparentes com hover sutil");
+
+// Teste 46.3: Cabeçalho cirúrgico empilhado no mobile em PassagemPlantaoView
+assert(passagemViewCheck.includes("flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"), "PassagemPlantaoView possui cabeçalho cirúrgico responsivo flex-col sm:flex-row");
+
+// Teste 46.4: Campos de data calibrados com min-w-0 max-w-full box-border em PassagemPlantaoView
+assert(passagemViewCheck.includes('className="w-full min-w-0 max-w-full box-border block h-9 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800'), "PassagemPlantaoView protege campos de data contra estouro de largura no mobile");
+
+// Teste 46.5: ModalPacientePassagemForm com min-w-0 nos containers de colunas
+const modalPassagemContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "ModalPacientePassagemForm.tsx"), "utf-8");
+assert(modalPassagemContent.includes('<div className="min-w-0">'), "ModalPacientePassagemForm possui proteção min-w-0 nas colunas do grid");
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
