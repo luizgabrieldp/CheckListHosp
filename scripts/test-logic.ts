@@ -22,6 +22,12 @@ import {
   obterUltimaAntropometria,
 } from "../src/lib/imc";
 import { RegistroAntropometria, ControleAntropometrico } from "../src/types/hospital";
+import {
+  SEED_AMBULATORIO_PADRAO,
+  SEED_MODELOS_PADRAO,
+  mesclarAmbulatorioComSeguranca,
+  mesclarModelosComSeguranca,
+} from "../src/lib/seeds";
 
 let passed = 0;
 let failed = 0;
@@ -3510,6 +3516,75 @@ assert(passagemViewCheck.includes('className="w-full min-w-0 max-w-full box-bord
 // Teste 46.5: ModalPacientePassagemForm com min-w-0 nos containers de colunas
 const modalPassagemContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "ModalPacientePassagemForm.tsx"), "utf-8");
 assert(modalPassagemContent.includes('<div className="min-w-0">'), "ModalPacientePassagemForm possui proteção min-w-0 nas colunas do grid");
+
+// 47. BLINDAGEM DE PERSISTÊNCIA: PREVENÇÃO DE SOBRESCRITA POR ARRAY VAZIO & RECUPERAÇÃO EM ABA ANÔNIMA
+console.log("\n--- 47. Blindagem de Persistência: Seeds Oficiais, Anti-Sobrescrita Vazia & Aba Anônima ---");
+
+// Teste 47.1: SEED_AMBULATORIO_PADRAO possui corpo clínico completo (21 médicos e 22 turnos)
+assert(Array.isArray(SEED_AMBULATORIO_PADRAO) && SEED_AMBULATORIO_PADRAO.length >= 21, "SEED_AMBULATORIO_PADRAO possui pelo menos 21 médicos cadastrados");
+assert(SEED_AMBULATORIO_PADRAO.some(m => m.nome === "José Neto" && m.horarios.some(h => h.dia === "Segunda" && h.turno === "Manhã")), "SEED_AMBULATORIO_PADRAO contém Dr. José Neto na Segunda Manhã");
+assert(SEED_AMBULATORIO_PADRAO.some(m => m.nome === "Romulo Furtado" && m.horarios.some(h => h.dia === "Segunda" && h.turno === "Tarde")), "SEED_AMBULATORIO_PADRAO contém Dr. Romulo Furtado na Segunda Tarde");
+assert(SEED_AMBULATORIO_PADRAO.some(m => m.nome === "Antonio Cavalcanti" && m.horarios.some(h => h.dia === "Terça" && h.turno === "Manhã")), "SEED_AMBULATORIO_PADRAO contém Dr. Antonio Cavalcanti na Terça Manhã");
+assert(SEED_AMBULATORIO_PADRAO.some(m => m.nome === "Thiago Silva" && m.horarios.length === 2), "SEED_AMBULATORIO_PADRAO contém Dr. Thiago Silva com 2 turnos (Terça M e Quinta T)");
+assert(SEED_AMBULATORIO_PADRAO.some(m => m.nome === "Roberto Lustosa" && m.horarios.some(h => h.dia === "Sexta" && h.turno === "Tarde")), "SEED_AMBULATORIO_PADRAO contém Dr. Roberto Lustosa na Sexta Tarde");
+
+// Teste 47.2: SEED_MODELOS_PADRAO possui os 13 templates clínicos oficiais
+assert(Array.isArray(SEED_MODELOS_PADRAO) && SEED_MODELOS_PADRAO.length >= 13, "SEED_MODELOS_PADRAO possui pelo menos 13 templates clínicos");
+assert(SEED_MODELOS_PADRAO.some(m => m.categoria === "ADM" && m.titulo === "Padrão"), "SEED_MODELOS_PADRAO possui modelo de Anamnese Padrão ADM");
+assert(SEED_MODELOS_PADRAO.some(m => m.categoria === "Alta" && m.titulo === "Padrão"), "SEED_MODELOS_PADRAO possui modelo de Sumário de Alta Padrão");
+assert(SEED_MODELOS_PADRAO.some(m => m.categoria === "Encaminhamento" && m.titulo === "Ostomia"), "SEED_MODELOS_PADRAO possui modelo de Encaminhamento para Ostomia");
+assert(SEED_MODELOS_PADRAO.some(m => m.categoria === "Orientações de Alta" && m.titulo === "Colelap"), "SEED_MODELOS_PADRAO possui modelo pós-operatório de Colelap");
+assert(SEED_MODELOS_PADRAO.some(m => m.categoria === "Orientações de Alta" && m.titulo === "Bariátrica"), "SEED_MODELOS_PADRAO possui modelo pós-operatório de Cirurgia Bariátrica");
+assert(SEED_MODELOS_PADRAO.some(m => m.categoria === "Receituário" && m.titulo.includes("Receita")), "SEED_MODELOS_PADRAO possui modelo de Receituário Analgésico Pós-Operatório");
+
+// Teste 47.3: mesclarAmbulatorioComSeguranca protege contra array vazio remoto (anti-sobrescrita)
+const medicoTeste = [{ id: "med-teste", nome: "Médico Local Teste", horarios: [{ dia: "Segunda" as const, turno: "Manhã" as const }] }];
+const resultadoAmbulatorioVazioRemoto = mesclarAmbulatorioComSeguranca([], medicoTeste);
+assert(resultadoAmbulatorioVazioRemoto.length === 1 && resultadoAmbulatorioVazioRemoto[0].id === "med-teste", "mesclarAmbulatorioComSeguranca preserva dados locais quando remotos é []");
+
+const resultadoAmbulatorioNullRemoto = mesclarAmbulatorioComSeguranca(null, medicoTeste);
+assert(resultadoAmbulatorioNullRemoto.length === 1 && resultadoAmbulatorioNullRemoto[0].id === "med-teste", "mesclarAmbulatorioComSeguranca preserva dados locais quando remotos é null");
+
+// Teste 47.4: mesclarAmbulatorioComSeguranca fallback em aba anônima (ambos vazios) retorna SEED
+const resultadoAmbulatorioAnonimo = mesclarAmbulatorioComSeguranca([], []);
+assert(resultadoAmbulatorioAnonimo.length === SEED_AMBULATORIO_PADRAO.length, "mesclarAmbulatorioComSeguranca retorna SEED oficial quando locais e remotos são vazios (aba anônima)");
+
+// Teste 47.5: mesclarModelosComSeguranca protege contra array vazio remoto (anti-sobrescrita)
+const modeloTeste = [{ id: "mod-teste", titulo: "Modelo Teste", categoria: "Geral", conteudo: "Teste", createdAt: "2026-10-01" }];
+const resultadoModelosVazioRemoto = mesclarModelosComSeguranca([], modeloTeste);
+assert(resultadoModelosVazioRemoto.length === 1 && resultadoModelosVazioRemoto[0].id === "mod-teste", "mesclarModelosComSeguranca preserva dados locais quando remotos é []");
+
+const resultadoModelosNullRemoto = mesclarModelosComSeguranca(null, modeloTeste);
+assert(resultadoModelosNullRemoto.length === 1 && resultadoModelosNullRemoto[0].id === "mod-teste", "mesclarModelosComSeguranca preserva dados locais quando remotos é null");
+
+// Teste 47.6: mesclarModelosComSeguranca fallback em aba anônima (ambos vazios) retorna SEED
+const resultadoModelosAnonimo = mesclarModelosComSeguranca([], []);
+assert(resultadoModelosAnonimo.length === SEED_MODELOS_PADRAO.length, "mesclarModelosComSeguranca retorna SEED oficial quando locais e remotos são vazios (aba anônima)");
+
+// Teste 47.7: Preservação de adições locais durante mesclagem com dados remotos
+const medicoNovoLocal = { id: "med-novo-local", nome: "Médico Novo Adicionado Localmente", horarios: [{ dia: "Quarta" as const, turno: "Tarde" as const }] };
+const resultadoMesclaAmbulatorio = mesclarAmbulatorioComSeguranca(SEED_AMBULATORIO_PADRAO, [medicoNovoLocal]);
+assert(resultadoMesclaAmbulatorio.some(m => m.id === "med-novo-local"), "mesclarAmbulatorioComSeguranca não descarta novo médico adicionado localmente");
+
+const modeloNovoLocal = { id: "mod-novo-local", titulo: "Modelo Novo Local", categoria: "ADM", conteudo: "Conteúdo", createdAt: "2026-10-07" };
+const resultadoMesclaModelos = mesclarModelosComSeguranca(SEED_MODELOS_PADRAO, [modeloNovoLocal]);
+assert(resultadoMesclaModelos.some(m => m.id === "mod-novo-local"), "mesclarModelosComSeguranca não descarta novo modelo criado localmente");
+
+// Teste 47.8: Inspecionar useAppStore.ts - carregamento com fallback de SEED e proteção no LocalStorage
+const useAppStoreContent = fs.readFileSync(path.join(process.cwd(), "src", "store", "useAppStore.ts"), "utf-8");
+assert(useAppStoreContent.includes("return SEED_AMBULATORIO_PADRAO;"), "useAppStore utiliza SEED_AMBULATORIO_PADRAO no fallback de localStorage");
+assert(useAppStoreContent.includes("return SEED_MODELOS_PADRAO;"), "useAppStore utiliza SEED_MODELOS_PADRAO no fallback de localStorage");
+assert(useAppStoreContent.includes("const novosAmbulantes = mesclarAmbulatorioComSeguranca(state.ambulantes, prev.ambulantes);"), "useAppStore integra mesclarAmbulatorioComSeguranca no syncFullState");
+assert(useAppStoreContent.includes("const novosModelos = mesclarModelosComSeguranca(state.modelos, prev.modelos);"), "useAppStore integra mesclarModelosComSeguranca no syncFullState");
+assert(useAppStoreContent.includes("if (cur.ambulantes && cur.ambulantes.length > 0)"), "useAppStore impede gravação de array vazio em checklist_ambulantes");
+assert(useAppStoreContent.includes("if (cur.modelos && cur.modelos.length > 0)"), "useAppStore impede gravação de array vazio em checklist_modelos");
+
+// Teste 47.9: Inspecionar RealtimeProvider.tsx - auto-reparação e fallback de inicialização de documento
+const realtimeProviderContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "providers", "RealtimeProvider.tsx"), "utf-8");
+assert(realtimeProviderContent.includes("sincronizarComFirestore({ ambulantes: atual.ambulantes });"), "RealtimeProvider possui auto-reparação para ambulantes vazios no Firestore");
+assert(realtimeProviderContent.includes("sincronizarComFirestore({ modelos: atual.modelos });"), "RealtimeProvider possui auto-reparação para modelos vazios no Firestore");
+assert(realtimeProviderContent.includes("SEED_AMBULATORIO_PADRAO"), "RealtimeProvider utiliza SEED_AMBULATORIO_PADRAO na inicialização de documento vazio");
+assert(realtimeProviderContent.includes("SEED_MODELOS_PADRAO"), "RealtimeProvider utiliza SEED_MODELOS_PADRAO na inicialização de documento vazio");
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);

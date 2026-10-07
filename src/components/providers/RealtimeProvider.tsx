@@ -8,6 +8,7 @@ import {
   isFirebaseConfigured,
   sincronizarComFirestore,
 } from "@/lib/firebase";
+import { SEED_AMBULATORIO_PADRAO, SEED_MODELOS_PADRAO } from "@/lib/seeds";
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const syncFullState = useAppStore((s) => s.syncFullState);
@@ -92,6 +93,17 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           if (!isMounted) return;
           syncFullState(dados as any);
           setConnected(true, 18);
+
+          // Auto-reparação: Se o Firestore estiver vazio em modelos ou ambulatório,
+          // restaura imediatamente na nuvem usando os dados locais ou as sementes oficiais
+          const atual = useAppStore.getState();
+          if ((!dados.ambulantes || dados.ambulantes.length === 0) && atual.ambulantes.length > 0) {
+            sincronizarComFirestore({ ambulantes: atual.ambulantes });
+          }
+          if ((!dados.modelos || dados.modelos.length === 0) && atual.modelos.length > 0) {
+            sincronizarComFirestore({ modelos: atual.modelos });
+          }
+
           // Executa expurgo automático LGPD (48h após a data do evento)
           try {
             useAppStore.getState().executarExpurgoAutomatico();
@@ -107,8 +119,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
             altas: current.altas,
             permanencia: current.permanencia,
             passagem: current.passagem,
-            ambulantes: current.ambulantes,
-            modelos: current.modelos,
+            ambulantes: current.ambulantes.length > 0 ? current.ambulantes : SEED_AMBULATORIO_PADRAO,
+            modelos: current.modelos.length > 0 ? current.modelos : SEED_MODELOS_PADRAO,
             metricas: current.metricas,
           });
           setConnected(true, 25);

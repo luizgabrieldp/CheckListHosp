@@ -18,6 +18,12 @@ import {
   executarExpurgoAutomaticoCliente,
   ResultadoExpurgoAutomatico,
 } from "@/lib/lgpd";
+import {
+  SEED_AMBULATORIO_PADRAO,
+  SEED_MODELOS_PADRAO,
+  mesclarAmbulatorioComSeguranca,
+  mesclarModelosComSeguranca,
+} from "@/lib/seeds";
 
 let socketInstance: WebSocket | null = null;
 
@@ -115,6 +121,32 @@ function carregarItemLocalStorage<T>(chave: string, padrao: T): T {
     } catch {}
   }
   return padrao;
+}
+
+function carregarAmbulatorioLocalStorage(): MedicoAmbulatorio[] {
+  if (typeof window !== "undefined") {
+    try {
+      const salvo = localStorage.getItem("checklist_ambulantes");
+      if (salvo) {
+        const parsed = JSON.parse(salvo);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+  }
+  return SEED_AMBULATORIO_PADRAO;
+}
+
+function carregarModelosLocalStorage(): ModeloTexto[] {
+  if (typeof window !== "undefined") {
+    try {
+      const salvo = localStorage.getItem("checklist_modelos");
+      if (salvo) {
+        const parsed = JSON.parse(salvo);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+  }
+  return SEED_MODELOS_PADRAO;
 }
 
 export type ThemeMode = "auto" | "light" | "dark";
@@ -273,8 +305,8 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     updatedAt: new Date().toISOString(),
   }),
   passagem: carregarItemLocalStorage<PacientePassagem[]>("checklist_passagem", []).map(limparSinaisVitaisLegadosPassagem),
-  ambulantes: carregarItemLocalStorage<MedicoAmbulatorio[]>("checklist_ambulantes", []),
-  modelos: carregarItemLocalStorage<ModeloTexto[]>("checklist_modelos", []),
+  ambulantes: carregarAmbulatorioLocalStorage(),
+  modelos: carregarModelosLocalStorage(),
   metricas: carregarItemLocalStorage<MetricasHistoricasDiarias[]>("checklist_metricas", []),
 
   enfermarias: carregarListaLocalStorage("checklist_enfermarias", ENFERMARIAS_PADRAO),
@@ -321,37 +353,42 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     set({ isConnected: connected, latencyMs: latency, lastSyncTime: Date.now() }),
 
   syncFullState: (state) => {
-    set((prev) => ({
-      ...prev,
-      admissoes: state.admissoes ? state.admissoes.map(normalizarEnfermariaPaciente) : prev.admissoes,
-      altas: state.altas
-        ? state.altas.map((nova) => {
-            const anterior = prev.altas.find((a) => a.id === nova.id);
-            const atualizada = limparSinaisVitaisLegadosAlta(nova);
-            const fotosFeridaUrls =
-              (anterior?.fotosFeridaUrls && anterior.fotosFeridaUrls.length > 0)
-                ? anterior.fotosFeridaUrls
-                : (atualizada.fotosFeridaUrls && atualizada.fotosFeridaUrls.length > 0
-                    ? atualizada.fotosFeridaUrls
-                    : undefined);
-            const fotoFeridaUrl =
-              anterior?.fotoFeridaUrl ||
-              atualizada.fotoFeridaUrl ||
-              (fotosFeridaUrls && fotosFeridaUrls[0] ? fotosFeridaUrls[0] : undefined);
-            return {
-              ...atualizada,
-              fotosFeridaUrls,
-              fotoFeridaUrl,
-            };
-          })
-        : prev.altas,
-      permanencia: state.permanencia || prev.permanencia,
-      passagem: state.passagem ? state.passagem.map(limparSinaisVitaisLegadosPassagem) : prev.passagem,
-      ambulantes: state.ambulantes || prev.ambulantes,
-      modelos: state.modelos || prev.modelos,
-      metricas: state.metricas || prev.metricas,
-      lastSyncTime: Date.now(),
-    }));
+    set((prev) => {
+      const novosAmbulantes = mesclarAmbulatorioComSeguranca(state.ambulantes, prev.ambulantes);
+      const novosModelos = mesclarModelosComSeguranca(state.modelos, prev.modelos);
+
+      return {
+        ...prev,
+        admissoes: state.admissoes ? state.admissoes.map(normalizarEnfermariaPaciente) : prev.admissoes,
+        altas: state.altas
+          ? state.altas.map((nova) => {
+              const anterior = prev.altas.find((a) => a.id === nova.id);
+              const atualizada = limparSinaisVitaisLegadosAlta(nova);
+              const fotosFeridaUrls =
+                (anterior?.fotosFeridaUrls && anterior.fotosFeridaUrls.length > 0)
+                  ? anterior.fotosFeridaUrls
+                  : (atualizada.fotosFeridaUrls && atualizada.fotosFeridaUrls.length > 0
+                      ? atualizada.fotosFeridaUrls
+                      : undefined);
+              const fotoFeridaUrl =
+                anterior?.fotoFeridaUrl ||
+                atualizada.fotoFeridaUrl ||
+                (fotosFeridaUrls && fotosFeridaUrls[0] ? fotosFeridaUrls[0] : undefined);
+              return {
+                ...atualizada,
+                fotosFeridaUrls,
+                fotoFeridaUrl,
+              };
+            })
+          : prev.altas,
+        permanencia: state.permanencia || prev.permanencia,
+        passagem: state.passagem ? state.passagem.map(limparSinaisVitaisLegadosPassagem) : prev.passagem,
+        ambulantes: novosAmbulantes,
+        modelos: novosModelos,
+        metricas: state.metricas || prev.metricas,
+        lastSyncTime: Date.now(),
+      };
+    });
 
     if (typeof window !== "undefined") {
       try {
@@ -359,8 +396,15 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
         if (state.altas) localStorage.setItem("checklist_altas", JSON.stringify(state.altas));
         if (state.permanencia) localStorage.setItem("checklist_permanencia", JSON.stringify(state.permanencia));
         if (state.passagem) localStorage.setItem("checklist_passagem", JSON.stringify(state.passagem));
-        if (state.ambulantes) localStorage.setItem("checklist_ambulantes", JSON.stringify(state.ambulantes));
-        if (state.modelos) localStorage.setItem("checklist_modelos", JSON.stringify(state.modelos));
+
+        // NUNCA salvar arrays vazios no LocalStorage por sincronização passiva
+        const cur = get();
+        if (cur.ambulantes && cur.ambulantes.length > 0) {
+          localStorage.setItem("checklist_ambulantes", JSON.stringify(cur.ambulantes));
+        }
+        if (cur.modelos && cur.modelos.length > 0) {
+          localStorage.setItem("checklist_modelos", JSON.stringify(cur.modelos));
+        }
         if (state.metricas) localStorage.setItem("checklist_metricas", JSON.stringify(state.metricas));
       } catch {}
     }
