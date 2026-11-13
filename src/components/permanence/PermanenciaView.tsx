@@ -36,6 +36,7 @@ export function PermanenciaView() {
   const enfermarias = useAppStore((s) => s.enfermarias);
   const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
   const plantonista = useAppStore((s) => s.plantonista);
+  const recentRemoteUpdates = useAppStore((s) => s.recentRemoteUpdates);
 
   // Controle de data de visualização das pendências (padrão: hoje no fuso local)
   const [dataSelecionada, setDataSelecionada] = useState(() => {
@@ -1010,16 +1011,19 @@ export function PermanenciaView() {
               const isFeito = p.status === "Feito";
               const isAberta = pendenciaAbertaId === p.id;
               const responsaveisDaTarefa = obterResponsaveis(p);
+              const remoteUpdate = recentRemoteUpdates[p.id];
 
               return (
                 <div
                   key={p.id}
                   className={`rounded-xl border transition-all duration-200 shadow-sm overflow-hidden ${
-                    isFeito
-                      ? "bg-slate-50/80 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 opacity-75"
-                      : isUrgente
-                      ? "border-rose-200 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/20 hover:border-rose-300 dark:hover:border-rose-700"
-                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm"
+                    remoteUpdate
+                      ? "ring-2 ring-emerald-500/50 border-emerald-400 dark:border-emerald-600 bg-white dark:bg-slate-900"
+                      : isFeito
+                        ? "bg-slate-50/80 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 opacity-75"
+                        : isUrgente
+                          ? "border-rose-200 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/20 hover:border-rose-300 dark:hover:border-rose-700"
+                          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm"
                   }`}
                 >
                   {/* LINHA RESUMIDA (CLICÁVEL PARA ABRIR SANFONA) */}
@@ -1070,6 +1074,11 @@ export function PermanenciaView() {
                           {isUrgente && (
                             <span className="inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                               <Flame className="w-3 h-3 text-rose-600" aria-hidden="true" /> URGENTE
+                            </span>
+                          )}
+                          {remoteUpdate && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70">
+                              Atualizado por {remoteUpdate.author}
                             </span>
                           )}
 

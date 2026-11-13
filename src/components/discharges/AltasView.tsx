@@ -41,6 +41,7 @@ export function AltasView() {
   const removerAlta = useAppStore((s) => s.removerAlta);
   const enfermarias = useAppStore((s) => s.enfermarias);
   const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
+  const recentRemoteUpdates = useAppStore((s) => s.recentRemoteUpdates);
 
   // Data selecionada no topo (padrão: hoje no fuso local)
   const [dataSelecionada, setDataSelecionada] = useState(() => {
@@ -512,14 +513,17 @@ export function AltasView() {
                 <div className="space-y-2">
                   {pacientes.map((paciente) => {
                     const isExpandido = pacienteExpandidoId === paciente.id;
+                    const remoteUpdate = recentRemoteUpdates[paciente.id];
 
                     return (
                       <div
                         key={paciente.id}
                         className={`clean-card rounded-xl transition-all overflow-hidden ${
-                          isExpandido
-                            ? "border-emerald-500 ring-2 ring-emerald-500/10 shadow-sm"
-                            : "hover:border-slate-300 dark:hover:border-slate-700"
+                          remoteUpdate
+                            ? "border-emerald-400 dark:border-emerald-600 ring-2 ring-emerald-500/50 shadow-sm"
+                            : isExpandido
+                              ? "border-emerald-500 ring-2 ring-emerald-500/10 shadow-sm"
+                              : "hover:border-slate-300 dark:hover:border-slate-700"
                         } bg-white dark:bg-slate-800/95`}
                       >
                         {/* CABEÇALHO DO ACORDEÃO COM NOME DO PACIENTE EM EVIDÊNCIA MÁXIMA */}
@@ -555,6 +559,11 @@ export function AltasView() {
                                 {paciente.enfermaria?.trim() || "Sem Enfermaria"}
                                 {paciente.tipoCirurgia ? ` · ${paciente.tipoCirurgia}` : ""}
                               </span>
+                              {remoteUpdate && (
+                                <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70">
+                                  Atualizado por {remoteUpdate.author}
+                                </span>
+                              )}
                             </div>
                           </div>
 

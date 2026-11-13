@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { confirmAction, toast } from "@/store/useUiStore";
-import { converterAdmissaoParaPassagem } from "@/lib/patient-flow";
 import { AdmissaoPaciente } from "@/types/hospital";
 import {
   gerarMensagemWhatsAppAdmissoes,
@@ -33,7 +32,6 @@ import {
   X,
   ArrowUpDown,
   Loader2,
-  ArrowRight,
 } from "lucide-react";
 import {
   DndContext,
@@ -180,32 +178,9 @@ export function AdmissoesView() {
   const admissoes = useAppStore((s) => s.admissoes);
   const salvarAdmissao = useAppStore((s) => s.salvarAdmissao);
   const removerAdmissao = useAppStore((s) => s.removerAdmissao);
-  const passagem = useAppStore((s) => s.passagem);
-  const salvarPacientePassagem = useAppStore((s) => s.salvarPacientePassagem);
-  const removerPacientePassagem = useAppStore((s) => s.removerPacientePassagem);
-  const setActiveTab = useAppStore((s) => s.setActiveTab);
   const enfermarias = useAppStore((s) => s.enfermarias);
   const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
-
-  function handleEnviarParaPassagem(paciente: AdmissaoPaciente) {
-    const existente = passagem.find(
-      (p) => p.nome.trim().toLowerCase() === paciente.nome.trim().toLowerCase()
-    );
-    const convertido = converterAdmissaoParaPassagem(paciente, existente);
-    salvarPacientePassagem(convertido);
-    setActiveTab("passagem");
-    toast.success(
-      existente
-        ? `${paciente.nome} atualizado na Passagem de Plantão.`
-        : `${paciente.nome} enviado para a Passagem de Plantão.`,
-      existente
-        ? undefined
-        : {
-            label: "Desfazer",
-            onClick: () => removerPacientePassagem(convertido.id),
-          }
-    );
-  }
+  const recentRemoteUpdates = useAppStore((s) => s.recentRemoteUpdates);
 
   // Data selecionada no topo (padrão: hoje no fuso local)
   const [dataSelecionada, setDataSelecionada] = useState(() => {
@@ -677,14 +652,17 @@ export function AdmissoesView() {
                     const emojisAtivos = obterEmojisStatusAdmissao(paciente);
                     const isCancelada = paciente.cancelada;
                     const isTravada = paciente.historiaFinalizada;
+                    const remoteUpdate = recentRemoteUpdates[paciente.id];
 
                     return (
                       <div
                         key={paciente.id}
                         className={`clean-card rounded-xl transition-all overflow-hidden ${
-                          isExpandido
-                            ? "border-emerald-500 ring-2 ring-emerald-500/10 shadow-sm"
-                            : "hover:border-slate-300 dark:hover:border-slate-700"
+                          remoteUpdate
+                            ? "border-emerald-400 dark:border-emerald-600 ring-2 ring-emerald-500/50 shadow-sm"
+                            : isExpandido
+                              ? "border-emerald-500 ring-2 ring-emerald-500/10 shadow-sm"
+                              : "hover:border-slate-300 dark:hover:border-slate-700"
                         } ${isCancelada ? "opacity-60 bg-slate-50 dark:bg-slate-800/60" : "bg-white dark:bg-slate-800/95"}`}
                       >
                         {/* LINHA RECOLHIDA (ACCORDION HEADER) */}
@@ -720,6 +698,11 @@ export function AdmissoesView() {
                               <span className="text-[11px] text-slate-400">
                                 {paciente.enfermaria?.trim() || "Sem Enfermaria"}
                               </span>
+                              {remoteUpdate && (
+                                <span className="mt-0.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70">
+                                  Atualizado por {remoteUpdate.author}
+                                </span>
+                              )}
                             </div>
                           </div>
 
@@ -986,14 +969,6 @@ export function AdmissoesView() {
                             </label>
 
                             <div className="flex items-center gap-2 flex-wrap">
-                              <button
-                                type="button"
-                                onClick={() => handleEnviarParaPassagem(paciente)}
-                                className="min-h-[44px] px-3 py-2 rounded-lg text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                              >
-                                <span>Enviar para Passagem</span>
-                                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
-                              </button>
 
                               <button
                                 type="button"

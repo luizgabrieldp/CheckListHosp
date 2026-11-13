@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { confirmAction, toast } from "@/store/useUiStore";
-import { converterPassagemParaAlta, isPacienteCriticoPassagem } from "@/lib/patient-flow";
+import { isPacienteCriticoPassagem } from "@/lib/patient-flow";
 import {
   PacientePassagem,
   PrescricaoAntibiotico,
@@ -50,7 +50,6 @@ import {
   ClipboardList,
   Check,
   Scale,
-  ArrowRight,
 } from "lucide-react";
 
 export function PassagemPlantaoView() {
@@ -60,10 +59,8 @@ export function PassagemPlantaoView() {
   const salvarPaciente = useAppStore((s) => s.salvarPacientePassagem);
   const removerPaciente = useAppStore((s) => s.removerPacientePassagem);
   const permanenciaPendencias = useAppStore((s) => s.permanencia.pendencias);
-  const salvarAlta = useAppStore((s) => s.salvarAlta);
-  const removerAlta = useAppStore((s) => s.removerAlta);
-  const setActiveTab = useAppStore((s) => s.setActiveTab);
   const plantonista = useAppStore((s) => s.plantonista);
+  const recentRemoteUpdates = useAppStore((s) => s.recentRemoteUpdates);
 
   // Estados de navegação e filtros
   const [termoBusca, setTermoBusca] = useState("");
@@ -175,16 +172,6 @@ export function PassagemPlantaoView() {
       [campo]: valor,
       ...(plantonista ? { atualizadoPor: plantonista } : {}),
       updatedAt: new Date().toISOString(),
-    });
-  }
-
-  function handleGerarAlta(paciente: PacientePassagem) {
-    const novaAlta = converterPassagemParaAlta(paciente);
-    salvarAlta(novaAlta);
-    setActiveTab("altas");
-    toast.success(`Alta gerada para ${paciente.nome || "paciente"}.`, {
-      label: "Desfazer",
-      onClick: () => removerAlta(novaAlta.id),
     });
   }
 
@@ -766,11 +753,16 @@ export function PassagemPlantaoView() {
                     const tempoInternacao = calcularTempoInternacao(paciente.dataAdmissao);
                     const nomeExibicao = anonimizarNome(paciente.nome) || "Paciente não identificado";
                     const cirurgiasDoPaciente = obterCirurgiasPaciente(paciente);
+                    const remoteUpdate = recentRemoteUpdates[paciente.id];
 
                     return (
                       <div
                         key={paciente.id}
-                        className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-slate-300 dark:hover:border-slate-600 transition-all overflow-hidden"
+                        className={`bg-white dark:bg-slate-800 rounded-2xl border shadow-sm transition-all overflow-hidden ${
+                          remoteUpdate
+                            ? "ring-2 ring-emerald-500/50 border-emerald-400 dark:border-emerald-600"
+                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                        }`}
                       >
                         {/* ──────────────────────────────────────────
                             CABEÇALHO RESUMIDO EM 4 LINHAS (CLICÁVEL)
@@ -807,6 +799,12 @@ export function PassagemPlantaoView() {
                               <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight break-words">
                                 {nomeExibicao}
                               </span>
+
+                              {remoteUpdate && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70">
+                                  Atualizado por {remoteUpdate.author}
+                                </span>
+                              )}
 
                               {/* IDADE CALCULADA */}
                               {idade !== "-" && (
@@ -2073,15 +2071,6 @@ export function PassagemPlantaoView() {
                             {/* RODAPÉ DO CARD EXPANDIDO */}
                             <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 flex-wrap gap-2">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <button
-                                  type="button"
-                                  onClick={() => handleGerarAlta(paciente)}
-                                  className="min-h-[44px] text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors cursor-pointer"
-                                >
-                                  <span>Gerar Alta</span>
-                                  <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
-                                </button>
-
                                 <button
                                   type="button"
                                   onClick={async () => {

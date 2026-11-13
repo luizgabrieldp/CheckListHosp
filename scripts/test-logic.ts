@@ -30,11 +30,11 @@ import {
   mesclarModelosComSeguranca,
 } from "../src/lib/seeds";
 import {
-  converterAdmissaoParaPassagem,
-  converterPassagemParaAlta,
   isPacienteCriticoPassagem,
   buscarGlobal,
 } from "../src/lib/patient-flow";
+import { computeDiffFields } from "../src/lib/firebase";
+import { mesclarColecaoComCampoAtivo } from "../src/store/useAppStore";
 
 let passed = 0;
 let failed = 0;
@@ -3570,8 +3570,8 @@ assert(useAppStoreContent.includes("if (cur.modelos && cur.modelos.length > 0)")
 
 // Teste 47.9: Inspecionar RealtimeProvider.tsx - auto-reparação e fallback de inicialização de documento
 const realtimeProviderContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "providers", "RealtimeProvider.tsx"), "utf-8");
-assert(realtimeProviderContent.includes("sincronizarComFirestore({ ambulantes: atual.ambulantes });"), "RealtimeProvider possui auto-reparação para ambulantes vazios no Firestore");
-assert(realtimeProviderContent.includes("sincronizarComFirestore({ modelos: atual.modelos });"), "RealtimeProvider possui auto-reparação para modelos vazios no Firestore");
+assert(realtimeProviderContent.includes('salvarItemGranularFirestore("medicosAmbulatorio"'), "RealtimeProvider possui auto-reparação para ambulantes vazios no Firestore");
+assert(realtimeProviderContent.includes('salvarItemGranularFirestore("modelos"'), "RealtimeProvider possui auto-reparação para modelos vazios no Firestore");
 assert(realtimeProviderContent.includes("SEED_AMBULATORIO_PADRAO"), "RealtimeProvider utiliza SEED_AMBULATORIO_PADRAO na inicialização de documento vazio");
 assert(realtimeProviderContent.includes("SEED_MODELOS_PADRAO"), "RealtimeProvider utiliza SEED_MODELOS_PADRAO na inicialização de documento vazio");
 
@@ -3869,44 +3869,39 @@ const admTeste: AdmissaoPaciente = {
   updatedAt: "2026-11-12T10:00:00.000Z",
 };
 
-const passConvertido = converterAdmissaoParaPassagem(admTeste, undefined, new Date("2026-11-12T12:00:00.000Z"));
-assert(passConvertido.nome === "José Carlos Andrade", "converterAdmissaoParaPassagem reaproveita nome");
-assert(passConvertido.leito === "12" && passConvertido.enfermaria === "FGH", "converterAdmissaoParaPassagem reaproveita leito e enfermaria");
-assert(passConvertido.hd === "Colelitíase sintomática", "converterAdmissaoParaPassagem reaproveita HD");
-assert(passConvertido.temAlergia === true && passConvertido.descricaoAlergia === "Dipirona", "converterAdmissaoParaPassagem detecta alergia real");
-assert(passConvertido.medicacoesUsoGeral === "Losartana 50mg", "converterAdmissaoParaPassagem reaproveita MUC");
-
-const admSemAlergia: AdmissaoPaciente = {
-  ...admTeste,
-  historicoClinico: {
-    ...admTeste.historicoClinico!,
-    antecedentes: { ...admTeste.historicoClinico!.antecedentes, alergias: "Nega alergias" },
-  },
-};
-const passSemAlergia = converterAdmissaoParaPassagem(admSemAlergia);
-assert(passSemAlergia.temAlergia === false, "converterAdmissaoParaPassagem não marca alergia para 'Nega alergias'");
-
-const passComCirurgia: PacientePassagem = {
-  ...passConvertido,
-  cirurgias: [{ id: "cx1", tipoCirurgia: "Colecistectomia VLP", dataCirurgia: "2026-11-12" }],
-  evolucao: "Sem queixas álgicas",
-  sinaisVitais: { fc: 78, satO2: 98 },
-};
-const altaConvertida = converterPassagemParaAlta(passComCirurgia, new Date("2026-11-13T10:00:00.000Z"));
-assert(altaConvertida.nomePaciente === "José Carlos Andrade", "converterPassagemParaAlta reaproveita nomePaciente");
-assert(altaConvertida.tipoCirurgia === "Colecistectomia VLP", "converterPassagemParaAlta reaproveita tipoCirurgia");
-assert(altaConvertida.sinaisVitais?.frequenciaCardiaca === 78, "converterPassagemParaAlta reaproveita sinais vitais");
-assert(Boolean(altaConvertida.detalhesQueixas?.includes("Sem queixas álgicas")), "converterPassagemParaAlta reaproveita resumo clínico");
-
 // 50.2 Filtro de Críticos / Alertas na Passagem
 const pacienteEstavel: PacientePassagem = {
-  ...passConvertido,
   id: "pass-estavel",
+  nome: "José Carlos Andrade",
   leito: "04",
   enfermaria: "IMIP",
+  dataAdmissao: "2026-11-12",
+  isCirurgico: true,
+  cirurgias: [{ id: "cx1", tipoCirurgia: "Colecistectomia VLP", dataCirurgia: "2026-11-12" }],
   temAlergia: false,
   precaucaoContato: false,
+  hd: "Colelitíase sintomática",
+  hda: "",
+  evolucao: "Sem queixas álgicas",
+  examesRealizados: "",
+  medicacoesUsoGeral: "Losartana 50mg",
   antibioticos: [],
+  pendencias: [],
+  conduta: "Jejum para VLP",
+  createdAt: "2026-11-12T10:00:00.000Z",
+  updatedAt: "2026-11-12T10:00:00.000Z",
+};
+const altaBuscaTeste: AltaPaciente = {
+  id: "alta-busca-1",
+  leito: "04",
+  enfermaria: "IMIP",
+  nomePaciente: "José Carlos Andrade",
+  tipoCirurgia: "Colecistectomia VLP",
+  temQueixas: false,
+  parametros: { dieta: true, deambulou: true, diurese: true, evacuacao: false },
+  dataAlta: "2026-11-13",
+  createdAt: "2026-11-13T10:00:00.000Z",
+  updatedAt: "2026-11-13T10:00:00.000Z",
 };
 const pendenciaUrgenteOutroLeito: Pendencia = {
   id: "pend-urg-1",
@@ -3943,8 +3938,8 @@ assert(
 // 50.3 Busca Global Unificada
 const resultadosBusca = buscarGlobal("jose", {
   admissoes: [admTeste],
-  passagem: [passConvertido],
-  altas: [altaConvertida],
+  passagem: [pacienteEstavel],
+  altas: [altaBuscaTeste],
   pendencias: [pendenciaUrgenteMesmoLeito],
   modelos: SEED_MODELOS_PADRAO.slice(0, 2),
 });
@@ -3999,8 +3994,8 @@ assert(
 // 50.6 Sincronização de enfermarias e categoriasModelos
 const storeContent = fs.readFileSync(path.join(process.cwd(), "src", "store", "useAppStore.ts"), "utf-8");
 assert(
-  storeContent.includes('sincronizarMutation("enfermarias"') &&
-    storeContent.includes('sincronizarMutation("categoriasModelos"') &&
+  storeContent.includes('sincronizarConfigGranular("enfermarias"') &&
+    storeContent.includes('"categorias_modelo"') &&
     realtimeContent.includes("UPDATE_ENFERMARIAS") &&
     realtimeContent.includes("UPDATE_CATEGORIAS_MODELOS") &&
     serverContent.includes("UPDATE_ENFERMARIAS") &&
@@ -4068,6 +4063,79 @@ assert(
   "Interface web substitui emojis decorativos por ícones lucide-react padronizados"
 );
 
+// ==========================================
+// 52. COLABORAÇÃO EM TEMPO REAL (ESTILO GOOGLE DOCS) & REMOÇÃO DO FLUXO CONTÍNUO
+// ==========================================
+console.log("\n--- 52. Colaboração em Tempo Real & Remoção do Fluxo Contínuo ---");
+
+// 52.1 Diff granular por campo (evita sobrescrita entre usuários simultâneos)
+const prevPaciente = {
+  id: "p1",
+  nome: "Maria",
+  leito: "10",
+  evolucao: "Estável",
+  conduta: "Manter ATB",
+  observacaoOpcional: "Jejum",
+};
+const nextPaciente = {
+  id: "p1",
+  nome: "Maria",
+  leito: "10",
+  evolucao: "Estável, sem febre",
+  conduta: "Manter ATB",
+  observacaoOpcional: undefined,
+};
+const diffCampos = computeDiffFields(prevPaciente, nextPaciente, "__DEL__");
+assert(
+  diffCampos.evolucao === "Estável, sem febre" &&
+    diffCampos.observacaoOpcional === "__DEL__" &&
+    !("conduta" in diffCampos) &&
+    !("leito" in diffCampos),
+  "computeDiffFields envia apenas campos alterados/removidos sem sobrescrever campos intactos"
+);
+const diffVazio = computeDiffFields(prevPaciente, { ...prevPaciente }, "__DEL__");
+assert(Object.keys(diffVazio).length === 0, "computeDiffFields retorna objeto vazio quando não há alterações");
+
+// 52.2 Proteção do campo em edição ativa durante sincronização remota
+const localList = [
+  { id: "p1", evolucao: "Digitando agora...", conduta: "Antiga" },
+  { id: "p2", evolucao: "Local p2", conduta: "Conduta p2" },
+];
+const remoteList = [
+  { id: "p1", evolucao: "Versão remota antiga", conduta: "Nova conduta do colega" },
+  { id: "p2", evolucao: "Atualizado pelo colega", conduta: "Conduta p2" },
+];
+const mergedList = mesclarColecaoComCampoAtivo(localList, remoteList, {
+  entityId: "p1",
+  field: "evolucao",
+});
+assert(
+  mergedList[0].evolucao === "Digitando agora..." &&
+    mergedList[0].conduta === "Nova conduta do colega" &&
+    mergedList[1].evolucao === "Atualizado pelo colega",
+  "mesclarColecaoComCampoAtivo preserva campo focado localmente enquanto aplica edições remotas em outros campos/itens"
+);
+
+// 52.3 Fluxo contínuo desabilitado
+const patientFlowContent = fs.readFileSync(path.join(process.cwd(), "src", "lib", "patient-flow.ts"), "utf-8");
+const passagemDesignCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "PassagemPlantaoView.tsx"), "utf-8");
+assert(
+  !patientFlowContent.includes("converterAdmissaoParaPassagem") &&
+    !patientFlowContent.includes("converterPassagemParaAlta") &&
+    !admDesignCheck.includes("Enviar para Passagem") &&
+    !passagemDesignCheck.includes("Gerar Alta"),
+  "Fluxo contínuo (Enviar para Passagem / Gerar Alta) completamente desabilitado"
+);
+
+// 52.4 Presença e indicadores colaborativos presentes
+const realtimeCollabCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "providers", "RealtimeProvider.tsx"), "utf-8");
+assert(
+  realtimeCollabCheck.includes("escutarColecoesGranularesFirestore") &&
+    realtimeCollabCheck.includes("escutarPresencaFirestore") &&
+    sidebarDesignCheck.includes("onlineUsers"),
+  "RealtimeProvider e Sidebar integram sincronização granular e presença de usuários online"
+);
+
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);
 console.log(`==============================================`);
@@ -4075,6 +4143,7 @@ console.log(`==============================================`);
 if (failed > 0) {
   process.exit(1);
 }
+process.exit(0);
 
 
 

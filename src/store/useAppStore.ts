@@ -12,7 +12,17 @@ import {
   Pendencia,
   WebSocketMessage,
 } from "@/types/hospital";
-import { sincronizarComFirestore, apagarFotosFirestore } from "@/lib/firebase";
+import {
+  sincronizarComFirestore,
+  apagarFotosFirestore,
+  salvarItemGranularFirestore,
+  removerItemGranularFirestore,
+  salvarConfigGranularFirestore,
+  removerPresencaFirestore,
+  ColecaoGranularKey,
+  PresencaUsuario,
+  RemoteAuthorUpdate,
+} from "@/lib/firebase";
 import { obterDataLocalHoje } from "@/lib/utils";
 import {
   executarExpurgoAutomaticoCliente,
@@ -42,34 +52,112 @@ function obterChaveLocalStorage(chave: keyof DatabaseState): string {
   return `checklist_${chave}`;
 }
 
-function sincronizarMutation(chave: keyof DatabaseState, payload: any, wsType: string) {
+export interface ActiveEditingField {
+  entityId: string;
+  field: string;
+}
+
+export interface RecentRemoteUpdate {
+  author: string;
+  updatedAtMs: number;
+}
+
+/**
+ * Mescla itens recebidos do Firestore preservando o campo exato que o usuário
+ * local está editando no momento (evita salto de cursor / perda de digitação).
+ */
+export function mesclarColecaoComCampoAtivo<T extends { id: string }>(
+  localItems: T[],
+  remoteItems: T[],
+  activeField: ActiveEditingField | null
+): T[] {
+  if (!activeField) return remoteItems;
+  const localItem = localItems.find((i) => i.id === activeField.entityId);
+  if (!localItem) return remoteItems;
+
+  const hasLocalField = Object.prototype.hasOwnProperty.call(localItem, activeField.field);
+  if (!hasLocalField) return remoteItems;
+
+  return remoteItems.map((remoteItem) => {
+    if (remoteItem.id !== activeField.entityId) return remoteItem;
+    return {
+      ...remoteItem,
+      [activeField.field]: (localItem as Record<string, unknown>)[activeField.field],
+    };
+  });
+}
+
+function sincronizarCacheLocalEWs(chave: keyof DatabaseState, payload: unknown, wsType: string) {
   useAppStore.setState({ saveStatus: "saving" });
 
-  // 1. Enviar para WebSocket local (se conectado)
   sendSocketMessage({
     type: wsType as any,
     payload,
     timestamp: Date.now(),
   });
 
-  // 2. Cache offline local
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(obterChaveLocalStorage(chave), JSON.stringify(payload));
     } catch {}
   }
+}
 
-  // 3. Enviar para Firebase Firestore (se configurado)
+function finalizarSyncStatus(ok: boolean) {
+  useAppStore.setState({
+    saveStatus: ok ? "saved" : "error",
+    lastSyncTime: Date.now(),
+  });
+}
+
+function sincronizarItemGranular(
+  colecaoKey: ColecaoGranularKey,
+  item: Record<string, unknown> & { id: string },
+  prevItem: (Record<string, unknown> & { id: string }) | undefined,
+  wsKey: keyof DatabaseState,
+  wsPayload: unknown,
+  wsType: string
+) {
+  sincronizarCacheLocalEWs(wsKey, wsPayload, wsType);
+  const author = useAppStore.getState().plantonista || "Equipe";
+  salvarItemGranularFirestore(colecaoKey, item.id, item, prevItem, author)
+    .then((ok) => finalizarSyncStatus(ok))
+    .catch(() => finalizarSyncStatus(false));
+}
+
+function removerItemGranular(
+  colecaoKey: ColecaoGranularKey,
+  id: string,
+  wsKey: keyof DatabaseState,
+  wsPayload: unknown,
+  wsType: string
+) {
+  sincronizarCacheLocalEWs(wsKey, wsPayload, wsType);
+  removerItemGranularFirestore(colecaoKey, id)
+    .then((ok) => finalizarSyncStatus(ok))
+    .catch(() => finalizarSyncStatus(false));
+}
+
+function sincronizarConfigGranular(
+  docId: "enfermarias" | "categorias_modelo" | "equipe" | "atividades" | "metricas",
+  data: Record<string, unknown>,
+  wsKey: keyof DatabaseState,
+  wsPayload: unknown,
+  wsType: string
+) {
+  sincronizarCacheLocalEWs(wsKey, wsPayload, wsType);
+  const author = useAppStore.getState().plantonista || "Equipe";
+  salvarConfigGranularFirestore(docId, data, author)
+    .then((ok) => finalizarSyncStatus(ok))
+    .catch(() => finalizarSyncStatus(false));
+}
+
+function sincronizarMutation(chave: keyof DatabaseState, payload: any, wsType: string) {
+  sincronizarCacheLocalEWs(chave, payload, wsType);
+
   sincronizarComFirestore({ [chave]: payload })
-    .then((ok) => {
-      useAppStore.setState({
-        saveStatus: ok ? "saved" : "saved",
-        lastSyncTime: Date.now(),
-      });
-    })
-    .catch(() => {
-      useAppStore.setState({ saveStatus: "error" });
-    });
+    .then((ok) => finalizarSyncStatus(ok))
+    .catch(() => finalizarSyncStatus(false));
 }
 
 export const ENFERMARIAS_PADRAO = [
@@ -208,12 +296,24 @@ interface AppStoreState {
   adicionarCategoriaModelo: (nome: string) => void;
   removerCategoriaModelo: (nome: string) => void;
   
-  // Realtime Status
+  // Realtime Status & Colaboração (estilo Google Docs)
   isConnected: boolean;
   latencyMs: number;
   lastSyncTime: number;
   syncOrigin: "firestore" | "websocket" | "local" | "offline";
   saveStatus: "idle" | "saving" | "saved" | "error";
+  onlineUsers: PresencaUsuario[];
+  setOnlineUsers: (users: PresencaUsuario[]) => void;
+  recentRemoteUpdates: Record<string, RecentRemoteUpdate>;
+  markRemoteUpdates: (updates: RemoteAuthorUpdate[]) => void;
+  activeEditingField: ActiveEditingField | null;
+  setActiveEditingField: (field: ActiveEditingField | null) => void;
+  applyGranularCollectionSync: (
+    key: ColecaoGranularKey,
+    items: Record<string, unknown>[],
+    remoteAuthors: RemoteAuthorUpdate[]
+  ) => void;
+  applyGranularConfigSync: (docId: string, data: Record<string, unknown>) => void;
 
   // Identificação leve do plantonista (sessão)
   plantonista: string;
@@ -296,6 +396,38 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   lastSyncTime: Date.now(),
   syncOrigin: "offline",
   saveStatus: "idle",
+  onlineUsers: [],
+  setOnlineUsers: (users) => set({ onlineUsers: users }),
+  recentRemoteUpdates: {},
+  markRemoteUpdates: (updates) => {
+    if (!updates || updates.length === 0) return;
+    set((prev) => {
+      const next = { ...prev.recentRemoteUpdates };
+      for (const u of updates) {
+        next[u.id] = { author: u.author, updatedAtMs: u.updatedAtMs };
+      }
+      return { recentRemoteUpdates: next };
+    });
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        const cutoff = Date.now() - 4200;
+        useAppStore.setState((prev) => {
+          const cleaned: Record<string, RecentRemoteUpdate> = {};
+          let changed = false;
+          for (const [id, info] of Object.entries(prev.recentRemoteUpdates)) {
+            if (info.updatedAtMs > cutoff) {
+              cleaned[id] = info;
+            } else {
+              changed = true;
+            }
+          }
+          return changed ? { recentRemoteUpdates: cleaned } : prev;
+        });
+      }, 4500);
+    }
+  },
+  activeEditingField: null,
+  setActiveEditingField: (field) => set({ activeEditingField: field }),
   plantonista: "",
   setPlantonista: (nome: string) => {
     const limpo = nome.trim().slice(0, 32);
@@ -399,12 +531,16 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
       syncOrigin: "offline",
       saveStatus: "idle",
       plantonista: "",
+      onlineUsers: [],
+      recentRemoteUpdates: {},
+      activeEditingField: null,
       admissoes: [],
       altas: [],
       permanencia: criarPermanenciaVazia(),
       passagem: [],
       metricas: [],
     });
+    removerPresencaFirestore().catch(() => {});
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("checklist_auth");
       sessionStorage.removeItem("checklist_last_activity");
@@ -528,66 +664,286 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     }
   },
 
-  // MUTAÇÕES ADMISSÕES
+  applyGranularCollectionSync: (key, items, remoteAuthors) => {
+    if (!get().isAuthenticated) return;
+    const activeField = get().activeEditingField;
+
+    set((prev) => {
+      if (key === "admissoes") {
+        const normalized = (items as unknown as AdmissaoPaciente[]).map(normalizarEnfermariaPaciente);
+        const merged = mesclarColecaoComCampoAtivo(prev.admissoes, normalized, activeField);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("checklist_admissoes", JSON.stringify(merged));
+          } catch {}
+        }
+        return { admissoes: merged, lastSyncTime: Date.now() };
+      }
+
+      if (key === "altas") {
+        const normalized = (items as unknown as AltaPaciente[]).map((nova) => {
+          const anterior = prev.altas.find((a) => a.id === nova.id);
+          const atualizada = limparSinaisVitaisLegadosAlta(nova);
+          const fotosFeridaUrls =
+            anterior?.fotosFeridaUrls && anterior.fotosFeridaUrls.length > 0
+              ? anterior.fotosFeridaUrls
+              : atualizada.fotosFeridaUrls && atualizada.fotosFeridaUrls.length > 0
+                ? atualizada.fotosFeridaUrls
+                : undefined;
+          const fotoFeridaUrl =
+            anterior?.fotoFeridaUrl ||
+            atualizada.fotoFeridaUrl ||
+            (fotosFeridaUrls && fotosFeridaUrls[0] ? fotosFeridaUrls[0] : undefined);
+          return { ...atualizada, fotosFeridaUrls, fotoFeridaUrl };
+        });
+        const merged = mesclarColecaoComCampoAtivo(prev.altas, normalized, activeField);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("checklist_altas", JSON.stringify(merged));
+          } catch {}
+        }
+        return { altas: merged, lastSyncTime: Date.now() };
+      }
+
+      if (key === "pacientesPassagem") {
+        const normalized = (items as unknown as PacientePassagem[]).map(limparSinaisVitaisLegadosPassagem);
+        const merged = mesclarColecaoComCampoAtivo(prev.passagem, normalized, activeField);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("checklist_passagem", JSON.stringify(merged));
+          } catch {}
+        }
+        return { passagem: merged, lastSyncTime: Date.now() };
+      }
+
+      if (key === "pendencias") {
+        const mergedPendencias = mesclarColecaoComCampoAtivo(
+          prev.permanencia.pendencias,
+          items as unknown as Pendencia[],
+          activeField
+        );
+        const novaPermanencia: DadosPermanencia = {
+          ...prev.permanencia,
+          pendencias: mergedPendencias,
+        };
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("checklist_permanencia", JSON.stringify(novaPermanencia));
+          } catch {}
+        }
+        return { permanencia: novaPermanencia, lastSyncTime: Date.now() };
+      }
+
+      if (key === "medicosAmbulatorio") {
+        const merged = mesclarAmbulatorioComSeguranca(
+          items as unknown as MedicoAmbulatorio[],
+          prev.ambulantes
+        );
+        if (typeof window !== "undefined" && merged.length > 0) {
+          try {
+            localStorage.setItem("checklist_ambulantes", JSON.stringify(merged));
+          } catch {}
+        }
+        return { ambulantes: merged, lastSyncTime: Date.now() };
+      }
+
+      if (key === "modelos") {
+        const merged = mesclarModelosComSeguranca(
+          items as unknown as ModeloTexto[],
+          prev.modelos
+        );
+        if (typeof window !== "undefined" && merged.length > 0) {
+          try {
+            localStorage.setItem("checklist_modelos", JSON.stringify(merged));
+          } catch {}
+        }
+        return { modelos: merged, lastSyncTime: Date.now() };
+      }
+
+      return prev;
+    });
+
+    if (remoteAuthors.length > 0) {
+      get().markRemoteUpdates(remoteAuthors);
+    }
+  },
+
+  applyGranularConfigSync: (docId, data) => {
+    if (!get().isAuthenticated) return;
+    set((prev) => {
+      if (docId === "enfermarias" && Array.isArray(data.items)) {
+        const validas = data.items.filter(
+          (item: unknown): item is string =>
+            typeof item === "string" &&
+            item.trim().length > 0 &&
+            item.trim().toLowerCase() !== "sem enfermaria" &&
+            item.trim().toLowerCase() !== "sem enfermaria / indefinida"
+        );
+        if (validas.length === 0) return prev;
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("checklist_enfermarias", JSON.stringify(validas));
+          } catch {}
+        }
+        return { enfermarias: validas, lastSyncTime: Date.now() };
+      }
+
+      if (docId === "categorias_modelo" && Array.isArray(data.items)) {
+        const validas = data.items.filter(
+          (c: unknown): c is string => typeof c === "string" && c.trim().length > 0
+        );
+        if (validas.length === 0) return prev;
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("checklist_categorias_modelos", JSON.stringify(validas));
+          } catch {}
+        }
+        return { categoriasModelos: validas, lastSyncTime: Date.now() };
+      }
+
+      if (docId === "equipe") {
+        const equipeData = (data.equipe || (Array.isArray(data.items) ? data.items[0] : data)) as EquipePlantao | undefined;
+        if (!equipeData) return prev;
+        const novaPerm: DadosPermanencia = {
+          ...prev.permanencia,
+          equipe: {
+            doutorandos: Array.isArray(equipeData.doutorandos) ? equipeData.doutorandos : prev.permanencia.equipe.doutorandos,
+            residentes: Array.isArray(equipeData.residentes) ? equipeData.residentes : prev.permanencia.equipe.residentes,
+            preceptores: Array.isArray(equipeData.preceptores) ? equipeData.preceptores : prev.permanencia.equipe.preceptores,
+          },
+        };
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("checklist_permanencia", JSON.stringify(novaPerm));
+          } catch {}
+        }
+        return { permanencia: novaPerm, lastSyncTime: Date.now() };
+      }
+
+      if (docId === "metricas" && Array.isArray(data.items)) {
+        const metricas = data.items as MetricasHistoricasDiarias[];
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("checklist_metricas", JSON.stringify(metricas));
+          } catch {}
+        }
+        return { metricas, lastSyncTime: Date.now() };
+      }
+
+      return prev;
+    });
+  },
+
+  // MUTAÇÕES ADMISSÕES (Granular por documento/campo)
   salvarAdmissao: (adm) => {
     const prev = get().admissoes;
-    const exists = prev.some((a) => a.id === adm.id);
-    const updated = exists ? prev.map((a) => (a.id === adm.id ? adm : a)) : [adm, ...prev];
+    const prevItem = prev.find((a) => a.id === adm.id);
+    const updated = prevItem ? prev.map((a) => (a.id === adm.id ? adm : a)) : [adm, ...prev];
 
     set({ admissoes: updated });
-    sincronizarMutation("admissoes", updated, "UPDATE_ADMISSOES");
+    sincronizarItemGranular(
+      "admissoes",
+      adm as unknown as Record<string, unknown> & { id: string },
+      prevItem as unknown as (Record<string, unknown> & { id: string }) | undefined,
+      "admissoes",
+      updated,
+      "UPDATE_ADMISSOES"
+    );
   },
 
   removerAdmissao: (id) => {
     const updated = get().admissoes.filter((a) => a.id !== id);
     set({ admissoes: updated });
-    sincronizarMutation("admissoes", updated, "UPDATE_ADMISSOES");
+    removerItemGranular("admissoes", id, "admissoes", updated, "UPDATE_ADMISSOES");
   },
 
   alternarCanceladaAdmissao: (id) => {
-    const updated = get().admissoes.map((a) =>
-      a.id === id ? { ...a, cancelada: !a.cancelada, updatedAt: new Date().toISOString() } : a
-    );
+    const prev = get().admissoes;
+    const prevItem = prev.find((a) => a.id === id);
+    if (!prevItem) return;
+    const nextItem = { ...prevItem, cancelada: !prevItem.cancelada, updatedAt: new Date().toISOString() };
+    const updated = prev.map((a) => (a.id === id ? nextItem : a));
     set({ admissoes: updated });
-    sincronizarMutation("admissoes", updated, "UPDATE_ADMISSOES");
+    sincronizarItemGranular(
+      "admissoes",
+      nextItem as unknown as Record<string, unknown> & { id: string },
+      prevItem as unknown as Record<string, unknown> & { id: string },
+      "admissoes",
+      updated,
+      "UPDATE_ADMISSOES"
+    );
   },
 
   alternarHistoriaFinalizada: (id) => {
-    const updated = get().admissoes.map((a) =>
-      a.id === id
-        ? { ...a, historiaFinalizada: !a.historiaFinalizada, updatedAt: new Date().toISOString() }
-        : a
-    );
+    const prev = get().admissoes;
+    const prevItem = prev.find((a) => a.id === id);
+    if (!prevItem) return;
+    const nextItem = {
+      ...prevItem,
+      historiaFinalizada: !prevItem.historiaFinalizada,
+      updatedAt: new Date().toISOString(),
+    };
+    const updated = prev.map((a) => (a.id === id ? nextItem : a));
     set({ admissoes: updated });
-    sincronizarMutation("admissoes", updated, "UPDATE_ADMISSOES");
+    sincronizarItemGranular(
+      "admissoes",
+      nextItem as unknown as Record<string, unknown> & { id: string },
+      prevItem as unknown as Record<string, unknown> & { id: string },
+      "admissoes",
+      updated,
+      "UPDATE_ADMISSOES"
+    );
   },
 
   reordenarAdmissoes: (novasAdmissoes) => {
+    const prev = get().admissoes;
     set({ admissoes: novasAdmissoes });
-    sincronizarMutation("admissoes", novasAdmissoes, "UPDATE_ADMISSOES");
+    sincronizarCacheLocalEWs("admissoes", novasAdmissoes, "UPDATE_ADMISSOES");
+    const author = get().plantonista || "Equipe";
+    const promises = novasAdmissoes.map((adm) => {
+      const prevItem = prev.find((a) => a.id === adm.id);
+      if (prevItem && JSON.stringify(prevItem) === JSON.stringify(adm)) return Promise.resolve(true);
+      return salvarItemGranularFirestore(
+        "admissoes",
+        adm.id,
+        adm as unknown as Record<string, unknown>,
+        prevItem as unknown as Record<string, unknown> | undefined,
+        author
+      );
+    });
+    Promise.all(promises)
+      .then((results) => finalizarSyncStatus(results.every(Boolean)))
+      .catch(() => finalizarSyncStatus(false));
   },
 
   // MUTAÇÕES ALTAS
   salvarAlta: (alta) => {
     const prev = get().altas;
-    const exists = prev.some((a) => a.id === alta.id);
-    const updated = exists ? prev.map((a) => (a.id === alta.id ? alta : a)) : [alta, ...prev];
+    const prevItem = prev.find((a) => a.id === alta.id);
+    const updated = prevItem ? prev.map((a) => (a.id === alta.id ? alta : a)) : [alta, ...prev];
 
     set({ altas: updated });
-    sincronizarMutation("altas", updated, "UPDATE_ALTAS");
+    sincronizarItemGranular(
+      "altas",
+      alta as unknown as Record<string, unknown> & { id: string },
+      prevItem as unknown as (Record<string, unknown> & { id: string }) | undefined,
+      "altas",
+      updated,
+      "UPDATE_ALTAS"
+    );
   },
 
   removerAlta: (id) => {
     const updated = get().altas.filter((a) => a.id !== id);
     set({ altas: updated });
-    sincronizarMutation("altas", updated, "UPDATE_ALTAS");
+    removerItemGranular("altas", id, "altas", updated, "UPDATE_ALTAS");
   },
 
   // MUTAÇÕES PERMANÊNCIA
   salvarPendencia: (pendencia) => {
     const perm = get().permanencia;
-    const exists = perm.pendencias.some((p) => p.id === pendencia.id);
-    const updatedPendencias = exists
+    const prevItem = perm.pendencias.find((p) => p.id === pendencia.id);
+    const updatedPendencias = prevItem
       ? perm.pendencias.map((p) => (p.id === pendencia.id ? pendencia : p))
       : [pendencia, ...perm.pendencias];
 
@@ -598,7 +954,14 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     };
 
     set({ permanencia: updatedPerm });
-    sincronizarMutation("permanencia", updatedPerm, "UPDATE_PERMANENCIA");
+    sincronizarItemGranular(
+      "pendencias",
+      pendencia as unknown as Record<string, unknown> & { id: string },
+      prevItem as unknown as (Record<string, unknown> & { id: string }) | undefined,
+      "permanencia",
+      updatedPerm,
+      "UPDATE_PERMANENCIA"
+    );
   },
 
   removerPendencia: (id) => {
@@ -610,7 +973,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     };
 
     set({ permanencia: updatedPerm });
-    sincronizarMutation("permanencia", updatedPerm, "UPDATE_PERMANENCIA");
+    removerItemGranular("pendencias", id, "permanencia", updatedPerm, "UPDATE_PERMANENCIA");
   },
 
   atualizarEquipe: (equipe) => {
@@ -622,55 +985,82 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     };
 
     set({ permanencia: updatedPerm });
-    sincronizarMutation("permanencia", updatedPerm, "UPDATE_PERMANENCIA");
+    sincronizarConfigGranular(
+      "equipe",
+      { equipe },
+      "permanencia",
+      updatedPerm,
+      "UPDATE_PERMANENCIA"
+    );
   },
 
   // MUTAÇÕES PASSAGEM
   salvarPacientePassagem: (paciente) => {
     const prev = get().passagem;
-    const exists = prev.some((p) => p.id === paciente.id);
-    const updated = exists ? prev.map((p) => (p.id === paciente.id ? paciente : p)) : [paciente, ...prev];
+    const prevItem = prev.find((p) => p.id === paciente.id);
+    const updated = prevItem ? prev.map((p) => (p.id === paciente.id ? paciente : p)) : [paciente, ...prev];
 
     set({ passagem: updated });
-    sincronizarMutation("passagem", updated, "UPDATE_PASSAGEM");
+    sincronizarItemGranular(
+      "pacientesPassagem",
+      paciente as unknown as Record<string, unknown> & { id: string },
+      prevItem as unknown as (Record<string, unknown> & { id: string }) | undefined,
+      "passagem",
+      updated,
+      "UPDATE_PASSAGEM"
+    );
   },
 
   removerPacientePassagem: (id) => {
     const updated = get().passagem.filter((p) => p.id !== id);
     set({ passagem: updated });
-    sincronizarMutation("passagem", updated, "UPDATE_PASSAGEM");
+    removerItemGranular("pacientesPassagem", id, "passagem", updated, "UPDATE_PASSAGEM");
   },
 
   // MUTAÇÕES AMBULATÓRIO
   salvarMedicoAmbulatorio: (medico) => {
     const prev = get().ambulantes;
-    const exists = prev.some((m) => m.id === medico.id);
-    const updated = exists ? prev.map((m) => (m.id === medico.id ? medico : m)) : [...prev, medico];
+    const prevItem = prev.find((m) => m.id === medico.id);
+    const updated = prevItem ? prev.map((m) => (m.id === medico.id ? medico : m)) : [...prev, medico];
 
     set({ ambulantes: updated });
-    sincronizarMutation("ambulantes", updated, "UPDATE_AMBULATORIO");
+    sincronizarItemGranular(
+      "medicosAmbulatorio",
+      medico as unknown as Record<string, unknown> & { id: string },
+      prevItem as unknown as (Record<string, unknown> & { id: string }) | undefined,
+      "ambulantes",
+      updated,
+      "UPDATE_AMBULATORIO"
+    );
   },
 
   removerMedicoAmbulatorio: (id) => {
     const updated = get().ambulantes.filter((m) => m.id !== id);
     set({ ambulantes: updated });
-    sincronizarMutation("ambulantes", updated, "UPDATE_AMBULATORIO");
+    removerItemGranular("medicosAmbulatorio", id, "ambulantes", updated, "UPDATE_AMBULATORIO");
   },
 
   // MUTAÇÕES MODELOS
   salvarModelo: (modelo) => {
     const prev = get().modelos;
-    const exists = prev.some((m) => m.id === modelo.id);
-    const updated = exists ? prev.map((m) => (m.id === modelo.id ? modelo : m)) : [modelo, ...prev];
+    const prevItem = prev.find((m) => m.id === modelo.id);
+    const updated = prevItem ? prev.map((m) => (m.id === modelo.id ? modelo : m)) : [modelo, ...prev];
 
     set({ modelos: updated });
-    sincronizarMutation("modelos", updated, "UPDATE_MODELOS");
+    sincronizarItemGranular(
+      "modelos",
+      modelo as unknown as Record<string, unknown> & { id: string },
+      prevItem as unknown as (Record<string, unknown> & { id: string }) | undefined,
+      "modelos",
+      updated,
+      "UPDATE_MODELOS"
+    );
   },
 
   removerModelo: (id) => {
     const updated = get().modelos.filter((m) => m.id !== id);
     set({ modelos: updated });
-    sincronizarMutation("modelos", updated, "UPDATE_MODELOS");
+    removerItemGranular("modelos", id, "modelos", updated, "UPDATE_MODELOS");
   },
 
   // MUTAÇÕES ENFERMARIAS & CONFIGURAÇÕES
@@ -682,13 +1072,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     if (prev.some((e) => e.toLowerCase() === limpo.toLowerCase())) return;
     const updated = [...prev, limpo];
     set({ enfermarias: updated });
-    sincronizarMutation("enfermarias", updated, "UPDATE_ENFERMARIAS");
+    sincronizarConfigGranular("enfermarias", { items: updated }, "enfermarias", updated, "UPDATE_ENFERMARIAS");
   },
 
   removerEnfermaria: (nome) => {
     const updated = get().enfermarias.filter((e) => e !== nome);
     set({ enfermarias: updated });
-    sincronizarMutation("enfermarias", updated, "UPDATE_ENFERMARIAS");
+    sincronizarConfigGranular("enfermarias", { items: updated }, "enfermarias", updated, "UPDATE_ENFERMARIAS");
   },
 
   adicionarCategoriaModelo: (nome) => {
@@ -698,13 +1088,25 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     if (prev.some((c) => c.toLowerCase() === limpo.toLowerCase())) return;
     const updated = [...prev, limpo];
     set({ categoriasModelos: updated });
-    sincronizarMutation("categoriasModelos", updated, "UPDATE_CATEGORIAS_MODELOS");
+    sincronizarConfigGranular(
+      "categorias_modelo",
+      { items: updated },
+      "categoriasModelos",
+      updated,
+      "UPDATE_CATEGORIAS_MODELOS"
+    );
   },
 
   removerCategoriaModelo: (nome) => {
     const updated = get().categoriasModelos.filter((c) => c !== nome);
     set({ categoriasModelos: updated });
-    sincronizarMutation("categoriasModelos", updated, "UPDATE_CATEGORIAS_MODELOS");
+    sincronizarConfigGranular(
+      "categorias_modelo",
+      { items: updated },
+      "categoriasModelos",
+      updated,
+      "UPDATE_CATEGORIAS_MODELOS"
+    );
   },
 
   // EXPURGO AUTOMÁTICO LGPD (48 horas pós-data do evento)
@@ -729,25 +1131,42 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
       metricas: resultado.metricasAtualizadas,
     });
 
-    // 2. Sincroniza mutações no Firestore, WebSocket e LocalStorage
+    // 2. Sincroniza remoção granular no Firestore, WebSocket e LocalStorage
     if (resultado.expurgadasAdmissoes > 0) {
-      sincronizarMutation("admissoes", resultado.novasAdmissoes, "UPDATE_ADMISSOES");
+      sincronizarCacheLocalEWs("admissoes", resultado.novasAdmissoes, "UPDATE_ADMISSOES");
+      const idsRestantes = new Set(resultado.novasAdmissoes.map((a) => a.id));
+      for (const a of estado.admissoes) {
+        if (!idsRestantes.has(a.id)) removerItemGranularFirestore("admissoes", a.id).catch(() => {});
+      }
     }
 
     if (resultado.expurgadasAltas > 0) {
-      sincronizarMutation("altas", resultado.novasAltas, "UPDATE_ALTAS");
-      // Deletar fotos no Firestore para descarte seguro e liberação de espaço
+      sincronizarCacheLocalEWs("altas", resultado.novasAltas, "UPDATE_ALTAS");
+      const idsRestantes = new Set(resultado.novasAltas.map((a) => a.id));
+      for (const a of estado.altas) {
+        if (!idsRestantes.has(a.id)) removerItemGranularFirestore("altas", a.id).catch(() => {});
+      }
       for (const altaId of resultado.altasIdsParaRemoverFotos) {
         apagarFotosFirestore(altaId).catch(() => {});
       }
     }
 
     if (resultado.expurgadasPermanencia) {
-      sincronizarMutation("permanencia", resultado.novaPermanencia, "UPDATE_PERMANENCIA");
+      sincronizarCacheLocalEWs("permanencia", resultado.novaPermanencia, "UPDATE_PERMANENCIA");
+      const idsRestantes = new Set(resultado.novaPermanencia.pendencias.map((p) => p.id));
+      for (const p of estado.permanencia.pendencias) {
+        if (!idsRestantes.has(p.id)) removerItemGranularFirestore("pendencias", p.id).catch(() => {});
+      }
     }
 
     if (resultado.metricasAtualizadas !== estado.metricas) {
-      sincronizarMutation("metricas", resultado.metricasAtualizadas, "UPDATE_METRICAS");
+      sincronizarConfigGranular(
+        "metricas",
+        { items: resultado.metricasAtualizadas },
+        "metricas",
+        resultado.metricasAtualizadas,
+        "UPDATE_METRICAS"
+      );
     }
 
     return resultado;

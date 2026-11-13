@@ -34,6 +34,7 @@ export function Sidebar() {
   const syncOrigin = useAppStore((s) => s.syncOrigin);
   const saveStatus = useAppStore((s) => s.saveStatus);
   const plantonista = useAppStore((s) => s.plantonista);
+  const onlineUsers = useAppStore((s) => s.onlineUsers);
   const isSidebarCollapsed = useAppStore((s) => s.isSidebarCollapsed);
   const toggleSidebarCollapsed = useAppStore((s) => s.toggleSidebarCollapsed);
   const themeMode = useAppStore((s) => s.themeMode);
@@ -149,6 +150,13 @@ export function Sidebar() {
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/40 dark:border-slate-700/40 text-[11px] font-medium text-slate-700 dark:text-slate-300"
             role="status"
+            title={
+              onlineUsers.length > 0
+                ? `Online agora: ${onlineUsers.map((u) => u.nome).join(", ")}`
+                : isConnected
+                  ? "Conectado ao vivo"
+                  : "Offline"
+            }
             aria-label={isConnected ? "Status: Conectado ao vivo" : "Status: Desconectado offline"}
           >
             <span
@@ -157,7 +165,13 @@ export function Sidebar() {
               }`}
               aria-hidden="true"
             />
-            <span className="text-[10px] font-semibold">{isConnected ? "Ao vivo" : "Offline"}</span>
+            <span className="text-[10px] font-semibold">
+              {isConnected
+                ? onlineUsers.length > 1
+                  ? `${onlineUsers.length} online`
+                  : "Ao vivo"
+                : "Offline"}
+            </span>
           </div>
         </div>
       </header>
@@ -310,6 +324,36 @@ export function Sidebar() {
                 <div className="px-4 pb-2 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
                   <UserCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden="true" />
                   <span className="truncate font-medium">Plantão: {plantonista}</span>
+                </div>
+              )}
+              {isConnected && onlineUsers.length > 0 && (
+                <div
+                  className="px-4 pb-2.5 flex items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-300"
+                  title={`Conectados agora: ${onlineUsers.map((u) => u.nome).join(", ")}`}
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
+                    <span className="truncate font-medium">
+                      {onlineUsers.length === 1
+                        ? "1 usuário online"
+                        : `${onlineUsers.length} usuários online`}
+                    </span>
+                  </div>
+                  <div className="flex -space-x-1.5 shrink-0">
+                    {onlineUsers.slice(0, 4).map((u) => (
+                      <span
+                        key={u.sessionId}
+                        className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-700 text-[9px] font-bold text-emerald-800 dark:text-emerald-200 flex items-center justify-center uppercase"
+                      >
+                        {u.nome.trim().slice(0, 2)}
+                      </span>
+                    ))}
+                    {onlineUsers.length > 4 && (
+                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-[9px] font-bold text-slate-700 dark:text-slate-200 flex items-center justify-center">
+                        +{onlineUsers.length - 4}
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

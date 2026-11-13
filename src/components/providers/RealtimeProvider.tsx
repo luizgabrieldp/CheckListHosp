@@ -9,9 +9,14 @@ import {
 } from "@/store/useAppStore";
 import { WebSocketMessage } from "@/types/hospital";
 import {
-  escutarAlteracoesFirestore,
   isFirebaseConfigured,
-  sincronizarComFirestore,
+  migrarLegadoParaGranularSeNecessario,
+  escutarColecoesGranularesFirestore,
+  registrarPresencaFirestore,
+  removerPresencaFirestore,
+  escutarPresencaFirestore,
+  salvarConfigGranularFirestore,
+  salvarItemGranularFirestore,
 } from "@/lib/firebase";
 import { SEED_AMBULATORIO_PADRAO, SEED_MODELOS_PADRAO } from "@/lib/seeds";
 
@@ -63,6 +68,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
     let reconnectTimeout: NodeJS.Timeout | null = null;
     let unsubscribeFirestore: (() => void) | null = null;
+    let unsubscribePresenca: (() => void) | null = null;
+    let intervaloPresenca: NodeJS.Timeout | null = null;
     let retryAttempt = 0;
     const RETRY_DELAYS = [3000, 6000, 15000, 30000, 60000];
 
@@ -79,54 +86,70 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       } catch {}
     }, 30 * 60 * 1000);
 
-    // 1. Conexão em tempo real via Firebase Firestore (se configurado)
+    // 1. Conexão em tempo real granular (Google Docs style) + Presença via Firebase Firestore
     if (isFirebaseConfigured()) {
-      unsubscribeFirestore = escutarAlteracoesFirestore(
-        (dados) => {
+      migrarLegadoParaGranularSeNecessario({
+        medicosAmbulatorio: SEED_AMBULATORIO_PADRAO as unknown as Array<Record<string, unknown> & { id: string }>,
+        modelos: SEED_MODELOS_PADRAO as unknown as Array<Record<string, unknown> & { id: string }>,
+      })
+        .then(() => {
           if (!isMounted) return;
-          syncFullState(dados as any);
-          setConnected(true, 18, "firestore");
-
-          // Auto-reparação: Se o Firestore estiver vazio em modelos, ambulatório, enfermarias ou categorias,
-          // restaura imediatamente na nuvem usando os dados locais ou as sementes oficiais
           const atual = useAppStore.getState();
-          if ((!dados.ambulantes || dados.ambulantes.length === 0) && atual.ambulantes.length > 0) {
-            sincronizarComFirestore({ ambulantes: atual.ambulantes });
+          if (atual.enfermarias.length > 0) {
+            salvarConfigGranularFirestore("enfermarias", { items: atual.enfermarias }).catch(() => {});
           }
-          if ((!dados.modelos || dados.modelos.length === 0) && atual.modelos.length > 0) {
-            sincronizarComFirestore({ modelos: atual.modelos });
+          if (atual.categoriasModelos.length > 0) {
+            salvarConfigGranularFirestore("categorias_modelo", { items: atual.categoriasModelos }).catch(() => {});
           }
-          if ((!dados.enfermarias || dados.enfermarias.length === 0) && atual.enfermarias.length > 0) {
-            sincronizarComFirestore({ enfermarias: atual.enfermarias });
-          }
-          if ((!dados.categoriasModelos || dados.categoriasModelos.length === 0) && atual.categoriasModelos.length > 0) {
-            sincronizarComFirestore({ categoriasModelos: atual.categoriasModelos });
-          }
+        })
+        .catch(() => {});
 
-          // Executa expurgo automático LGPD (48h após a data do evento)
+      unsubscribeFirestore = escutarColecoesGranularesFirestore({
+        onCollection: (key, items, remoteAuthors) => {
+          if (!isMounted) return;
+          const atual = useAppStore.getState();
+          if (key === "medicosAmbulatorio" && items.length === 0 && atual.ambulantes.length > 0) {
+            atual.ambulantes.forEach((m) =>
+              salvarItemGranularFirestore("medicosAmbulatorio", m.id, m as unknown as Record<string, unknown>).catch(() => {})
+            );
+          }
+          if (key === "modelos" && items.length === 0 && atual.modelos.length > 0) {
+            atual.modelos.forEach((m) =>
+              salvarItemGranularFirestore("modelos", m.id, m as unknown as Record<string, unknown>).catch(() => {})
+            );
+          }
+          atual.applyGranularCollectionSync(key, items, remoteAuthors);
+          setConnected(true, 18, "firestore");
           try {
             useAppStore.getState().executarExpurgoAutomatico();
           } catch {}
         },
-        () => {
-          // Se for o primeiro acesso e a coleção ainda estiver vazia no Firestore,
-          // inicializa o documento com os dados locais ou padrão da aplicação
+        onConfig: (docId, data) => {
           if (!isMounted) return;
-          const current = useAppStore.getState();
-          sincronizarComFirestore({
-            admissoes: current.admissoes,
-            altas: current.altas,
-            permanencia: current.permanencia,
-            passagem: current.passagem,
-            ambulantes: current.ambulantes.length > 0 ? current.ambulantes : SEED_AMBULATORIO_PADRAO,
-            modelos: current.modelos.length > 0 ? current.modelos : SEED_MODELOS_PADRAO,
-            metricas: current.metricas,
-            enfermarias: current.enfermarias.length > 0 ? current.enfermarias : ENFERMARIAS_PADRAO,
-            categoriasModelos: current.categoriasModelos.length > 0 ? current.categoriasModelos : CATEGORIAS_MODELOS_PADRAO,
-          });
-          setConnected(true, 25, "firestore");
-        }
-      );
+          useAppStore.getState().applyGranularConfigSync(docId, data);
+          setConnected(true, 18, "firestore");
+        },
+        onSyncStatus: (ok) => {
+          if (!isMounted) return;
+          if (ok) setConnected(true, 18, "firestore");
+        },
+      });
+
+      const enviarPresenca = () => {
+        const s = useAppStore.getState();
+        registrarPresencaFirestore({
+          nome: s.plantonista || "Equipe Médica",
+          perfil: "Plantonista",
+          activeTab: s.activeTab,
+        }).catch(() => {});
+      };
+
+      enviarPresenca();
+      intervaloPresenca = setInterval(enviarPresenca, 25000);
+      unsubscribePresenca = escutarPresencaFirestore((users) => {
+        if (!isMounted) return;
+        useAppStore.getState().setOnlineUsers(users);
+      });
     }
 
     // 2. Conexão em tempo real via WebSocket (servidor local / VPS)
@@ -279,6 +302,11 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         document.removeEventListener("visibilitychange", handleVisibilidade);
       }
       if (unsubscribeFirestore) unsubscribeFirestore();
+      if (unsubscribePresenca) unsubscribePresenca();
+      if (intervaloPresenca) clearInterval(intervaloPresenca);
+      if (isFirebaseConfigured()) {
+        removerPresencaFirestore().catch(() => {});
+      }
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
       if (intervaloExpurgo) clearInterval(intervaloExpurgo);
@@ -289,6 +317,27 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       registerSocket(null);
     };
   }, [isAuthenticated, setConnected, syncFullState]);
+
+  const activeTab = useAppStore((s) => s.activeTab);
+  const plantonista = useAppStore((s) => s.plantonista);
+
+  useEffect(() => {
+    if (!isAuthenticated || !isFirebaseConfigured()) return;
+    registrarPresencaFirestore({
+      nome: plantonista || "Equipe Médica",
+      perfil: "Plantonista",
+      activeTab,
+    }).catch(() => {});
+  }, [isAuthenticated, activeTab, plantonista]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !isFirebaseConfigured() || typeof window === "undefined") return;
+    const handleUnload = () => {
+      removerPresencaFirestore().catch(() => {});
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, [isAuthenticated]);
 
   return <>{children}</>;
 }
