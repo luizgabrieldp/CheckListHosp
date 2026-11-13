@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { confirmAction, toast } from "@/store/useUiStore";
 import { DiaSemana, HorarioMedico, MedicoAmbulatorio, TurnoAmbulatorio } from "@/types/hospital";
 import { useModalA11y } from "@/lib/useFocusTrap";
 import {
@@ -33,17 +34,6 @@ export function AmbulatorioView() {
     isOpen: modalNovoMedico,
     onClose: () => setModalNovoMedico(false),
   });
-
-  // Fechamento de modal via teclado ESC
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && modalNovoMedico) {
-        setModalNovoMedico(false);
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [modalNovoMedico]);
 
   // Form states
   const [nome, setNome] = useState("");
@@ -135,7 +125,7 @@ export function AmbulatorioView() {
 
         <button
           onClick={() => abrirModal()}
-          className="min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all self-start sm:self-auto cursor-pointer"
+          className="min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm active:scale-95 transition-all self-start sm:self-auto cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           <span>Cadastrar Médico</span>
@@ -149,7 +139,7 @@ export function AmbulatorioView() {
       </div>
 
       {/* MATRIZ SEMANAL (SEGUNDA A SEXTA X MANHÃ E TARDE) */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-4 overflow-x-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 overflow-x-auto">
         <div className="min-w-[1120px] space-y-4">
           {/* CABEÇALHO DOS DIAS */}
           <div className="grid grid-cols-5 gap-3 text-center bg-slate-50/80 dark:bg-slate-800/90 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700">
@@ -192,7 +182,7 @@ export function AmbulatorioView() {
                             medicosOrdenados.map((m) => (
                               <div
                                 key={m.id}
-                                className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-sm transition-all group"
+                                className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-sm transition-all group"
                               >
                                 <div className="flex items-center justify-between gap-2">
                                   <span
@@ -240,7 +230,7 @@ export function AmbulatorioView() {
       </div>
 
       {/* LISTAGEM GERAL DE MÉDICOS */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-4 sm:p-5 space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>Quadro Geral do Corpo Clínico</span>
@@ -295,9 +285,20 @@ export function AmbulatorioView() {
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm(`Remover ${m.nome} do ambulatório?`)) {
+                    onClick={async () => {
+                      const ok = await confirmAction({
+                        title: "Remover médico do ambulatório",
+                        message: `Remover ${m.nome} do ambulatório?`,
+                        confirmLabel: "Remover",
+                        variant: "danger",
+                      });
+                      if (ok) {
+                        const backup = { ...m };
                         removerMedico(m.id);
+                        toast.info(`${m.nome} removido do ambulatório.`, {
+                          label: "Desfazer",
+                          onClick: () => salvarMedico(backup),
+                        });
                       }
                     }}
                     title="Excluir médico"
@@ -319,7 +320,7 @@ export function AmbulatorioView() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-medico-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm p-4"
         >
           <div
             ref={modalNovoMedicoRef}
@@ -418,7 +419,7 @@ export function AmbulatorioView() {
                               onClick={() => toggleHorario(dia, turno)}
                               className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                                 selecionado
-                                  ? "bg-emerald-600 text-white font-bold shadow-xs"
+                                  ? "bg-emerald-600 text-white font-bold shadow-sm"
                                   : "bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300/80 dark:hover:bg-slate-600"
                               }`}
                             >
@@ -442,7 +443,7 @@ export function AmbulatorioView() {
                 </button>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto min-h-[44px] px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  className="w-full sm:w-auto min-h-[44px] px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm active:scale-95 transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   Salvar Médico
                 </button>

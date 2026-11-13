@@ -35,3 +35,6 @@ next-env.d.ts
 
 # local standalone tools
 /.tools/
+
+# local database files (LGPD / dados clínicos)
+/data/

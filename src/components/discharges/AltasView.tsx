@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { confirmAction, toast } from "@/store/useUiStore";
 import { AltaPaciente } from "@/types/hospital";
 import { gerarMensagemAlta, compartilharOuCopiar } from "@/lib/whatsapp";
 import { comprimirImagemParaWebP } from "@/lib/image-compressor";
@@ -65,26 +66,19 @@ export function AltasView() {
     onClose: () => setModalFotos([]),
   });
 
-  // Teclado acessível: fechar modais com Escape e navegar galeria com setas
+  // Teclado acessível: navegar galeria de fotos com setas (Escape é tratado pelo useModalA11y)
   useEffect(() => {
+    if (modalFotos.length <= 1) return;
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        if (modalFotos.length > 0) {
-          setModalFotos([]);
-        } else if (modalNovoPaciente) {
-          setModalNovoPaciente(false);
-        }
-      } else if (modalFotos.length > 1) {
-        if (e.key === "ArrowLeft") {
-          setModalFotoIdx((prev) => (prev > 0 ? prev - 1 : modalFotos.length - 1));
-        } else if (e.key === "ArrowRight") {
-          setModalFotoIdx((prev) => (prev < modalFotos.length - 1 ? prev + 1 : 0));
-        }
+      if (e.key === "ArrowLeft") {
+        setModalFotoIdx((prev) => (prev > 0 ? prev - 1 : modalFotos.length - 1));
+      } else if (e.key === "ArrowRight") {
+        setModalFotoIdx((prev) => (prev < modalFotos.length - 1 ? prev + 1 : 0));
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [modalFotos, modalNovoPaciente]);
+  }, [modalFotos]);
 
   // Estados para adição rápida de nova enfermaria in-place
   const [adicionandoEnfModal, setAdicionandoEnfModal] = useState(false);
@@ -384,13 +378,13 @@ export function AltasView() {
     <div className="space-y-5 max-w-6xl mx-auto">
       {/* TOAST FLUTUANTE */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMsg}</span>
         </div>
       )}
 
-      {/* SELETOR DE DATA NO TOPO (ESTILO BASE44) */}
+      {/* SELETOR DE DATA NO TOPO */}
       <div className="clean-card rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <label htmlFor="data-trabalho-altas" className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer">
@@ -409,7 +403,7 @@ export function AltasView() {
         <button
           type="button"
           onClick={() => setModalNovoPaciente(true)}
-          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           <span>Adicionar Paciente</span>
@@ -455,7 +449,7 @@ export function AltasView() {
             onClick={() => setFiltroEnfermaria("TODAS")}
             className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
               filtroEnfermaria === "TODAS"
-                ? "bg-emerald-700 text-white shadow-xs"
+                ? "bg-emerald-700 text-white shadow-sm"
                 : "bg-slate-100/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700"
             }`}
           >
@@ -468,7 +462,7 @@ export function AltasView() {
             onClick={() => setFiltroEnfermaria("SEM_ENFERMARIA")}
             className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
               filtroEnfermaria === "SEM_ENFERMARIA"
-                ? "bg-emerald-700 text-white shadow-xs"
+                ? "bg-emerald-700 text-white shadow-sm"
                 : "bg-slate-100/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700"
             }`}
           >
@@ -485,7 +479,7 @@ export function AltasView() {
                 onClick={() => setFiltroEnfermaria(enf)}
                 className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
                   filtroEnfermaria.toLowerCase() === enf.toLowerCase()
-                    ? "bg-emerald-700 text-white shadow-xs"
+                    ? "bg-emerald-700 text-white shadow-sm"
                     : "bg-slate-100/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700"
                 }`}
               >
@@ -495,7 +489,7 @@ export function AltasView() {
         </div>
       </div>
 
-      {/* LISTAGEM AGRUPADA POR ENFERMARIA (ESTILO BASE44) */}
+      {/* LISTAGEM AGRUPADA POR ENFERMARIA */}
       <div>
         {Object.keys(altasAgrupadas).length === 0 ? (
           <div className="clean-card rounded-2xl p-12 text-center text-slate-400 dark:text-slate-400 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
@@ -596,7 +590,7 @@ export function AltasView() {
                         {isExpandido && (
                           <div
                             id={`alta-body-${paciente.id}`}
-                            className="px-4 pb-4 pt-1 border-t border-slate-100 dark:border-slate-800 space-y-4 animate-in fade-in duration-200"
+                            className="px-4 pb-4 pt-1 border-t border-slate-100 dark:border-slate-800 space-y-4 duration-200"
                           >
                             {/* LINHA 1: LEITO E ENFERMARIA */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
@@ -767,7 +761,7 @@ export function AltasView() {
                                     });
                                   }}
                                   placeholder="Descreva a queixa (ex: Dor leve em sítio cirúrgico)..."
-                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 animate-in fade-in duration-150"
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 duration-150"
                                 />
                               )}
                             </div>
@@ -975,7 +969,7 @@ export function AltasView() {
                                         <button
                                           type="button"
                                           onClick={() => cameraInputRefs.current[paciente.id]?.click()}
-                                          className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                          className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer shadow-sm"
                                           title="Tirar foto com a câmera"
                                         >
                                           <Camera className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Câmera
@@ -983,7 +977,7 @@ export function AltasView() {
                                         <button
                                           type="button"
                                           onClick={() => fileInputRefs.current[paciente.id]?.click()}
-                                          className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                          className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer shadow-sm"
                                           title="Carregar fotos da galeria (múltiplas)"
                                         >
                                           <Upload className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Galeria (Múltiplas)
@@ -1030,7 +1024,7 @@ export function AltasView() {
                                       {fotosDoPaciente.map((url, idx) => (
                                         <div
                                           key={idx}
-                                          className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 flex flex-col group shadow-2xs"
+                                          className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 flex flex-col group shadow-sm"
                                         >
                                           <div
                                             className="relative aspect-square w-full rounded-lg overflow-hidden cursor-pointer bg-slate-100 dark:bg-slate-900"
@@ -1045,7 +1039,7 @@ export function AltasView() {
                                               <Maximize2 className="w-5 h-5 text-white drop-shadow-md" />
                                             </div>
                                             {idx === qtd - 1 && qtd > 1 ? (
-                                              <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-emerald-700/95 backdrop-blur-xs text-[9px] font-bold text-white shadow-xs flex items-center gap-1">
+                                              <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-emerald-700/95 backdrop-blur-sm text-[9px] font-bold text-white shadow-sm flex items-center gap-1">
                                                 #{idx + 1} • Legenda
                                               </span>
                                             ) : (
@@ -1104,7 +1098,7 @@ export function AltasView() {
                               <button
                                 type="button"
                                 onClick={() => handleCompartilhar(paciente)}
-                                className="min-h-[44px] flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+                                className="min-h-[44px] flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-all active:scale-[0.99] cursor-pointer"
                               >
                                 <Share2 className="w-4 h-4" />
                                 <span>Gerar Mensagem</span>
@@ -1112,10 +1106,20 @@ export function AltasView() {
 
                               <button
                                 type="button"
-                                onClick={() => {
-                                  if (confirm(`Excluir paciente ${paciente.nomePaciente}?`)) {
+                                onClick={async () => {
+                                  const ok = await confirmAction({
+                                    title: "Excluir paciente de alta",
+                                    message: `Excluir paciente ${paciente.nomePaciente}?`,
+                                    confirmLabel: "Excluir",
+                                    variant: "danger",
+                                  });
+                                  if (ok) {
+                                    const backup = { ...paciente };
                                     removerAlta(paciente.id);
-                                    exibirToast("Paciente de alta removido.");
+                                    toast.info(`Alta de ${paciente.nomePaciente} removida.`, {
+                                      label: "Desfazer",
+                                      onClick: () => salvarAlta(backup),
+                                    });
                                   }
                                 }}
                                 className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
@@ -1138,7 +1142,7 @@ export function AltasView() {
 
       {/* MODAL NOVO PACIENTE DE ALTA */}
       {modalNovoPaciente && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div
             ref={modalNovoPacienteRef}
             tabIndex={-1}
@@ -1296,7 +1300,7 @@ export function AltasView() {
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   Salvar Paciente
                 </button>
@@ -1312,7 +1316,7 @@ export function AltasView() {
           role="dialog"
           aria-modal="true"
           aria-label="Visualizador de fotos da ferida operatória"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xs p-4 animate-in fade-in select-none"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 select-none"
           onClick={fecharVisualizadorFoto}
         >
           <div

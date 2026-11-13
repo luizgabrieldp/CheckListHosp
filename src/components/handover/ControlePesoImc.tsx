@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { confirmAction, toast } from "@/store/useUiStore";
 import {
   RegistroAntropometria,
   ControleAntropometrico,
@@ -125,16 +126,23 @@ export function ControlePesoImc({
   };
 
   // Desativar/Remover controle de peso do paciente
-  const handleDesativar = () => {
-    if (
-      antropometria.historico?.length > 0 &&
-      !confirm("Deseja ocultar o controle de peso deste paciente? Os registros serão preservados.")
-    ) {
-      return;
+  const handleDesativar = async () => {
+    if (antropometria.historico?.length > 0) {
+      const ok = await confirmAction({
+        title: "Ocultar controle de peso",
+        message: "Deseja ocultar o controle de peso deste paciente? Os registros serão preservados.",
+        confirmLabel: "Ocultar",
+        variant: "primary",
+      });
+      if (!ok) return;
     }
     onSalvarAntropometria(paciente, {
       ...antropometria,
       ativo: false,
+    });
+    toast.info("Controle de peso ocultado.", {
+      label: "Desfazer",
+      onClick: () => onSalvarAntropometria(paciente, { ...antropometria, ativo: true }),
     });
   };
 
@@ -191,11 +199,11 @@ export function ControlePesoImc({
         );
 
   return (
-    <div className="mt-2.5 p-3 sm:p-3.5 rounded-xl bg-gradient-to-br from-teal-50/60 via-white to-sky-50/40 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-teal-200/80 dark:border-teal-800/60 shadow-2xs space-y-3 animate-in fade-in duration-200">
+    <div className="mt-2.5 p-3 sm:p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
       {/* CABEÇALHO DO BLOCO */}
       <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-teal-100 dark:border-slate-700/80">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-2xs">
+          <div className="w-6 h-6 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-sm">
             <Scale className="w-3.5 h-3.5" />
           </div>
           <div>
@@ -296,7 +304,7 @@ export function ControlePesoImc({
               onClick={handleRegistrarPesagem}
               className={`w-full min-h-[44px] py-1.5 px-3 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                 pesoNum > 0 && alturaNum > 0
-                  ? "bg-teal-600 hover:bg-teal-700 text-white shadow-2xs"
+                  ? "bg-teal-600 hover:bg-teal-700 text-white shadow-sm"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700"
               }`}
             >
@@ -390,7 +398,7 @@ export function ControlePesoImc({
                 onClick={() => setAbaGrafico("peso")}
                 className={`min-h-[44px] px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                   abaGrafico === "peso"
-                    ? "bg-white dark:bg-slate-700 text-teal-800 dark:text-teal-200 shadow-2xs"
+                    ? "bg-white dark:bg-slate-700 text-teal-800 dark:text-teal-200 shadow-sm"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                 }`}
               >
@@ -403,7 +411,7 @@ export function ControlePesoImc({
                 onClick={() => setAbaGrafico("imc")}
                 className={`min-h-[44px] px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                   abaGrafico === "imc"
-                    ? "bg-white dark:bg-slate-700 text-teal-800 dark:text-teal-200 shadow-2xs"
+                    ? "bg-white dark:bg-slate-700 text-teal-800 dark:text-teal-200 shadow-sm"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                 }`}
               >
@@ -548,7 +556,7 @@ export function ControlePesoImc({
             {/* TOOLTIP INTERATIVO FLUTUANTE AO PASSAR O MOUSE */}
             {hoverPonto && (
               <div
-                className="absolute z-20 pointer-events-none bg-slate-900 text-white text-[11px] p-2 rounded-lg shadow-lg -translate-x-1/2 -translate-y-full mb-2 whitespace-nowrap animate-in fade-in"
+                className="absolute z-20 pointer-events-none bg-slate-900 text-white text-[11px] p-2 rounded-lg shadow-lg -translate-x-1/2 -translate-y-full mb-2 whitespace-nowrap"
                 style={{
                   left: `${(hoverPonto.x / svgWidth) * 100}%`,
                   top: `${(hoverPonto.y / svgHeight) * 100}%`,

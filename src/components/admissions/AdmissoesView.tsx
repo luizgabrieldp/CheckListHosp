@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { confirmAction, toast } from "@/store/useUiStore";
+import { converterAdmissaoParaPassagem } from "@/lib/patient-flow";
 import { AdmissaoPaciente } from "@/types/hospital";
 import {
   gerarMensagemWhatsAppAdmissoes,
@@ -24,10 +26,14 @@ import {
   Unlock,
   CheckCircle2,
   Hospital,
+  BedDouble,
+  FileCheck2,
+  ClipboardCheck,
   GripVertical,
   X,
   ArrowUpDown,
   Loader2,
+  ArrowRight,
 } from "lucide-react";
 import {
   DndContext,
@@ -91,26 +97,23 @@ function renderBolinhasStatus(paciente: AdmissaoPaciente, agora: number) {
   if (isCancelada) {
     bolinhaFluxo = (
       <span
-        className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 shadow-xs"
+        className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 shadow-sm"
         title="Cirurgia cancelada"
       />
     );
   } else if (isCompleto) {
     bolinhaFluxo = (
       <span
-        className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-xs"
+        className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-sm"
         title="Fluxo concluído (Chegou, Internou, AIH e Alta/ADM)"
       />
     );
   } else if (isInativo30Min) {
     bolinhaFluxo = (
       <span
-        className="relative flex h-2.5 w-2.5 shrink-0"
+        className="w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-amber-400/40 shrink-0"
         title="Alerta: Paciente pendente sem atualização há mais de 30 minutos"
-      >
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-      </span>
+      />
     );
   }
 
@@ -119,7 +122,7 @@ function renderBolinhasStatus(paciente: AdmissaoPaciente, agora: number) {
   if (paciente.historiaFinalizada) {
     bolinhaHistoria = (
       <span
-        className="w-2.5 h-2.5 rounded-full bg-sky-500 shrink-0 shadow-xs"
+        className="w-2.5 h-2.5 rounded-full bg-sky-500 shrink-0 shadow-sm"
         title="História clínica finalizada e travada"
       />
     );
@@ -177,8 +180,32 @@ export function AdmissoesView() {
   const admissoes = useAppStore((s) => s.admissoes);
   const salvarAdmissao = useAppStore((s) => s.salvarAdmissao);
   const removerAdmissao = useAppStore((s) => s.removerAdmissao);
+  const passagem = useAppStore((s) => s.passagem);
+  const salvarPacientePassagem = useAppStore((s) => s.salvarPacientePassagem);
+  const removerPacientePassagem = useAppStore((s) => s.removerPacientePassagem);
+  const setActiveTab = useAppStore((s) => s.setActiveTab);
   const enfermarias = useAppStore((s) => s.enfermarias);
   const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
+
+  function handleEnviarParaPassagem(paciente: AdmissaoPaciente) {
+    const existente = passagem.find(
+      (p) => p.nome.trim().toLowerCase() === paciente.nome.trim().toLowerCase()
+    );
+    const convertido = converterAdmissaoParaPassagem(paciente, existente);
+    salvarPacientePassagem(convertido);
+    setActiveTab("passagem");
+    toast.success(
+      existente
+        ? `${paciente.nome} atualizado na Passagem de Plantão.`
+        : `${paciente.nome} enviado para a Passagem de Plantão.`,
+      existente
+        ? undefined
+        : {
+            label: "Desfazer",
+            onClick: () => removerPacientePassagem(convertido.id),
+          }
+    );
+  }
 
   // Data selecionada no topo (padrão: hoje no fuso local)
   const [dataSelecionada, setDataSelecionada] = useState(() => {
@@ -264,18 +291,6 @@ export function AdmissoesView() {
     isOpen: modalNovoPaciente,
     onClose: () => setModalNovoPaciente(false),
   });
-
-  // Acessibilidade por teclado: fechar modais com tecla Escape
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        if (modalImpressaoAberto) setModalImpressaoAberto(false);
-        if (modalNovoPaciente) setModalNovoPaciente(false);
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [modalImpressaoAberto, modalNovoPaciente]);
 
   // Filtrar pacientes da data selecionada
   const admissoesDaData = useMemo(() => {
@@ -506,13 +521,13 @@ export function AdmissoesView() {
       <div className="space-y-5 no-print print:hidden">
         {/* TOAST FLUTUANTE */}
         {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 no-print">
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center gap-2 no-print">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMsg}</span>
         </div>
       )}
 
-      {/* SELETOR DE DATA NO TOPO (ESTILO BASE44) */}
+      {/* SELETOR DE DATA NO TOPO */}
       <div className="clean-card rounded-xl p-3 flex items-center gap-3 no-print">
         <label htmlFor="data-trabalho-admissoes" className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer">
           <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
@@ -539,31 +554,31 @@ export function AdmissoesView() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* CHEGOU */}
-          <div className="clean-card rounded-2xl p-4 bg-sky-50/40 dark:bg-sky-950/40 border-sky-100 dark:border-sky-800/60 flex flex-col items-center justify-center text-center">
-            <span className="text-xl mb-1" aria-hidden="true">🏥</span>
-            <span className="text-xl font-bold text-sky-800 dark:text-sky-300 leading-tight">{totalChegou}</span>
-            <span className="text-[11px] font-semibold text-sky-700 dark:text-sky-400">Chegou</span>
+          <div className="clean-card rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center">
+            <Hospital className="w-5 h-5 text-sky-600 dark:text-sky-400 mb-1.5" aria-hidden="true" />
+            <span className="text-xl font-bold text-slate-900 dark:text-white leading-tight tabular-nums-clinical">{totalChegou}</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Chegou</span>
           </div>
 
           {/* INTERNOU */}
-          <div className="clean-card rounded-2xl p-4 bg-indigo-50/40 dark:bg-indigo-950/40 border-indigo-100 dark:border-indigo-800/60 flex flex-col items-center justify-center text-center">
-            <span className="text-xl mb-1" aria-hidden="true">🛏️</span>
-            <span className="text-xl font-bold text-indigo-800 dark:text-indigo-300 leading-tight">{totalInternou}</span>
-            <span className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-400">Internou</span>
+          <div className="clean-card rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center">
+            <BedDouble className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mb-1.5" aria-hidden="true" />
+            <span className="text-xl font-bold text-slate-900 dark:text-white leading-tight tabular-nums-clinical">{totalInternou}</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Internou</span>
           </div>
 
           {/* AIH */}
-          <div className="clean-card rounded-2xl p-4 bg-emerald-50/40 dark:bg-emerald-950/40 border-emerald-100 dark:border-emerald-800/60 flex flex-col items-center justify-center text-center">
-            <span className="text-xl mb-1" aria-hidden="true">✅</span>
-            <span className="text-xl font-bold text-emerald-800 dark:text-emerald-300 leading-tight">{totalAih}</span>
-            <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">AIH</span>
+          <div className="clean-card rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center">
+            <FileCheck2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mb-1.5" aria-hidden="true" />
+            <span className="text-xl font-bold text-slate-900 dark:text-white leading-tight tabular-nums-clinical">{totalAih}</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">AIH</span>
           </div>
 
           {/* ALTA/ADM */}
-          <div className="clean-card rounded-2xl p-4 bg-blue-50/40 dark:bg-blue-950/40 border-blue-100 dark:border-blue-800/60 flex flex-col items-center justify-center text-center">
-            <span className="text-xl mb-1" aria-hidden="true">🟦</span>
-            <span className="text-xl font-bold text-blue-800 dark:text-blue-300 leading-tight">{totalAltaAdm}</span>
-            <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400">Alta/ADM</span>
+          <div className="clean-card rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center">
+            <ClipboardCheck className="w-5 h-5 text-blue-600 dark:text-blue-400 mb-1.5" aria-hidden="true" />
+            <span className="text-xl font-bold text-slate-900 dark:text-white leading-tight tabular-nums-clinical">{totalAltaAdm}</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Alta/ADM</span>
           </div>
         </div>
       </div>
@@ -572,7 +587,7 @@ export function AdmissoesView() {
       <div className="flex flex-wrap items-center gap-2.5 no-print">
         <button
           onClick={() => setModalNovoPaciente(true)}
-          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-600 dark:border-emerald-500 shadow-xs transition-colors cursor-pointer"
+          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-600 dark:border-emerald-500 shadow-sm transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
           <span>Adicionar</span>
@@ -580,7 +595,7 @@ export function AdmissoesView() {
 
         <button
           onClick={handleGerarMensagemWhatsApp}
-          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
         >
           <Share2 className="w-4 h-4 text-emerald-100" aria-hidden="true" />
           <span>Gerar Mensagem</span>
@@ -588,7 +603,7 @@ export function AdmissoesView() {
 
         <button
           onClick={handleAbrirModalImpressao}
-          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700 shadow-xs transition-colors cursor-pointer"
+          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700 shadow-sm transition-colors cursor-pointer"
         >
           <Printer className="w-4 h-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
           <span>Imprimir Lista</span>
@@ -613,10 +628,10 @@ export function AdmissoesView() {
           {[
             { id: "TODOS", label: "Todos" },
             { id: "AGUARDANDO", label: "Aguardando" },
-            { id: "CHEGOU", label: "🏥 Chegou" },
-            { id: "INTERNOU", label: "🛏️ Internou" },
-            { id: "AIH", label: "✅ AIH" },
-            { id: "ALTA_ADM", label: "🟦 Alta/ADM" },
+            { id: "CHEGOU", label: "Chegou" },
+            { id: "INTERNOU", label: "Internou" },
+            { id: "AIH", label: "AIH" },
+            { id: "ALTA_ADM", label: "Alta/ADM" },
             { id: "CANCELADAS", label: "Canceladas" },
           ].map((f) => (
             <button
@@ -626,7 +641,7 @@ export function AdmissoesView() {
               onClick={() => setFiltroStatus(f.id)}
               className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center justify-center ${
                 filtroStatus === f.id
-                  ? "bg-emerald-700 text-white shadow-xs"
+                  ? "bg-emerald-700 text-white shadow-sm"
                   : "bg-slate-100/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700"
               }`}
             >
@@ -730,7 +745,7 @@ export function AdmissoesView() {
                         {isExpandido && (
                           <div
                             id={`admissao-body-${paciente.id}`}
-                            className="px-4 pb-4 pt-1 border-t border-slate-100 dark:border-slate-800 space-y-4 animate-in fade-in duration-150"
+                            className="px-4 pb-4 pt-1 border-t border-slate-100 dark:border-slate-800 space-y-4 duration-150"
                           >
                             {/* EDITAR NOME & ENFERMARIA */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
@@ -832,7 +847,7 @@ export function AdmissoesView() {
                               </div>
                             </div>
 
-                            {/* 4 BOTÕES PROGRESSIVOS DE STATUS (ESTILO BASE44) */}
+                            {/* 4 BOTÕES PROGRESSIVOS DE STATUS */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                               {/* CHEGOU */}
                               <button
@@ -843,11 +858,11 @@ export function AdmissoesView() {
                                 onClick={() => handleToggleEtapaStatus(paciente, "chegou")}
                                 className={`min-h-[44px] p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.chegou
-                                    ? "bg-sky-50 dark:bg-sky-950/60 border-sky-400 dark:border-sky-500 text-sky-800 dark:text-sky-300 font-bold shadow-xs"
+                                    ? "bg-sky-50 dark:bg-sky-950/60 border-sky-400 dark:border-sky-500 text-sky-800 dark:text-sky-300 font-bold shadow-sm"
                                     : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
-                                <span className="text-xl" aria-hidden="true">🏥</span>
+                                <Hospital className="w-5 h-5" aria-hidden="true" />
                                 <span className="text-xs">Chegou</span>
                               </button>
 
@@ -860,11 +875,11 @@ export function AdmissoesView() {
                                 onClick={() => handleToggleEtapaStatus(paciente, "internou")}
                                 className={`min-h-[44px] p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.internou
-                                    ? "bg-indigo-50 dark:bg-indigo-950/60 border-indigo-400 dark:border-indigo-500 text-indigo-800 dark:text-indigo-300 font-bold shadow-xs"
+                                    ? "bg-indigo-50 dark:bg-indigo-950/60 border-indigo-400 dark:border-indigo-500 text-indigo-800 dark:text-indigo-300 font-bold shadow-sm"
                                     : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
-                                <span className="text-xl" aria-hidden="true">🛏️</span>
+                                <BedDouble className="w-5 h-5" aria-hidden="true" />
                                 <span className="text-xs">Internou</span>
                               </button>
 
@@ -877,11 +892,11 @@ export function AdmissoesView() {
                                 onClick={() => handleToggleEtapaStatus(paciente, "aih")}
                                 className={`min-h-[44px] p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.aih
-                                    ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 dark:border-emerald-500 text-emerald-800 dark:text-emerald-300 font-bold shadow-xs"
+                                    ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 dark:border-emerald-500 text-emerald-800 dark:text-emerald-300 font-bold shadow-sm"
                                     : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
-                                <span className="text-xl" aria-hidden="true">✅</span>
+                                <FileCheck2 className="w-5 h-5" aria-hidden="true" />
                                 <span className="text-xs">AIH</span>
                               </button>
 
@@ -894,11 +909,11 @@ export function AdmissoesView() {
                                 onClick={() => handleToggleEtapaStatus(paciente, "altaAdm")}
                                 className={`min-h-[44px] p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                   paciente.altaAdm
-                                    ? "bg-blue-50 dark:bg-blue-950/60 border-blue-400 dark:border-blue-500 text-blue-800 dark:text-blue-300 font-bold shadow-xs"
+                                    ? "bg-blue-50 dark:bg-blue-950/60 border-blue-400 dark:border-blue-500 text-blue-800 dark:text-blue-300 font-bold shadow-sm"
                                     : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
-                                <span className="text-xl" aria-hidden="true">🟦</span>
+                                <ClipboardCheck className="w-5 h-5" aria-hidden="true" />
                                 <span className="text-xs">Alta/ADM</span>
                               </button>
                             </div>
@@ -970,19 +985,40 @@ export function AdmissoesView() {
                               </span>
                             </label>
 
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (confirm(`Remover o paciente ${paciente.nome}?`)) {
-                                  removerAdmissao(paciente.id);
-                                  exibirToast("Paciente removido com sucesso.");
-                                }
-                              }}
-                              className="min-h-[44px] px-3 py-2 rounded-lg text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
-                            >
-                              <Trash2 className="w-4 h-4" aria-hidden="true" />
-                              <span>Remover paciente</span>
-                            </button>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => handleEnviarParaPassagem(paciente)}
+                                className="min-h-[44px] px-3 py-2 rounded-lg text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                              >
+                                <span>Enviar para Passagem</span>
+                                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const ok = await confirmAction({
+                                    title: "Remover paciente da admissão",
+                                    message: `Remover o paciente ${paciente.nome}?`,
+                                    confirmLabel: "Remover",
+                                    variant: "danger",
+                                  });
+                                  if (ok) {
+                                    const backup = { ...paciente };
+                                    removerAdmissao(paciente.id);
+                                    toast.info(`Paciente ${paciente.nome} removido.`, {
+                                      label: "Desfazer",
+                                      onClick: () => salvarAdmissao(backup),
+                                    });
+                                  }
+                                }}
+                                className="min-h-[44px] px-3 py-2 rounded-lg text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                              >
+                                <Trash2 className="w-4 h-4" aria-hidden="true" />
+                                <span>Remover paciente</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -998,7 +1034,7 @@ export function AdmissoesView() {
 
       {/* MODAL DE ORDENAÇÃO MANUAL ANTES DA IMPRESSÃO */}
       {modalImpressaoAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-xs p-4 animate-in fade-in no-print">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm p-4 no-print">
           <div
             ref={modalImpressaoRef}
             tabIndex={-1}
@@ -1054,7 +1090,7 @@ export function AdmissoesView() {
                 type="button"
                 onClick={handleConfirmarImpressao}
                 disabled={isImprimindo}
-                className="min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                className="min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
               >
                 {isImprimindo ? (
                   <>
@@ -1116,7 +1152,7 @@ export function AdmissoesView() {
 
       {/* MODAL ADICIONAR NOVO PACIENTE */}
       {modalNovoPaciente && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-xs p-4 animate-in fade-in no-print">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm p-4 no-print">
           <div
             ref={modalNovoPacienteRef}
             tabIndex={-1}
@@ -1240,7 +1276,7 @@ export function AdmissoesView() {
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   Salvar Paciente
                 </button>

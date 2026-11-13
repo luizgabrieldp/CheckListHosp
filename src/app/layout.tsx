@@ -3,6 +3,8 @@ import "./globals.css";
 import { RealtimeProvider } from "@/components/providers/RealtimeProvider";
 import { RegisterServiceWorker } from "@/components/pwa/RegisterServiceWorker";
 import { ThemeSync } from "@/components/providers/ThemeSync";
+import { ToastContainer } from "@/components/ui/ToastContainer";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export const metadata: Metadata = {
   title: "CheckList Hospitalar | Gestão de Enfermaria Cirúrgica",
@@ -28,8 +30,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
   themeColor: "#0f172a",
 };
@@ -69,9 +69,11 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-150">
+      <body className="min-h-screen font-sans bg-background text-foreground dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-emerald-600 selection:text-white transition-colors duration-150">
         <ThemeSync />
         <RealtimeProvider>{children}</RealtimeProvider>
+        <ToastContainer />
+        <ConfirmDialog />
         <RegisterServiceWorker />
       </body>
     </html>

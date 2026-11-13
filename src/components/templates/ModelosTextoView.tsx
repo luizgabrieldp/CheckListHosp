@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { confirmAction, toast } from "@/store/useUiStore";
 import { CategoriaModelo, ModeloTexto } from "@/types/hospital";
 import { useModalA11y } from "@/lib/useFocusTrap";
 import {
@@ -17,7 +18,6 @@ import {
   EyeOff,
   FolderOpen,
   Filter,
-  Sparkles,
 } from "lucide-react";
 
 export function ModelosTextoView() {
@@ -41,16 +41,6 @@ export function ModelosTextoView() {
     onClose: () => setModalAberto(false),
   });
 
-  // Fechamento de modal via teclado ESC
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && modalAberto) {
-        setModalAberto(false);
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [modalAberto]);
   const [modeloEmEdicao, setModeloEmEdicao] = useState<ModeloTexto | null>(null);
   const [titulo, setTitulo] = useState("");
   const [categoria, setCategoria] = useState<string>("Alta");
@@ -173,26 +163,21 @@ export function ModelosTextoView() {
 
   return (
     <div className="space-y-5">
-      {/* ─────────────────────────────────────────────────────────────
-          1. CABEÇALHO DA PÁGINA (ESTILO BASE44 / CLEAN LIGHT)
-      ────────────────────────────────────────────────────────────── */}
+      {/* 1. CABEÇALHO DA PÁGINA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <span>Modelos de Texto</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-semibold">
-              {modelos.length} templates
-            </span>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Modelos de Texto
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Biblioteca de textos clínicos estruturados prontos para copiar e colar com formatação preservada
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums-clinical">
+            {modelos.length} templates clínicos estruturados prontos para copiar e colar
           </p>
         </div>
 
         {/* BOTÃO + NOVO MODELO (DESTAQUE ESMERALDA/VERDE) */}
         <button
           onClick={() => abrirModal()}
-          className="min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer self-start sm:self-auto"
+          className="min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Novo Modelo</span>
@@ -202,7 +187,7 @@ export function ModelosTextoView() {
       {/* ─────────────────────────────────────────────────────────────
           2. BARRA DE BUSCA COM SELETOR DE CATEGORIA E PÍLULAS
       ────────────────────────────────────────────────────────────── */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 shadow-xs space-y-3">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row items-center gap-2.5">
           {/* CAMPO DE BUSCA */}
           <div className="relative flex-1 w-full">
@@ -243,7 +228,7 @@ export function ModelosTextoView() {
             onClick={() => setCategoriaSelecionada("TODAS")}
             className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
               categoriaSelecionada === "TODAS"
-                ? "bg-emerald-600 text-white font-bold shadow-xs"
+                ? "bg-emerald-600 text-white font-bold shadow-sm"
                 : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
             }`}
           >
@@ -260,7 +245,7 @@ export function ModelosTextoView() {
                 onClick={() => setCategoriaSelecionada(cat)}
                 className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                   isAtiva
-                    ? "bg-emerald-600 text-white font-bold shadow-xs"
+                    ? "bg-emerald-600 text-white font-bold shadow-sm"
                     : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                 }`}
               >
@@ -276,7 +261,7 @@ export function ModelosTextoView() {
              COM ORDENAÇÃO ALFABÉTICA DENTRO DE CADA CATEGORIA
       ────────────────────────────────────────────────────────────── */}
       {categoriasAgrupadas.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 shadow-xs">
+        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
           <FileText className="w-10 h-10 text-slate-400 dark:text-slate-500 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Nenhum modelo encontrado</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -309,7 +294,7 @@ export function ModelosTextoView() {
                   return (
                     <div
                       key={m.id}
-                      className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all overflow-hidden"
+                      className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all overflow-hidden"
                     >
                       {/* LINHA PRINCIPAL: TÍTULO À ESQUERDA + 4 AÇÕES À DIREITA */}
                       <div className="px-4 py-3 flex items-center justify-between gap-3">
@@ -362,7 +347,7 @@ export function ModelosTextoView() {
                             aria-label={`Copiar texto de ${m.titulo}`}
                             className={`min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                               isCopiado
-                                ? "bg-emerald-500 text-white font-bold shadow-xs"
+                                ? "bg-emerald-500 text-white font-bold shadow-sm"
                                 : "text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
                             }`}
                             title="Copiar texto para área de transferência"
@@ -388,9 +373,20 @@ export function ModelosTextoView() {
                           {/* 4. APAGAR */}
                           <button
                             type="button"
-                            onClick={() => {
-                              if (confirm(`Deseja realmente apagar o modelo "${m.titulo}"?`)) {
+                            onClick={async () => {
+                              const ok = await confirmAction({
+                                title: "Excluir modelo de texto",
+                                message: `Deseja realmente apagar o modelo "${m.titulo}"?`,
+                                confirmLabel: "Excluir",
+                                variant: "danger",
+                              });
+                              if (ok) {
+                                const backup = { ...m };
                                 removerModelo(m.id);
+                                toast.info(`Modelo "${m.titulo}" excluído.`, {
+                                  label: "Desfazer",
+                                  onClick: () => salvarModelo(backup),
+                                });
                               }
                             }}
                             aria-label={`Excluir modelo ${m.titulo}`}
@@ -406,7 +402,7 @@ export function ModelosTextoView() {
                       {isAberto && (
                         <div
                           id={`modelo-conteudo-${m.id}`}
-                          className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/80 p-3.5 sm:p-4 space-y-2.5 animate-in fade-in"
+                          className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/80 p-3.5 sm:p-4 space-y-2.5"
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
@@ -418,7 +414,7 @@ export function ModelosTextoView() {
                               aria-label={`Copiar texto formatado de ${m.titulo}`}
                               className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                                 isCopiado
-                                  ? "bg-emerald-600 text-white shadow-xs"
+                                  ? "bg-emerald-600 text-white shadow-sm"
                                   : "bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700"
                               }`}
                             >
@@ -437,7 +433,7 @@ export function ModelosTextoView() {
                           </div>
 
                           {/* TEXTO FORMATADO PRESERVANDO WHITE-SPACE E RECUOS */}
-                          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-100 font-sans leading-relaxed whitespace-pre-wrap select-text shadow-2xs">
+                          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-100 font-sans leading-relaxed whitespace-pre-wrap select-text shadow-sm">
                             {m.conteudo}
                           </div>
                         </div>
@@ -459,7 +455,7 @@ export function ModelosTextoView() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-modelo-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm p-3 sm:p-4"
         >
           <div
             ref={modalAbertoRef}
@@ -537,7 +533,7 @@ export function ModelosTextoView() {
                       <button
                         type="button"
                         onClick={handleCriarNovaCategoria}
-                        className="h-11 min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer flex items-center justify-center shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 box-border"
+                        className="h-11 min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer flex items-center justify-center shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 box-border"
                       >
                         OK
                       </button>
@@ -591,7 +587,7 @@ export function ModelosTextoView() {
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  className="min-h-[44px] w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   {modeloEmEdicao ? "Atualizar Modelo" : "Salvar Modelo"}
                 </button>

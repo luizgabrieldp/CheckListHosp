@@ -37,7 +37,14 @@ export function sendSocketMessage(msg: WebSocketMessage) {
   }
 }
 
+function obterChaveLocalStorage(chave: keyof DatabaseState): string {
+  if (chave === "categoriasModelos") return "checklist_categorias_modelos";
+  return `checklist_${chave}`;
+}
+
 function sincronizarMutation(chave: keyof DatabaseState, payload: any, wsType: string) {
+  useAppStore.setState({ saveStatus: "saving" });
+
   // 1. Enviar para WebSocket local (se conectado)
   sendSocketMessage({
     type: wsType as any,
@@ -45,15 +52,24 @@ function sincronizarMutation(chave: keyof DatabaseState, payload: any, wsType: s
     timestamp: Date.now(),
   });
 
-  // 2. Enviar para Firebase Firestore (se configurado)
-  sincronizarComFirestore({ [chave]: payload });
-
-  // 3. Cache offline local
+  // 2. Cache offline local
   if (typeof window !== "undefined") {
     try {
-      localStorage.setItem(`checklist_${chave}`, JSON.stringify(payload));
+      localStorage.setItem(obterChaveLocalStorage(chave), JSON.stringify(payload));
     } catch {}
   }
+
+  // 3. Enviar para Firebase Firestore (se configurado)
+  sincronizarComFirestore({ [chave]: payload })
+    .then((ok) => {
+      useAppStore.setState({
+        saveStatus: ok ? "saved" : "saved",
+        lastSyncTime: Date.now(),
+      });
+    })
+    .catch(() => {
+      useAppStore.setState({ saveStatus: "error" });
+    });
 }
 
 export const ENFERMARIAS_PADRAO = [
@@ -65,7 +81,7 @@ export const ENFERMARIAS_PADRAO = [
   "Cirurgia Geral 2",
 ];
 
-const CATEGORIAS_MODELOS_PADRAO = [
+export const CATEGORIAS_MODELOS_PADRAO = [
   "Encaminhamento",
   "Alta",
   "ADM",
@@ -196,6 +212,12 @@ interface AppStoreState {
   isConnected: boolean;
   latencyMs: number;
   lastSyncTime: number;
+  syncOrigin: "firestore" | "websocket" | "local" | "offline";
+  saveStatus: "idle" | "saving" | "saved" | "error";
+
+  // Identificação leve do plantonista (sessão)
+  plantonista: string;
+  setPlantonista: (nome: string) => void;
 
   // Entidades Clínicas
   admissoes: AdmissaoPaciente[];
@@ -219,11 +241,12 @@ interface AppStoreState {
   login: (senha: string) => boolean;
   aceitarTermoLgpd: () => void;
   logout: () => void;
+  hidratarDadosLocais: () => void;
   registrarAtividade: () => void;
   setActiveTab: (tab: AppStoreState['activeTab']) => void;
 
   // Ações de Conexão
-  setConnected: (connected: boolean, latency?: number) => void;
+  setConnected: (connected: boolean, latency?: number, origin?: "firestore" | "websocket" | "local" | "offline") => void;
   syncFullState: (state: Partial<DatabaseState>) => void;
 
   // Mutações Clínicas Otimistas
@@ -253,6 +276,17 @@ interface AppStoreState {
   executarExpurgoAutomatico: () => ResultadoExpurgoAutomatico;
 }
 
+function criarPermanenciaVazia(): DadosPermanencia {
+  return {
+    id: "perm-init",
+    data: obterDataLocalHoje(),
+    equipe: { doutorandos: [], residentes: [], preceptores: [] },
+    pendencias: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export const useAppStore = create<AppStoreState>((set, get) => ({
   isAuthenticated: false,
   lgpdAcceptedDate: null,
@@ -260,6 +294,22 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   isConnected: false,
   latencyMs: 0,
   lastSyncTime: Date.now(),
+  syncOrigin: "offline",
+  saveStatus: "idle",
+  plantonista: "",
+  setPlantonista: (nome: string) => {
+    const limpo = nome.trim().slice(0, 32);
+    set({ plantonista: limpo });
+    if (typeof window !== "undefined") {
+      try {
+        if (limpo) {
+          sessionStorage.setItem("checklist_plantonista", limpo);
+        } else {
+          sessionStorage.removeItem("checklist_plantonista");
+        }
+      } catch {}
+    }
+  },
 
   isSidebarCollapsed: false,
   toggleSidebarCollapsed: () => {
@@ -294,27 +344,34 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     }
   },
 
-  admissoes: carregarItemLocalStorage<AdmissaoPaciente[]>("checklist_admissoes", []).map(normalizarEnfermariaPaciente),
-  altas: carregarItemLocalStorage<AltaPaciente[]>("checklist_altas", []).map(limparSinaisVitaisLegadosAlta),
-  permanencia: carregarItemLocalStorage<DadosPermanencia>("checklist_permanencia", {
-    id: "perm-init",
-    data: obterDataLocalHoje(),
-    equipe: { doutorandos: [], residentes: [], preceptores: [] },
-    pendencias: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }),
-  passagem: carregarItemLocalStorage<PacientePassagem[]>("checklist_passagem", []).map(limparSinaisVitaisLegadosPassagem),
+  admissoes: [],
+  altas: [],
+  permanencia: criarPermanenciaVazia(),
+  passagem: [],
   ambulantes: carregarAmbulatorioLocalStorage(),
   modelos: carregarModelosLocalStorage(),
-  metricas: carregarItemLocalStorage<MetricasHistoricasDiarias[]>("checklist_metricas", []),
+  metricas: [],
 
   enfermarias: carregarListaLocalStorage("checklist_enfermarias", ENFERMARIAS_PADRAO),
   categoriasModelos: carregarListaLocalStorage("checklist_categorias_modelos", CATEGORIAS_MODELOS_PADRAO),
 
+  hidratarDadosLocais: () => {
+    const plantonistaSalvo =
+      typeof window !== "undefined" ? sessionStorage.getItem("checklist_plantonista") || "" : "";
+    set({
+      admissoes: carregarItemLocalStorage<AdmissaoPaciente[]>("checklist_admissoes", []).map(normalizarEnfermariaPaciente),
+      altas: carregarItemLocalStorage<AltaPaciente[]>("checklist_altas", []).map(limparSinaisVitaisLegadosAlta),
+      permanencia: carregarItemLocalStorage<DadosPermanencia>("checklist_permanencia", criarPermanenciaVazia()),
+      passagem: carregarItemLocalStorage<PacientePassagem[]>("checklist_passagem", []).map(limparSinaisVitaisLegadosPassagem),
+      metricas: carregarItemLocalStorage<MetricasHistoricasDiarias[]>("checklist_metricas", []),
+      plantonista: plantonistaSalvo,
+    });
+  },
+
   login: (senha: string) => {
     // Senha Mestre "cgimip" sem distinção de maiúsculas ou minúsculas
     if (senha && senha.trim().toLowerCase() === "cgimip") {
+      get().hidratarDadosLocais();
       set({ isAuthenticated: true, activeTab: "metricas" });
       if (typeof window !== "undefined") {
         sessionStorage.setItem("checklist_auth", "true");
@@ -334,10 +391,31 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   },
 
   logout: () => {
-    set({ isAuthenticated: false, activeTab: "metricas" });
+    set({
+      isAuthenticated: false,
+      activeTab: "metricas",
+      isConnected: false,
+      latencyMs: 0,
+      syncOrigin: "offline",
+      saveStatus: "idle",
+      plantonista: "",
+      admissoes: [],
+      altas: [],
+      permanencia: criarPermanenciaVazia(),
+      passagem: [],
+      metricas: [],
+    });
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("checklist_auth");
       sessionStorage.removeItem("checklist_last_activity");
+      sessionStorage.removeItem("checklist_plantonista");
+      try {
+        localStorage.removeItem("checklist_admissoes");
+        localStorage.removeItem("checklist_altas");
+        localStorage.removeItem("checklist_permanencia");
+        localStorage.removeItem("checklist_passagem");
+        localStorage.removeItem("checklist_metricas");
+      } catch {}
     }
   },
 
@@ -349,13 +427,45 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
 
   setActiveTab: (tab) => set({ activeTab: tab }),
 
-  setConnected: (connected, latency = 0) =>
-    set({ isConnected: connected, latencyMs: latency, lastSyncTime: Date.now() }),
+  setConnected: (connected, latency = 0, origin) =>
+    set((prev) => ({
+      isConnected: connected,
+      latencyMs: latency,
+      syncOrigin: origin ?? (connected ? prev.syncOrigin : "offline"),
+      lastSyncTime: Date.now(),
+    })),
 
   syncFullState: (state) => {
+    if (!get().isAuthenticated) return;
     set((prev) => {
       const novosAmbulantes = mesclarAmbulatorioComSeguranca(state.ambulantes, prev.ambulantes);
       const novosModelos = mesclarModelosComSeguranca(state.modelos, prev.modelos);
+
+      const enfermariasRemotas = Array.isArray(state.enfermarias)
+        ? state.enfermarias.filter(
+            (item: any) =>
+              typeof item === "string" &&
+              item.trim().length > 0 &&
+              item.trim().toLowerCase() !== "sem enfermaria" &&
+              item.trim().toLowerCase() !== "sem enfermaria / indefinida"
+          )
+        : [];
+      const novasEnfermarias =
+        enfermariasRemotas.length > 0
+          ? enfermariasRemotas
+          : prev.enfermarias.length > 0
+            ? prev.enfermarias
+            : ENFERMARIAS_PADRAO;
+
+      const categoriasRemotas = Array.isArray(state.categoriasModelos)
+        ? state.categoriasModelos.filter((c: any) => typeof c === "string" && c.trim().length > 0)
+        : [];
+      const novasCategorias =
+        categoriasRemotas.length > 0
+          ? categoriasRemotas
+          : prev.categoriasModelos.length > 0
+            ? prev.categoriasModelos
+            : CATEGORIAS_MODELOS_PADRAO;
 
       return {
         ...prev,
@@ -386,6 +496,8 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
         ambulantes: novosAmbulantes,
         modelos: novosModelos,
         metricas: state.metricas || prev.metricas,
+        enfermarias: novasEnfermarias,
+        categoriasModelos: novasCategorias,
         lastSyncTime: Date.now(),
       };
     });
@@ -404,6 +516,12 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
         }
         if (cur.modelos && cur.modelos.length > 0) {
           localStorage.setItem("checklist_modelos", JSON.stringify(cur.modelos));
+        }
+        if (cur.enfermarias && cur.enfermarias.length > 0) {
+          localStorage.setItem("checklist_enfermarias", JSON.stringify(cur.enfermarias));
+        }
+        if (cur.categoriasModelos && cur.categoriasModelos.length > 0) {
+          localStorage.setItem("checklist_categorias_modelos", JSON.stringify(cur.categoriasModelos));
         }
         if (state.metricas) localStorage.setItem("checklist_metricas", JSON.stringify(state.metricas));
       } catch {}
@@ -564,17 +682,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     if (prev.some((e) => e.toLowerCase() === limpo.toLowerCase())) return;
     const updated = [...prev, limpo];
     set({ enfermarias: updated });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("checklist_enfermarias", JSON.stringify(updated));
-    }
+    sincronizarMutation("enfermarias", updated, "UPDATE_ENFERMARIAS");
   },
 
   removerEnfermaria: (nome) => {
     const updated = get().enfermarias.filter((e) => e !== nome);
     set({ enfermarias: updated });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("checklist_enfermarias", JSON.stringify(updated));
-    }
+    sincronizarMutation("enfermarias", updated, "UPDATE_ENFERMARIAS");
   },
 
   adicionarCategoriaModelo: (nome) => {
@@ -584,17 +698,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     if (prev.some((c) => c.toLowerCase() === limpo.toLowerCase())) return;
     const updated = [...prev, limpo];
     set({ categoriasModelos: updated });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("checklist_categorias_modelos", JSON.stringify(updated));
-    }
+    sincronizarMutation("categoriasModelos", updated, "UPDATE_CATEGORIAS_MODELOS");
   },
 
   removerCategoriaModelo: (nome) => {
     const updated = get().categoriasModelos.filter((c) => c !== nome);
     set({ categoriasModelos: updated });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("checklist_categorias_modelos", JSON.stringify(updated));
-    }
+    sincronizarMutation("categoriasModelos", updated, "UPDATE_CATEGORIAS_MODELOS");
   },
 
   // EXPURGO AUTOMÁTICO LGPD (48 horas pós-data do evento)

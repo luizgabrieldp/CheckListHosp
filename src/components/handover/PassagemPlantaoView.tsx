@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { confirmAction, toast } from "@/store/useUiStore";
+import { converterPassagemParaAlta, isPacienteCriticoPassagem } from "@/lib/patient-flow";
 import {
   PacientePassagem,
   PrescricaoAntibiotico,
@@ -48,6 +50,7 @@ import {
   ClipboardList,
   Check,
   Scale,
+  ArrowRight,
 } from "lucide-react";
 
 export function PassagemPlantaoView() {
@@ -56,10 +59,16 @@ export function PassagemPlantaoView() {
   const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
   const salvarPaciente = useAppStore((s) => s.salvarPacientePassagem);
   const removerPaciente = useAppStore((s) => s.removerPacientePassagem);
+  const permanenciaPendencias = useAppStore((s) => s.permanencia.pendencias);
+  const salvarAlta = useAppStore((s) => s.salvarAlta);
+  const removerAlta = useAppStore((s) => s.removerAlta);
+  const setActiveTab = useAppStore((s) => s.setActiveTab);
+  const plantonista = useAppStore((s) => s.plantonista);
 
   // Estados de navegação e filtros
   const [termoBusca, setTermoBusca] = useState("");
   const [enfermariaFiltro, setEnfermariaFiltro] = useState("TODAS");
+  const [somenteCriticos, setSomenteCriticos] = useState(false);
 
   // Sanfonas expandidas (múltiplas permitidas)
   const [expandidos, setExpandidos] = useState<Record<string, boolean>>({});
@@ -89,18 +98,6 @@ export function PassagemPlantaoView() {
     isOpen: modalNovaEnfAberto,
     onClose: () => setModalNovaEnfAberto(false),
   });
-
-  // Fechar modais ao pressionar Escape
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        if (modalNovaEnfAberto) setModalNovaEnfAberto(false);
-        else if (modalImpressaoAberto) setModalImpressaoAberto(false);
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [modalNovaEnfAberto, modalImpressaoAberto]);
 
   // Alternar abertura de sanfona
   function toggleExpandido(id: string) {
@@ -176,7 +173,18 @@ export function PassagemPlantaoView() {
     salvarPaciente({
       ...paciente,
       [campo]: valor,
+      ...(plantonista ? { atualizadoPor: plantonista } : {}),
       updatedAt: new Date().toISOString(),
+    });
+  }
+
+  function handleGerarAlta(paciente: PacientePassagem) {
+    const novaAlta = converterPassagemParaAlta(paciente);
+    salvarAlta(novaAlta);
+    setActiveTab("altas");
+    toast.success(`Alta gerada para ${paciente.nome || "paciente"}.`, {
+      label: "Desfazer",
+      onClick: () => removerAlta(novaAlta.id),
     });
   }
 
@@ -465,9 +473,17 @@ export function PassagemPlantaoView() {
     setModalNovaEnfAberto(false);
   }
 
+  const totalCriticos = useMemo(() => {
+    return passagem.filter((p) => isPacienteCriticoPassagem(p, permanenciaPendencias)).length;
+  }, [passagem, permanenciaPendencias]);
+
   // 7. Filtragem e Agrupamento
   const pacientesFiltrados = useMemo(() => {
     return passagem.filter((p) => {
+      if (somenteCriticos && !isPacienteCriticoPassagem(p, permanenciaPendencias)) {
+        return false;
+      }
+
       if (enfermariaFiltro === "SEM_ENFERMARIA") {
         const enf = p.enfermaria?.trim() || "";
         if (enf !== "" && enf.toLowerCase() !== "sem enfermaria") return false;
@@ -492,7 +508,7 @@ export function PassagemPlantaoView() {
 
       return true;
     });
-  }, [passagem, enfermariaFiltro, termoBusca]);
+  }, [passagem, enfermariaFiltro, termoBusca, somenteCriticos, permanenciaPendencias]);
 
   const gruposEnfermarias = useMemo(() => {
     const setEnfs = new Set<string>();
@@ -537,7 +553,7 @@ export function PassagemPlantaoView() {
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={() => setModalImpressaoAberto(true)}
-            className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 transition-all shadow-xs cursor-pointer"
+            className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-all shadow-sm cursor-pointer"
           >
             <Printer className="w-4 h-4 text-sky-600" />
             <span>Impressão Seletiva A4</span>
@@ -545,7 +561,7 @@ export function PassagemPlantaoView() {
 
           <button
             onClick={handleCriarNovoPaciente}
-            className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer shrink-0"
+            className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Novo Paciente</span>
@@ -581,7 +597,7 @@ export function PassagemPlantaoView() {
           <div
             className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${
               totalDesescalonar > 0
-                ? "bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/60 text-rose-600 dark:text-rose-400 animate-pulse"
+                ? "bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/60 text-rose-600 dark:text-rose-400"
                 : "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-100 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400"
             }`}
           >
@@ -613,7 +629,7 @@ export function PassagemPlantaoView() {
             onChange={(e) => setTermoBusca(e.target.value)}
             aria-label="Buscar paciente por nome, leito, enfermaria, HD ou motivo"
             placeholder="Buscar paciente por nome, leito, enfermaria, HD ou motivo..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 focus:outline-none transition-all shadow-xs"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 focus:outline-none transition-all shadow-sm"
           />
         </div>
 
@@ -627,7 +643,7 @@ export function PassagemPlantaoView() {
               onClick={() => setEnfermariaFiltro("TODAS")}
               className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
                 enfermariaFiltro === "TODAS"
-                  ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-xs"
+                  ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-sm"
                   : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
               }`}
             >
@@ -641,7 +657,7 @@ export function PassagemPlantaoView() {
               onClick={() => setEnfermariaFiltro("SEM_ENFERMARIA")}
               className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
                 enfermariaFiltro === "SEM_ENFERMARIA"
-                  ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-xs"
+                  ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-sm"
                   : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
               }`}
             >
@@ -661,7 +677,7 @@ export function PassagemPlantaoView() {
                     onClick={() => setEnfermariaFiltro(enf)}
                     className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
                       isAtiva
-                        ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-xs"
+                        ? "bg-slate-900 dark:bg-emerald-700 text-white font-bold shadow-sm"
                         : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                     }`}
                   >
@@ -671,15 +687,40 @@ export function PassagemPlantaoView() {
               })}
           </div>
 
-          {/* BOTÃO NOVA ENFERMARIA */}
-          <button
-            type="button"
-            onClick={() => setModalNovaEnfAberto(true)}
-            className="min-h-[44px] text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 shrink-0 px-2.5 py-2 rounded-lg hover:bg-sky-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Nova Enfermaria</span>
-          </button>
+          {/* FILTRO CRÍTICOS/ALERTAS + BOTÃO NOVA ENFERMARIA */}
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <button
+              type="button"
+              aria-pressed={somenteCriticos}
+              onClick={() => setSomenteCriticos((v) => !v)}
+              className={`min-h-[44px] text-xs font-semibold flex items-center gap-1.5 px-3 py-2 rounded-xl border transition-colors cursor-pointer ${
+                somenteCriticos
+                  ? "bg-rose-600 text-white border-rose-600 shadow-sm"
+                  : "bg-white dark:bg-slate-800 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/70 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+              }`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Somente Críticos / Alertas</span>
+              <span
+                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  somenteCriticos
+                    ? "bg-white/20 text-white"
+                    : "bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-200"
+                }`}
+              >
+                {totalCriticos}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setModalNovaEnfAberto(true)}
+              className="min-h-[44px] text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 shrink-0 px-2.5 py-2 rounded-lg hover:bg-sky-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Nova Enfermaria</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -687,10 +728,10 @@ export function PassagemPlantaoView() {
           4. LISTA DE PACIENTES EM SANFONA (CABEÇALHO EM 4 LINHAS)
       ────────────────────────────────────────────────────────────── */}
       {pacientesFiltrados.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 shadow-xs">
+        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
           <Stethoscope className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-slate-800">Nenhum paciente encontrado</h3>
-          <p className="text-xs text-slate-500 mt-1">
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Nenhum paciente encontrado</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {termoBusca
               ? "Tente refinar sua busca por nome ou leito."
               : "Clique em '+ Novo Paciente' para adicionar um paciente na passagem."}
@@ -729,7 +770,7 @@ export function PassagemPlantaoView() {
                     return (
                       <div
                         key={paciente.id}
-                        className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition-all overflow-hidden"
+                        className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-slate-300 dark:hover:border-slate-600 transition-all overflow-hidden"
                       >
                         {/* ──────────────────────────────────────────
                             CABEÇALHO RESUMIDO EM 4 LINHAS (CLICÁVEL)
@@ -851,10 +892,10 @@ export function PassagemPlantaoView() {
                               return (
                                 <span
                                   key={atb.id}
-                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border tabular-nums-clinical ${
                                     isDesescalonar
-                                      ? "bg-rose-50 text-rose-700 border-rose-300 animate-pulse font-bold"
-                                      : "bg-teal-50 text-teal-800 border-teal-200"
+                                      ? "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 font-bold"
+                                      : "bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 border-teal-200 dark:border-teal-800"
                                   }`}
                                 >
                                   <Pill className="w-3 h-3 text-teal-600" />
@@ -991,7 +1032,7 @@ export function PassagemPlantaoView() {
                         {isExpandido && (
                           <div
                             id={`passagem-body-${paciente.id}`}
-                            className="p-3 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60 space-y-3 sm:space-y-4 animate-in fade-in"
+                            className="p-3 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60 space-y-3 sm:space-y-4"
                           >
                             {/* BLOCO 1: DADOS GERAIS */}
                             <div className="bg-white dark:bg-slate-900/90 p-3 sm:p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
@@ -1198,7 +1239,7 @@ export function PassagemPlantaoView() {
                                     <button
                                       type="button"
                                       onClick={() => handleAdicionarCirurgia(paciente)}
-                                      className="w-full sm:w-auto justify-center px-3 py-1.5 sm:py-1 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                                      className="w-full sm:w-auto justify-center px-3 py-1.5 sm:py-1 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
                                     >
                                       <Plus className="w-3.5 h-3.5" />
                                       <span>Adicionar Cirurgia / Reoperação</span>
@@ -1570,7 +1611,7 @@ export function PassagemPlantaoView() {
 
                                 {/* FORMULÁRIO DO SUB-PAINEL (NOVA OU EDIÇÃO) */}
                                 {pacienteAdicionandoMed === paciente.id && (
-                                  <div className="p-3.5 rounded-xl border border-teal-300 dark:border-teal-700/80 bg-teal-50/20 dark:bg-teal-950/30 space-y-3 animate-in fade-in overflow-hidden w-full max-w-full box-border">
+                                  <div className="p-3.5 rounded-xl border border-teal-300 dark:border-teal-700/80 bg-teal-50/20 dark:bg-teal-950/30 space-y-3 overflow-hidden w-full max-w-full box-border">
                                     <div className="flex items-center justify-between">
                                       <h6 className="text-xs font-bold text-teal-900 dark:text-teal-200 flex items-center gap-1.5">
                                         {medEmEdicaoId ? (
@@ -1759,7 +1800,7 @@ export function PassagemPlantaoView() {
                                         type="button"
                                         onClick={() => handleSalvarMedicacao(paciente)}
                                         disabled={!medNome.trim()}
-                                        className="min-h-[44px] px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center justify-center"
+                                        className="min-h-[44px] px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center"
                                       >
                                         {medEmEdicaoId ? "Salvar Alterações" : "Salvar"}
                                       </button>
@@ -1786,7 +1827,7 @@ export function PassagemPlantaoView() {
                                         key={atb.id}
                                         className={`p-3 rounded-xl border transition-all ${
                                           isDesescalonar
-                                            ? "bg-rose-50/60 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 shadow-xs"
+                                            ? "bg-rose-50/60 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 shadow-sm"
                                             : "bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700"
                                         }`}
                                       >
@@ -1877,9 +1918,9 @@ export function PassagemPlantaoView() {
 
                                         {/* ALERTA DE DESESCALONAR */}
                                         {isDesescalonar && (
-                                          <div className="mt-2 pt-1.5 border-t border-rose-200/80 dark:border-rose-900/60 flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300">
-                                            <Flame className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 animate-pulse" />
-                                            <span>⚠ Lembrar de desescalonar / reavaliar prescrição</span>
+                                          <div className="mt-2 pt-1.5 border-t border-rose-200/80 dark:border-rose-900/60 flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 dark:text-rose-300">
+                                            <Flame className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                                            <span>Lembrar de desescalonar / reavaliar prescrição</span>
                                           </div>
                                         )}
                                       </div>
@@ -2031,24 +2072,52 @@ export function PassagemPlantaoView() {
 
                             {/* RODAPÉ DO CARD EXPANDIDO */}
                             <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (
-                                    confirm(
-                                      `Excluir o paciente ${
-                                        paciente.nome || "sem nome"
-                                      } da passagem?`
-                                    )
-                                  ) {
-                                    removerPaciente(paciente.id);
-                                  }
-                                }}
-                                className="min-h-[44px] text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                <span>Excluir Paciente</span>
-                              </button>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <button
+                                  type="button"
+                                  onClick={() => handleGerarAlta(paciente)}
+                                  className="min-h-[44px] text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  <span>Gerar Alta</span>
+                                  <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    const ok = await confirmAction({
+                                      title: "Excluir paciente da passagem",
+                                      message: `Excluir o paciente ${paciente.nome || "sem nome"} da passagem?`,
+                                      confirmLabel: "Excluir",
+                                      variant: "danger",
+                                    });
+                                    if (ok) {
+                                      const backup = { ...paciente };
+                                      removerPaciente(paciente.id);
+                                      toast.info(`${paciente.nome || "Paciente"} removido da passagem.`, {
+                                        label: "Desfazer",
+                                        onClick: () => salvarPaciente(backup),
+                                      });
+                                    }
+                                  }}
+                                  className="min-h-[44px] text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  <span>Excluir Paciente</span>
+                                </button>
+
+                                {paciente.atualizadoPor && (
+                                  <span className="text-[11px] text-slate-400 dark:text-slate-400">
+                                    Atualizado por <strong className="font-semibold text-slate-600 dark:text-slate-300">{paciente.atualizadoPor}</strong>
+                                    {paciente.updatedAt
+                                      ? ` às ${new Date(paciente.updatedAt).toLocaleTimeString("pt-BR", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}`
+                                      : ""}
+                                  </span>
+                                )}
+                              </div>
 
                               <button
                                 type="button"
@@ -2079,7 +2148,7 @@ export function PassagemPlantaoView() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-nova-enf-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm p-4"
         >
           <div
             ref={modalNovaEnfRef}
@@ -2129,7 +2198,7 @@ export function PassagemPlantaoView() {
                 <button
                   type="submit"
                   disabled={!novaEnfNome.trim()}
-                  className="w-full sm:w-auto min-h-[44px] px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 box-border"
+                  className="w-full sm:w-auto min-h-[44px] px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-sm cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 box-border"
                 >
                   Salvar
                 </button>

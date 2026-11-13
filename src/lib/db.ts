@@ -700,8 +700,12 @@ class DatabaseManager {
     if (admissoesParaExpurgo.length > 0 || altasParaExpurgo.length > 0) {
       const datasAgrupadas = Array.from(
         new Set([
-          ...admissoesParaExpurgo.map((a) => a.dataAdmissaoAgendada),
-          ...altasParaExpurgo.map((al) => al.dataAlta.split("T")[0]),
+          ...admissoesParaExpurgo
+            .map((a) => a.dataAdmissaoAgendada?.split("T")[0])
+            .filter(Boolean),
+          ...altasParaExpurgo
+            .map((al) => al.dataAlta?.split("T")[0])
+            .filter(Boolean),
         ])
       );
 
@@ -718,7 +722,7 @@ class DatabaseManager {
       this.state.altas = altasAtivas;
     }
 
-    // Expurgo da permanência após 24h
+    // Expurgo da permanência após 48h (2 dias)
     if (this.state.permanencia && deveExpurgarPermanencia(this.state.permanencia.data, agora)) {
       expurgadasPermanencia = true;
       this.state.permanencia = {

@@ -24,21 +24,16 @@ export function LgpdConsentModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="lgpd-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-4 animate-in fade-in duration-200 no-print print:hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 duration-200 no-print print:hidden"
     >
-      <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-7 md:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 relative max-h-[90vh] flex flex-col">
-        <div className="flex items-center gap-3 mb-4 shrink-0">
-          <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
-            <ShieldCheck className="w-6 h-6" aria-hidden="true" />
-          </div>
+      <div className="w-full max-w-lg rounded-xl bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-lg border border-slate-200 dark:border-slate-800 relative max-h-[90vh] flex flex-col">
+        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0" aria-hidden="true" />
           <div>
-            <h3 id="lgpd-modal-title" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <h3 id="lgpd-modal-title" className="text-base font-semibold text-slate-900 dark:text-white">
               Termo de Ciência & LGPD do Dia
-              <span className="text-[10px] bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800 font-semibold">
-                Obrigatório
-              </span>
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Sincronização da rotina de plantão</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Conformidade obrigatória da rotina de plantão</p>
           </div>
         </div>
 

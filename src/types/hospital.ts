@@ -85,6 +85,7 @@ export interface Pendencia {
   leito?: string; // Apenas número
   enfermaria?: string; // Enfermaria vinculada às configurações
   notaInterna?: string;
+  atualizadoPor?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -154,6 +155,7 @@ export interface PacientePassagem {
   };
   antropometria?: ControleAntropometrico;
   conduta: string;
+  atualizadoPor?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -223,6 +225,8 @@ export interface DatabaseState {
   ambulantes: MedicoAmbulatorio[];
   modelos: ModeloTexto[];
   metricas: MetricasHistoricasDiarias[];
+  enfermarias?: string[];
+  categoriasModelos?: string[];
   lastSync: string;
 }
 
@@ -236,9 +240,13 @@ export interface WebSocketMessage {
     | 'UPDATE_PASSAGEM'
     | 'UPDATE_AMBULATORIO'
     | 'UPDATE_MODELOS'
+    | 'UPDATE_METRICAS'
+    | 'UPDATE_ENFERMARIAS'
+    | 'UPDATE_CATEGORIAS_MODELOS'
     | 'PING'
     | 'PONG';
   payload?: any;
   timestamp: number;
+  clientSent?: number;
   senderId?: string;
 }

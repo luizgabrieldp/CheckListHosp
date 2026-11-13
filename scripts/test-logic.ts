@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import {
   anonimizarNome,
+  agregarMetricasDiarias,
   deveExpurgarAdmissao,
   deveExpurgarAlta,
   deveExpurgarPermanencia,
@@ -28,6 +29,12 @@ import {
   mesclarAmbulatorioComSeguranca,
   mesclarModelosComSeguranca,
 } from "../src/lib/seeds";
+import {
+  converterAdmissaoParaPassagem,
+  converterPassagemParaAlta,
+  isPacienteCriticoPassagem,
+  buscarGlobal,
+} from "../src/lib/patient-flow";
 
 let passed = 0;
 let failed = 0;
@@ -3096,19 +3103,20 @@ assert(configContent.includes("Automático"), "ConfigView possui opção de tema
 assert(configContent.includes("Claro"), "ConfigView possui opção de tema Claro");
 assert(configContent.includes("Escuro"), "ConfigView possui opção de tema Escuro");
 
-// Teste 39.6: Regras universais anti-caixas brancas e alto contraste em globals.css
-assert(globalsContent.includes(".dark .bg-white") && globalsContent.includes("#1e293b !important"), "globals.css sobrescreve .bg-white para #1e293b no modo escuro");
-assert(globalsContent.includes(".dark .bg-slate-50") && globalsContent.includes("#0f172a !important"), "globals.css sobrescreve .bg-slate-50 para #0f172a no modo escuro");
-assert(globalsContent.includes(".dark .text-slate-900") && globalsContent.includes("#f8fafc !important"), "globals.css garante tipografia primária luminosa (#f8fafc) no modo escuro");
-assert(globalsContent.includes(".dark .text-slate-800") && globalsContent.includes("#f1f5f9 !important"), "globals.css garante tipografia secundária (#f1f5f9) no modo escuro");
+// Teste 39.6: Tokens CSS semânticos para dark mode limpo (sem overrides !important em massa)
+assert(globalsContent.includes("--background: 222 47% 11%;") && globalsContent.includes("--card: 217 33% 17%;"), "globals.css define tokens semânticos escuros (--background e --card)");
+assert(globalsContent.includes(".dark .clean-card") && globalsContent.includes("background-color: #1e293b;"), "globals.css adapta .clean-card nativamente para #1e293b no modo escuro");
+assert(globalsContent.includes(".dark body") && globalsContent.includes("color: #f8fafc;"), "globals.css garante tipografia primária luminosa (#f8fafc) no modo escuro");
+assert(globalsContent.includes("color-scheme: dark;"), "globals.css aplica color-scheme: dark em controles nativos");
 
-// Teste 39.7: Status clínicos com contraste luminoso WCAG AAA no modo escuro
-assert(globalsContent.includes(".dark .text-sky-800") && globalsContent.includes("#7dd3fc !important"), "globals.css converte status Chegou (sky) em tom luminoso no dark mode");
-assert(globalsContent.includes(".dark .text-indigo-800") && globalsContent.includes("#c4b5fd !important"), "globals.css converte status Internou (indigo) em tom luminoso no dark mode");
-assert(globalsContent.includes(".dark .text-emerald-800") && globalsContent.includes("#6ee7b7 !important"), "globals.css converte status AIH (emerald) em tom luminoso no dark mode");
+// Teste 39.7: Status clínicos com suporte explícito dark: nos componentes de Admissões
+const admViewThemeCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "admissions", "AdmissoesView.tsx"), "utf-8");
+assert(admViewThemeCheck.includes("dark:text-sky-300") && admViewThemeCheck.includes("dark:bg-sky-950/60"), "AdmissoesView converte status Chegou (sky) nativamente no dark mode");
+assert(admViewThemeCheck.includes("dark:text-indigo-300") && admViewThemeCheck.includes("dark:bg-indigo-950/60"), "AdmissoesView converte status Internou (indigo) nativamente no dark mode");
+assert(admViewThemeCheck.includes("dark:text-emerald-300") && admViewThemeCheck.includes("dark:bg-emerald-950/60"), "AdmissoesView converte status AIH (emerald) nativamente no dark mode");
 
-// Teste 39.8: Preservação da chave de toggle / switch (bolinha branca) no modo escuro
-assert(globalsContent.includes(".dark div[class*=\"after:bg-white\"]::after") && globalsContent.includes("#ffffff !important"), "globals.css preserva a bolinha branca do switch nos toggles fisiológicos");
+// Teste 39.8: Preservação de contraste e tokens de alto contraste em globals.css
+assert(globalsContent.includes("--foreground: 210 40% 98%;") && globalsContent.includes("--muted-foreground: 215 20% 65%;"), "globals.css define tokens de contraste para textos no dark mode");
 
 // Teste 39.9: GatekeeperModal com suporte integral a dark mode (fundo slate-950 e card slate-900)
 const gatekeeperPath = path.join(process.cwd(), "src", "components", "auth", "GatekeeperModal.tsx");
@@ -3137,13 +3145,9 @@ assert(passagemContent.includes("dark:bg-slate-800"), "PassagemPlantaoView possu
 // 40. TESTES DE ACESSIBILIDADE, NAVEGABILIDADE E ALTO CONTRASTE DARK MODE
 console.log("\n--- 40. Acessibilidade, Navegabilidade e Alto Contraste Dark Mode (Ambulatório, Modelos, Passagem, Permanência, Altas, Métricas) ---");
 
-// Teste 40.1: Verificação de contraste e tokens universais em src/app/globals.css
-assert(globalsContent.includes(".dark .text-slate-400") && globalsContent.includes("#94a3b8 !important"), "globals.css define text-slate-400 para #94a3b8 (contraste > 5:1 WCAG AA no dark mode)");
-assert(globalsContent.includes(".dark .text-amber-900") && globalsContent.includes("#fde68a !important"), "globals.css mapeia text-amber-900 para tom luminoso no escuro");
-assert(globalsContent.includes(".dark .text-rose-900") && globalsContent.includes("#fecdd3 !important"), "globals.css mapeia text-rose-900 para tom luminoso no escuro");
-assert(globalsContent.includes(".dark .text-sky-950") && globalsContent.includes("#bae6fd !important"), "globals.css mapeia text-sky-950 para tom luminoso no escuro");
-assert(globalsContent.includes(".dark .text-teal-950") && globalsContent.includes("#5eead4 !important"), "globals.css mapeia text-teal-950 para tom luminoso no escuro");
-assert(globalsContent.includes(".dark .text-purple-700") && globalsContent.includes("#d8b4fe !important"), "globals.css mapeia text-purple-700 para tom luminoso no escuro");
+// Teste 40.1: Verificação de contraste, tokens e foco acessível em src/app/globals.css
+assert(globalsContent.includes(".dark :focus-visible"), "globals.css possui estilização :focus-visible dedicada ao modo escuro");
+assert(globalsContent.includes("--border: 215 28% 23%;") && globalsContent.includes("--primary: 160 84% 39%;"), "globals.css define tokens de borda e cor primária institucional no escuro");
 assert(globalsContent.includes(":focus-visible"), "globals.css possui estilização global de foco acessível :focus-visible");
 
 // Teste 40.2: Verificação do Ambulatório (AmbulatorioView.tsx)
@@ -3217,8 +3221,8 @@ console.log("\n--- 41. Auditoria Geral de Acessibilidade (a11y) e Navegabilidade
 const a11y_layoutPath = path.join(process.cwd(), "src", "app", "layout.tsx");
 assert(fs.existsSync(a11y_layoutPath), "Arquivo layout.tsx existe");
 const a11y_layoutContent = fs.readFileSync(a11y_layoutPath, "utf-8");
-assert(a11y_layoutContent.includes("userScalable: false"), "layout.tsx define userScalable: false garantindo experiência estável de app nativo");
-assert(a11y_layoutContent.includes("maximumScale: 1"), "layout.tsx trava maximumScale: 1 impedindo zoom acidental pós-login ou por toque duplo");
+assert(!a11y_layoutContent.includes("userScalable: false"), "layout.tsx permite zoom do usuário (WCAG 1.4.4) sem userScalable: false");
+assert(!a11y_layoutContent.includes("maximumScale: 1"), "layout.tsx permite escala de zoom acessível (WCAG 1.4.4) sem maximumScale: 1");
 assert(a11y_layoutContent.includes("initialScale: 1"), "layout.tsx define initialScale: 1 para escala perfeita em celular e tablet");
 
 // Teste 41.2: WCAG 2.4.1 - Skip Link no topo da página
@@ -3253,25 +3257,17 @@ const a11y_lgpdModalContent = fs.readFileSync(a11y_lgpdModalPath, "utf-8");
 assert(a11y_lgpdModalContent.includes('role="dialog"') && a11y_lgpdModalContent.includes('aria-modal="true"'), "LgpdConsentModal possui role='dialog' e aria-modal='true'");
 assert(a11y_lgpdModalContent.includes('aria-labelledby="lgpd-modal-title"'), "LgpdConsentModal possui aria-labelledby");
 
-// Teste 41.5: Admissões e Altas com ESC listener, diálogos semânticos e formulários acessíveis
+// Teste 41.5: Admissões e Altas com useModalA11y (ESC centralizado), diálogos semânticos e formulários acessíveis
 const a11y_admissoesViewPath = path.join(process.cwd(), "src", "components", "admissions", "AdmissoesView.tsx");
 const a11y_admissoesViewContent = fs.readFileSync(a11y_admissoesViewPath, "utf-8");
-assert(a11y_admissoesViewContent.includes('e.key === "Escape"'), "AdmissoesView fecha modais ao pressionar a tecla ESC");
+assert(a11y_admissoesViewContent.includes('role="dialog"') && a11y_admissoesViewContent.includes('aria-modal="true"'), "AdmissoesView possui modais com role='dialog' e aria-modal='true'");
+assert(a11y_admissoesViewContent.includes("useModalA11y"), "AdmissoesView delega fechamento ESC e focus trap ao useModalA11y");
 assert(a11y_admissoesViewContent.includes('aria-controls={`admissao-body-${paciente.id}`}') && a11y_admissoesViewContent.includes('aria-expanded={isExpandido}'), "AdmissoesView possui acordeão acessível com aria-expanded e aria-controls");
-
-const a11y_modalAdmissaoPath = path.join(process.cwd(), "src", "components", "admissions", "ModalAdmissaoForm.tsx");
-const a11y_modalAdmissaoContent = fs.readFileSync(a11y_modalAdmissaoPath, "utf-8");
-assert(a11y_modalAdmissaoContent.includes('role="dialog"') && a11y_modalAdmissaoContent.includes('aria-modal="true"'), "ModalAdmissaoForm possui role='dialog' e aria-modal='true'");
-assert(a11y_modalAdmissaoContent.includes('e.key === "Escape"'), "ModalAdmissaoForm fecha via tecla ESC");
-
-const a11y_modalAltaPath = path.join(process.cwd(), "src", "components", "discharges", "ModalAltaForm.tsx");
-const a11y_modalAltaContent = fs.readFileSync(a11y_modalAltaPath, "utf-8");
-assert(a11y_modalAltaContent.includes('role="dialog"') && a11y_modalAltaContent.includes('aria-modal="true"'), "ModalAltaForm possui role='dialog' e aria-modal='true'");
-assert(a11y_modalAltaContent.includes('e.key === "Escape"'), "ModalAltaForm fecha via tecla ESC");
 
 const a11y_altasViewPath = path.join(process.cwd(), "src", "components", "discharges", "AltasView.tsx");
 const a11y_altasViewContent = fs.readFileSync(a11y_altasViewPath, "utf-8");
-assert(a11y_altasViewContent.includes('e.key === "Escape"'), "AltasView fecha modais via tecla ESC");
+assert(a11y_altasViewContent.includes('role="dialog"') && a11y_altasViewContent.includes('aria-modal="true"'), "AltasView possui modais com role='dialog' e aria-modal='true'");
+assert(a11y_altasViewContent.includes("useModalA11y"), "AltasView delega fechamento ESC e focus trap ao useModalA11y");
 assert(a11y_altasViewContent.includes('e.key === "ArrowRight"') && a11y_altasViewContent.includes('e.key === "ArrowLeft"'), "AltasView permite navegar na galeria de fotos via setas do teclado");
 
 // Teste 41.6: Permanência e Passagem com semântica de teclado em acordeões e modais
@@ -3280,10 +3276,10 @@ const a11y_permanenciaViewContent = fs.readFileSync(a11y_permanenciaViewPath, "u
 assert(a11y_permanenciaViewContent.includes('role="tablist"') && a11y_permanenciaViewContent.includes('role="tab"'), "PermanenciaView possui abas de status acessíveis com role tablist e tab");
 assert(a11y_permanenciaViewContent.includes('aria-controls={`pendencia-body-${p.id}`}') && a11y_permanenciaViewContent.includes('aria-expanded={isAberta}'), "PermanenciaView possui acordeão de pendências com controle ARIA");
 
-const a11y_modalPassagemPath = path.join(process.cwd(), "src", "components", "handover", "ModalPacientePassagemForm.tsx");
-const a11y_modalPassagemContent = fs.readFileSync(a11y_modalPassagemPath, "utf-8");
-assert(a11y_modalPassagemContent.includes('role="dialog"') && a11y_modalPassagemContent.includes('aria-modal="true"'), "ModalPacientePassagemForm possui role='dialog' e aria-modal='true'");
-assert(a11y_modalPassagemContent.includes('e.key === "Escape"'), "ModalPacientePassagemForm fecha via tecla ESC");
+const a11y_passagemViewPath = path.join(process.cwd(), "src", "components", "handover", "PassagemPlantaoView.tsx");
+const a11y_passagemViewContent = fs.readFileSync(a11y_passagemViewPath, "utf-8");
+assert(a11y_passagemViewContent.includes('role="dialog"') && a11y_passagemViewContent.includes('aria-modal="true"'), "PassagemPlantaoView possui modal com role='dialog' e aria-modal='true'");
+assert(a11y_passagemViewContent.includes("useModalA11y"), "PassagemPlantaoView integra useModalA11y");
 
 const a11y_modalImpressaoPath = path.join(process.cwd(), "src", "components", "handover", "ModalImpressaoSeletiva.tsx");
 const a11y_modalImpressaoContent = fs.readFileSync(a11y_modalImpressaoPath, "utf-8");
@@ -3294,14 +3290,14 @@ assert(a11y_modalImpressaoContent.includes('role="checkbox"') && a11y_modalImpre
 const a11y_ambulatorioPath = path.join(process.cwd(), "src", "components", "outpatient", "AmbulatorioView.tsx");
 const a11y_ambulatorioContent = fs.readFileSync(a11y_ambulatorioPath, "utf-8");
 assert(a11y_ambulatorioContent.includes('role="dialog"') && a11y_ambulatorioContent.includes('aria-modal="true"'), "AmbulatorioView possui modal de médico com role='dialog' e aria-modal='true'");
-assert(a11y_ambulatorioContent.includes('e.key === "Escape"'), "AmbulatorioView fecha modal via tecla ESC");
+assert(a11y_ambulatorioContent.includes("useModalA11y"), "AmbulatorioView delega fechamento ESC ao useModalA11y");
 assert(a11y_ambulatorioContent.includes('aria-pressed={selecionado}'), "AmbulatorioView possui botões de turno com aria-pressed");
 
 const a11y_modelosPath = path.join(process.cwd(), "src", "components", "templates", "ModelosTextoView.tsx");
 const a11y_modelosContent = fs.readFileSync(a11y_modelosPath, "utf-8");
 assert(a11y_modelosContent.includes('role="dialog"') && a11y_modelosContent.includes('aria-modal="true"'), "ModelosTextoView possui modal com role='dialog' e aria-modal='true'");
 assert(a11y_modelosContent.includes('role="tablist"') && a11y_modelosContent.includes('role="tab"'), "ModelosTextoView possui pílulas de categoria com role tablist/tab");
-assert(a11y_modelosContent.includes('e.key === "Escape"'), "ModelosTextoView fecha modal via tecla ESC");
+assert(a11y_modelosContent.includes("useModalA11y"), "ModelosTextoView delega fechamento ESC ao useModalA11y");
 
 const a11y_configPath = path.join(process.cwd(), "src", "components", "config", "ConfigView.tsx");
 const a11y_configContent = fs.readFileSync(a11y_configPath, "utf-8");
@@ -3331,20 +3327,14 @@ assert(s42_gatekeeperContent.includes("useModalA11y"), "GatekeeperModal integra 
 const s42_lgpdModalContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "auth", "LgpdConsentModal.tsx"), "utf-8");
 assert(s42_lgpdModalContent.includes("useModalA11y"), "LgpdConsentModal integra useModalA11y");
 
-const s42_modalAdmissaoContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "admissions", "ModalAdmissaoForm.tsx"), "utf-8");
-assert(s42_modalAdmissaoContent.includes("useModalA11y"), "ModalAdmissaoForm integra useModalA11y");
-
-const s42_modalImpressaoAdmContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "admissions", "ModalImpressaoAdmissoes.tsx"), "utf-8");
-assert(s42_modalImpressaoAdmContent.includes("useModalA11y"), "ModalImpressaoAdmissoes integra useModalA11y");
-
-const s42_modalAltaContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "discharges", "ModalAltaForm.tsx"), "utf-8");
-assert(s42_modalAltaContent.includes("useModalA11y"), "ModalAltaForm integra useModalA11y");
+const s42_admissoesViewContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "admissions", "AdmissoesView.tsx"), "utf-8");
+assert(s42_admissoesViewContent.includes("useModalA11y"), "AdmissoesView integra useModalA11y em seus modais");
 
 const s42_altasViewContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "discharges", "AltasView.tsx"), "utf-8");
 assert(s42_altasViewContent.includes("useModalA11y"), "AltasView integra useModalA11y em seus modais");
 
-const s42_modalPassagemContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "ModalPacientePassagemForm.tsx"), "utf-8");
-assert(s42_modalPassagemContent.includes("useModalA11y"), "ModalPacientePassagemForm integra useModalA11y");
+const s42_passagemViewContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "PassagemPlantaoView.tsx"), "utf-8");
+assert(s42_passagemViewContent.includes("useModalA11y"), "PassagemPlantaoView integra useModalA11y em seus modais");
 
 const s42_modalImpressaoSelContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "ModalImpressaoSeletiva.tsx"), "utf-8");
 assert(s42_modalImpressaoSelContent.includes("useModalA11y"), "ModalImpressaoSeletiva integra useModalA11y");
@@ -3513,9 +3503,8 @@ assert(passagemViewCheck.includes("flex flex-col sm:flex-row sm:items-center jus
 // Teste 46.4: Campos de data calibrados com min-w-0 max-w-full box-border em PassagemPlantaoView
 assert(passagemViewCheck.includes('className="w-full min-w-0 max-w-full box-border block h-9 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800'), "PassagemPlantaoView protege campos de data contra estouro de largura no mobile");
 
-// Teste 46.5: ModalPacientePassagemForm com min-w-0 nos containers de colunas
-const modalPassagemContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "handover", "ModalPacientePassagemForm.tsx"), "utf-8");
-assert(modalPassagemContent.includes('<div className="min-w-0">'), "ModalPacientePassagemForm possui proteção min-w-0 nas colunas do grid");
+// Teste 46.5: PassagemPlantaoView com min-w-0 nos containers de colunas
+assert(passagemViewCheck.includes('min-w-0'), "PassagemPlantaoView possui proteção min-w-0 nas colunas do grid");
 
 // 47. BLINDAGEM DE PERSISTÊNCIA: PREVENÇÃO DE SOBRESCRITA POR ARRAY VAZIO & RECUPERAÇÃO EM ABA ANÔNIMA
 console.log("\n--- 47. Blindagem de Persistência: Seeds Oficiais, Anti-Sobrescrita Vazia & Aba Anônima ---");
@@ -3585,6 +3574,499 @@ assert(realtimeProviderContent.includes("sincronizarComFirestore({ ambulantes: a
 assert(realtimeProviderContent.includes("sincronizarComFirestore({ modelos: atual.modelos });"), "RealtimeProvider possui auto-reparação para modelos vazios no Firestore");
 assert(realtimeProviderContent.includes("SEED_AMBULATORIO_PADRAO"), "RealtimeProvider utiliza SEED_AMBULATORIO_PADRAO na inicialização de documento vazio");
 assert(realtimeProviderContent.includes("SEED_MODELOS_PADRAO"), "RealtimeProvider utiliza SEED_MODELOS_PADRAO na inicialização de documento vazio");
+
+// =========================================================================
+// 48. BLINDAGEM DE SEGURANÇA, PRÉ-LOGIN, LOGOUT E HARDENING LGPD
+// =========================================================================
+console.log("\n--- 48. Blindagem de Segurança, Pré-Login, Logout e Hardening LGPD ---");
+
+// Teste 48.1: RealtimeProvider só conecta após isAuthenticated === true
+assert(
+  realtimeProviderContent.includes("if (!isAuthenticated) {\n      setConnected(false, 0);\n      return;\n    }"),
+  "RealtimeProvider bloqueia conexões Firestore/WebSocket quando !isAuthenticated"
+);
+assert(
+  realtimeProviderContent.includes("useAppStore.getState().hidratarDadosLocais();"),
+  "RealtimeProvider hidrata dados locais apenas ao restaurar sessão autenticada"
+);
+
+// Teste 48.2: page.tsx não renderiza views clínicas atrás de blur-sm quando !isAuthenticated
+const homePageContent = fs.readFileSync(path.join(process.cwd(), "src", "app", "page.tsx"), "utf-8");
+assert(
+  homePageContent.includes("if (!isAuthenticated)") && !homePageContent.includes("blur-sm"),
+  "page.tsx exibe apenas GatekeeperModal quando !isAuthenticated sem renderizar views atrás de blur-sm"
+);
+
+// Teste 48.3: useAppStore não carrega dados clínicos sensíveis antes do login e limpa no logout()
+assert(
+  useAppStoreContent.includes("admissoes: [],") &&
+    useAppStoreContent.includes("altas: [],") &&
+    useAppStoreContent.includes("passagem: [],"),
+  "useAppStore inicializa dados clínicos vazios antes da autenticação"
+);
+assert(
+  useAppStoreContent.includes('localStorage.removeItem("checklist_admissoes")') &&
+    useAppStoreContent.includes('localStorage.removeItem("checklist_altas")') &&
+    useAppStoreContent.includes('localStorage.removeItem("checklist_permanencia")') &&
+    useAppStoreContent.includes('localStorage.removeItem("checklist_passagem")'),
+  "useAppStore.logout() remove dados clínicos sensíveis do localStorage"
+);
+
+// Teste 48.4: Execução real de logout() na store limpa dados clínicos preservando seeds e preferências
+const { useAppStore } = require("../src/store/useAppStore");
+useAppStore.setState({
+  isAuthenticated: true,
+  admissoes: [pacientesExemplo[0]],
+  altas: [altaExemplo],
+  passagem: [pacienteExemploPassagem],
+  metricas: [{ data: "2026-09-15", totalAdmissoes: 1, totalAltas: 1, totalCancelamentos: 0, totalCirurgias: 1 }],
+});
+useAppStore.getState().logout();
+const estadoPosLogout = useAppStore.getState();
+assert(estadoPosLogout.isAuthenticated === false, "logout() redefine isAuthenticated para false");
+assert(estadoPosLogout.admissoes.length === 0, "logout() limpa admissoes da memória");
+assert(estadoPosLogout.altas.length === 0, "logout() limpa altas da memória");
+assert(estadoPosLogout.passagem.length === 0, "logout() limpa passagem da memória");
+assert(estadoPosLogout.metricas.length === 0, "logout() limpa metricas da memória");
+assert(estadoPosLogout.ambulantes.length > 0, "logout() preserva seeds de ambulatório");
+assert(estadoPosLogout.modelos.length > 0, "logout() preserva seeds de modelos");
+
+// Teste 48.4b: Execução real de logout() e bloqueio de syncFullState com mock de storage (window/localStorage/sessionStorage)
+const g = globalThis as any;
+const prevWindow = g.window;
+const prevLocalStorage = g.localStorage;
+const prevSessionStorage = g.sessionStorage;
+try {
+  const criarStorageMock = (inicial: Record<string, string> = {}) => {
+    const map = new Map<string, string>(Object.entries(inicial));
+    return {
+      getItem: (k: string) => (map.has(k) ? map.get(k)! : null),
+      setItem: (k: string, v: string) => map.set(k, String(v)),
+      removeItem: (k: string) => map.delete(k),
+      clear: () => map.clear(),
+    };
+  };
+  const lsMock = criarStorageMock({
+    checklist_admissoes: JSON.stringify([pacientesExemplo[0]]),
+    checklist_altas: JSON.stringify([altaExemplo]),
+    checklist_permanencia: JSON.stringify({ id: "perm-1", data: "2026-09-15", equipe: { doutorandos: [], residentes: [], preceptores: [] }, pendencias: [], createdAt: "", updatedAt: "" }),
+    checklist_passagem: JSON.stringify([pacienteExemploPassagem]),
+    checklist_metricas: JSON.stringify([{ data: "2026-09-15", totalAdmissoes: 1, totalAltas: 1, totalCancelamentos: 0, totalCirurgias: 1 }]),
+    checklist_theme_mode: "dark",
+    checklist_lgpd_date: "2026-09-15",
+  });
+  const ssMock = criarStorageMock({
+    checklist_auth: "true",
+    checklist_last_activity: String(Date.now()),
+  });
+  g.window = {};
+  g.localStorage = lsMock;
+  g.sessionStorage = ssMock;
+
+  useAppStore.setState({ isAuthenticated: true });
+  useAppStore.getState().logout();
+
+  assert(lsMock.getItem("checklist_admissoes") === null, "logout() apaga checklist_admissoes do localStorage");
+  assert(lsMock.getItem("checklist_altas") === null, "logout() apaga checklist_altas do localStorage");
+  assert(lsMock.getItem("checklist_permanencia") === null, "logout() apaga checklist_permanencia do localStorage");
+  assert(lsMock.getItem("checklist_passagem") === null, "logout() apaga checklist_passagem do localStorage");
+  assert(lsMock.getItem("checklist_metricas") === null, "logout() apaga checklist_metricas do localStorage");
+  assert(lsMock.getItem("checklist_theme_mode") === "dark", "logout() preserva checklist_theme_mode no localStorage");
+  assert(lsMock.getItem("checklist_lgpd_date") === "2026-09-15", "logout() preserva checklist_lgpd_date no localStorage");
+  assert(ssMock.getItem("checklist_auth") === null, "logout() apaga checklist_auth do sessionStorage");
+  assert(ssMock.getItem("checklist_last_activity") === null, "logout() apaga checklist_last_activity do sessionStorage");
+
+  // syncFullState deve ser ignorado enquanto !isAuthenticated
+  useAppStore.getState().syncFullState({ admissoes: [pacientesExemplo[0]] });
+  assert(useAppStore.getState().admissoes.length === 0, "syncFullState não popula dados clínicos quando !isAuthenticated");
+  assert(lsMock.getItem("checklist_admissoes") === null, "syncFullState não grava dados clínicos no localStorage quando !isAuthenticated");
+} finally {
+  if (prevWindow === undefined) delete g.window;
+  else g.window = prevWindow;
+  if (prevLocalStorage === undefined) delete g.localStorage;
+  else g.localStorage = prevLocalStorage;
+  if (prevSessionStorage === undefined) delete g.sessionStorage;
+  else g.sessionStorage = prevSessionStorage;
+}
+
+// Teste 48.4c: page.tsx usa referência estável para addEventListener e removeEventListener de inatividade
+assert(
+  homePageContent.includes("window.addEventListener(evento, handleAtividadeUsuario") &&
+    homePageContent.includes("window.removeEventListener(evento, handleAtividadeUsuario)"),
+  "page.tsx remove corretamente os listeners de inatividade ao fazer logout"
+);
+
+// Teste 48.5: Hardening em whatsapp.ts, printUtils.ts, ConfigView.tsx e .gitignore
+const whatsappContent = fs.readFileSync(path.join(process.cwd(), "src", "lib", "whatsapp.ts"), "utf-8");
+assert(
+  whatsappContent.includes('"noopener,noreferrer"'),
+  "whatsapp.ts usa noopener,noreferrer no window.open"
+);
+
+const printUtilsContent = fs.readFileSync(path.join(process.cwd(), "src", "lib", "printUtils.ts"), "utf-8");
+assert(
+  printUtilsContent.includes("function escapeHtml(") &&
+    printUtilsContent.includes("escapeHtml(tituloDocumento)"),
+  "printUtils.ts escapa tituloDocumento e strings interpoladas em HTML"
+);
+
+const configViewContent = fs.readFileSync(path.join(process.cwd(), "src", "components", "config", "ConfigView.tsx"), "utf-8");
+assert(
+  !configViewContent.includes("em 1 dia") && configViewContent.includes("48h"),
+  "ConfigView.tsx alinha política LGPD para 48h (2 dias) para todas as entidades clínicas"
+);
+
+const gitignoreContent = fs.readFileSync(path.join(process.cwd(), ".gitignore"), "utf-8");
+assert(gitignoreContent.includes("/data/"), ".gitignore ignora diretório /data/");
+
+// 49. CORREÇÕES DE BUGS, PERFORMANCE, CÓDIGO MORTO E INFRAESTRUTURA
+console.log("\n--- 49. Correções de Bugs, Performance, Código Morto e Infraestrutura ---");
+
+// Teste 49.1: MetricasLgpdView não inclui registros sem data e faz cleanup real de timer
+const metricasBugCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "metrics", "MetricasLgpdView.tsx"), "utf-8");
+assert(
+  !metricasBugCheck.includes("a.dataAlta ? a.dataAlta.startsWith(dataFiltro) : true") &&
+    !metricasBugCheck.includes("|| !a.dataAdmissaoAgendada"),
+  "MetricasLgpdView não inclui admissões nem altas sem data nos filtros diários"
+);
+assert(
+  metricasBugCheck.includes("let timerId:") && metricasBugCheck.includes("if (timerId !== null) clearTimeout(timerId)"),
+  "MetricasLgpdView realiza cleanup efetivo do setTimeout fora do requestAnimationFrame"
+);
+
+// Teste 49.2: RealtimeProvider e server.ts (RTT, broadcast, UPDATE_METRICAS, static host, Origin)
+assert(
+  realtimeProviderContent.includes("msg.clientSent ?? msg.payload?.clientSent ?? msg.timestamp"),
+  "RealtimeProvider calcula RTT do PONG lendo msg.clientSent na raiz"
+);
+assert(
+  realtimeProviderContent.includes('msg.type === "UPDATE_METRICAS"') &&
+    realtimeProviderContent.includes("NEXT_PUBLIC_IS_GH_PAGES") &&
+    !realtimeProviderContent.includes('{ passive: true }'),
+  "RealtimeProvider suporta UPDATE_METRICAS, evita loop WS em hospedagem estática e corrige touchmove não-passivo"
+);
+
+const serverContent = fs.readFileSync(path.join(process.cwd(), "server.ts"), "utf-8");
+assert(
+  serverContent.includes("client !== remetente && client.readyState === WebSocket.OPEN") &&
+    serverContent.includes('msg.type === "UPDATE_METRICAS"') &&
+    serverContent.includes("isAllowedOrigin") &&
+    serverContent.includes("isAllowedLocalApiRequest"),
+  "server.ts não ecoa broadcast para remetente, suporta UPDATE_METRICAS e valida Origin/localidade em /ws e /api/expurgo-lgpd"
+);
+
+// Teste 49.3: lgpd.ts preserva referência do array metricas quando apenas permanência expurga
+const metricasOriginais = [
+  { data: "2026-09-10", totalAdmissoes: 2, totalAltas: 1, totalCancelamentos: 0, totalCirurgias: 1 },
+];
+const resApenasPermanencia = executarExpurgoAutomaticoCliente(
+  {
+    admissoes: [],
+    altas: [],
+    permanencia: {
+      id: "perm-antiga",
+      data: "2026-09-01",
+      equipe: { doutorandos: [], residentes: [], preceptores: [] },
+      pendencias: [],
+      createdAt: "",
+      updatedAt: "",
+    },
+    metricas: metricasOriginais,
+  },
+  new Date("2026-09-15T12:00:00"),
+  () => "2026-09-15"
+);
+assert(
+  resApenasPermanencia.expurgadasPermanencia === true &&
+    resApenasPermanencia.metricasAtualizadas === metricasOriginais,
+  "executarExpurgoAutomaticoCliente preserva referência de metricas quando nenhuma admissão/alta expurgou"
+);
+
+// Teste 49.4: db.ts normaliza dataAdmissaoAgendada com split('T')[0]
+const dbContent = fs.readFileSync(path.join(process.cwd(), "src", "lib", "db.ts"), "utf-8");
+assert(
+  dbContent.includes('a.dataAdmissaoAgendada?.split("T")[0]'),
+  "db.ts normaliza dataAdmissaoAgendada no agrupamento de datas do expurgo LGPD"
+);
+
+// Teste 49.5: image-compressor.ts usa createObjectURL/revokeObjectURL e fallback JPEG em loop
+const compressorContent = fs.readFileSync(path.join(process.cwd(), "src", "lib", "image-compressor.ts"), "utf-8");
+assert(
+  compressorContent.includes("URL.createObjectURL") &&
+    compressorContent.includes("URL.revokeObjectURL") &&
+    compressorContent.includes('tentativa.type !== "image/webp"') &&
+    compressorContent.includes('canvasParaBlob(canvas, "image/jpeg", q)'),
+  "image-compressor.ts usa ObjectURL com revoke e faz fallback para JPEG em loop quando WebP não é suportado (Safari/iOS)"
+);
+
+// Teste 49.6: sw.js ignora /api/* e atualiza CACHE_NAME
+const swContentV2 = fs.readFileSync(path.join(process.cwd(), "public", "sw.js"), "utf-8");
+assert(
+  swContentV2.includes('checklist-hosp-v2') && swContentV2.includes('url.pathname.startsWith("/api/")'),
+  "sw.js atualiza CACHE_NAME e ignora rotas /api/*"
+);
+
+// Teste 49.7: page.tsx usa next/dynamic e arquivos órfãos foram removidos
+assert(
+  homePageContent.includes('import dynamic from "next/dynamic"') &&
+    homePageContent.includes("AdmissoesView = dynamic("),
+  "page.tsx utiliza next/dynamic para lazy-loading das views"
+);
+assert(
+  !fs.existsSync(path.join(process.cwd(), "src", "components", "layout", "Header.tsx")) &&
+    !fs.existsSync(path.join(process.cwd(), "src", "components", "admissions", "ModalAdmissaoForm.tsx")) &&
+    !fs.existsSync(path.join(process.cwd(), "src", "components", "admissions", "ModalImpressaoAdmissoes.tsx")) &&
+    !fs.existsSync(path.join(process.cwd(), "src", "components", "discharges", "ModalAltaForm.tsx")) &&
+    !fs.existsSync(path.join(process.cwd(), "src", "components", "handover", "ModalPacientePassagemForm.tsx")),
+  "Arquivos de código morto (Header.tsx e 4 modais órfãos) foram removidos"
+);
+assert(
+  serverContent.includes("originUrl.host.toLowerCase() === reqHostHeader"),
+  "server.ts exige correspondência exata de host:porta em Origin quando Host está presente (bloqueia CSWSH cross-port e suporta IPv6)"
+);
+const metricasSemData = agregarMetricasDiarias(
+  "2026-09-15",
+  [{ id: "adm-sem-data", cancelada: false } as any],
+  [{ id: "alta-sem-data" } as any]
+);
+assert(
+  metricasSemData.totalAdmissoes === 0 && metricasSemData.totalAltas === 0,
+  "agregarMetricasDiarias ignora com segurança registros sem dataAdmissaoAgendada ou dataAlta"
+);
+
+// =========================================================================
+// SEÇÃO 50: USABILIDADE CLÍNICA, FLUXO CONTÍNUO, BUSCA GLOBAL & SINCRONIZAÇÃO
+// =========================================================================
+console.log("\n--- 50. Usabilidade Clínica, Fluxo Contínuo, Busca Global & Sincronização ---");
+
+// 50.1 Fluxo Contínuo: Admissão -> Passagem -> Alta
+const admTeste: AdmissaoPaciente = {
+  id: "adm-flow-1",
+  nome: "José Carlos Andrade",
+  enfermaria: "FGH",
+  leito: "12",
+  dataAdmissaoAgendada: "2026-11-12",
+  dataNascimento: "1980-05-10",
+  status: "Internou",
+  cancelada: false,
+  historiaFinalizada: true,
+  historicoClinico: {
+    hd: "Colelitíase sintomática",
+    hda: "Dor em hipocôndrio direito há 3 dias",
+    antecedentes: {
+      alergias: "Dipirona",
+      comorbidades: "HAS",
+      cirurgiasPrevias: "",
+      habitos: "",
+      hfMotx: "",
+      muc: "Losartana 50mg",
+    },
+    exameFisico: "",
+    examesComplementares: "USG abdome com cálculos",
+    conduta: "Jejum para VLP",
+  },
+  createdAt: "2026-11-12T10:00:00.000Z",
+  updatedAt: "2026-11-12T10:00:00.000Z",
+};
+
+const passConvertido = converterAdmissaoParaPassagem(admTeste, undefined, new Date("2026-11-12T12:00:00.000Z"));
+assert(passConvertido.nome === "José Carlos Andrade", "converterAdmissaoParaPassagem reaproveita nome");
+assert(passConvertido.leito === "12" && passConvertido.enfermaria === "FGH", "converterAdmissaoParaPassagem reaproveita leito e enfermaria");
+assert(passConvertido.hd === "Colelitíase sintomática", "converterAdmissaoParaPassagem reaproveita HD");
+assert(passConvertido.temAlergia === true && passConvertido.descricaoAlergia === "Dipirona", "converterAdmissaoParaPassagem detecta alergia real");
+assert(passConvertido.medicacoesUsoGeral === "Losartana 50mg", "converterAdmissaoParaPassagem reaproveita MUC");
+
+const admSemAlergia: AdmissaoPaciente = {
+  ...admTeste,
+  historicoClinico: {
+    ...admTeste.historicoClinico!,
+    antecedentes: { ...admTeste.historicoClinico!.antecedentes, alergias: "Nega alergias" },
+  },
+};
+const passSemAlergia = converterAdmissaoParaPassagem(admSemAlergia);
+assert(passSemAlergia.temAlergia === false, "converterAdmissaoParaPassagem não marca alergia para 'Nega alergias'");
+
+const passComCirurgia: PacientePassagem = {
+  ...passConvertido,
+  cirurgias: [{ id: "cx1", tipoCirurgia: "Colecistectomia VLP", dataCirurgia: "2026-11-12" }],
+  evolucao: "Sem queixas álgicas",
+  sinaisVitais: { fc: 78, satO2: 98 },
+};
+const altaConvertida = converterPassagemParaAlta(passComCirurgia, new Date("2026-11-13T10:00:00.000Z"));
+assert(altaConvertida.nomePaciente === "José Carlos Andrade", "converterPassagemParaAlta reaproveita nomePaciente");
+assert(altaConvertida.tipoCirurgia === "Colecistectomia VLP", "converterPassagemParaAlta reaproveita tipoCirurgia");
+assert(altaConvertida.sinaisVitais?.frequenciaCardiaca === 78, "converterPassagemParaAlta reaproveita sinais vitais");
+assert(Boolean(altaConvertida.detalhesQueixas?.includes("Sem queixas álgicas")), "converterPassagemParaAlta reaproveita resumo clínico");
+
+// 50.2 Filtro de Críticos / Alertas na Passagem
+const pacienteEstavel: PacientePassagem = {
+  ...passConvertido,
+  id: "pass-estavel",
+  leito: "04",
+  enfermaria: "IMIP",
+  temAlergia: false,
+  precaucaoContato: false,
+  antibioticos: [],
+};
+const pendenciaUrgenteOutroLeito: Pendencia = {
+  id: "pend-urg-1",
+  titulo: "Avaliar sangramento",
+  status: "Pendente",
+  prioridade: "Urgente",
+  leito: "08",
+  enfermaria: "IMIP",
+  createdAt: "2026-11-12T10:00:00.000Z",
+  updatedAt: "2026-11-12T10:00:00.000Z",
+};
+const pendenciaUrgenteMesmoLeito: Pendencia = {
+  ...pendenciaUrgenteOutroLeito,
+  id: "pend-urg-2",
+  leito: "04",
+};
+assert(
+  isPacienteCriticoPassagem(pacienteEstavel, [pendenciaUrgenteOutroLeito]) === false,
+  "isPacienteCriticoPassagem retorna false para paciente estável sem alerta no leito"
+);
+assert(
+  isPacienteCriticoPassagem({ ...pacienteEstavel, precaucaoContato: true }, []) === true,
+  "isPacienteCriticoPassagem retorna true para precaução de contato"
+);
+assert(
+  isPacienteCriticoPassagem(pacienteEstavel, [pendenciaUrgenteMesmoLeito]) === true,
+  "isPacienteCriticoPassagem retorna true para pendência urgente vinculada ao mesmo leito/enfermaria"
+);
+assert(
+  isPacienteCriticoPassagem(pacienteEstavel, [{ ...pendenciaUrgenteMesmoLeito, status: "Feito" }]) === false,
+  "isPacienteCriticoPassagem ignora pendência urgente já marcada como Feito"
+);
+
+// 50.3 Busca Global Unificada
+const resultadosBusca = buscarGlobal("jose", {
+  admissoes: [admTeste],
+  passagem: [passConvertido],
+  altas: [altaConvertida],
+  pendencias: [pendenciaUrgenteMesmoLeito],
+  modelos: SEED_MODELOS_PADRAO.slice(0, 2),
+});
+assert(resultadosBusca.length === 3, "buscarGlobal encontra paciente em Passagem, Admissões e Altas ignorando acentos");
+assert(
+  buscarGlobal("   ", { admissoes: [admTeste], passagem: [], altas: [], pendencias: [], modelos: [] }).length === 0,
+  "buscarGlobal retorna vazio para termo em branco"
+);
+
+// 50.4 Ausência de alert() e confirm() nativos em src/
+function listarArquivosTs(dir: string): string[] {
+  const itens = fs.readdirSync(dir, { withFileTypes: true });
+  let arquivos: string[] = [];
+  for (const item of itens) {
+    const full = path.join(dir, item.name);
+    if (item.isDirectory()) {
+      arquivos = arquivos.concat(listarArquivosTs(full));
+    } else if (item.name.endsWith(".ts") || item.name.endsWith(".tsx")) {
+      arquivos.push(full);
+    }
+  }
+  return arquivos;
+}
+const arquivosSrc = listarArquivosTs(path.join(process.cwd(), "src"));
+const arquivosComDialogNativo = arquivosSrc.filter((arq) => {
+  const conteudo = fs.readFileSync(arq, "utf-8");
+  return /\b(alert|confirm)\s*\(/.test(conteudo);
+});
+assert(
+  arquivosComDialogNativo.length === 0,
+  `Nenhum arquivo em src/ utiliza alert() ou confirm() nativo (encontrados: ${arquivosComDialogNativo.length})`
+);
+
+// 50.5 Acessibilidade de Zoom e Orientação em Tablets
+assert(
+  !layoutContent.includes("maximumScale") && !layoutContent.includes("userScalable: false"),
+  "layout.tsx permite zoom acessível (WCAG 1.4.4) sem maximumScale/userScalable: false"
+);
+const realtimeContent = fs.readFileSync(
+  path.join(process.cwd(), "src", "components", "providers", "RealtimeProvider.tsx"),
+  "utf-8"
+);
+assert(
+  !realtimeContent.includes("preventZoom") && !realtimeContent.includes("preventGesture"),
+  "RealtimeProvider.tsx não bloqueia gestos de pinça/zoom"
+);
+assert(
+  manifestContent.orientation === "any",
+  "public/manifest.json define orientation: 'any' para uso em retrato e paisagem em tablets"
+);
+
+// 50.6 Sincronização de enfermarias e categoriasModelos
+const storeContent = fs.readFileSync(path.join(process.cwd(), "src", "store", "useAppStore.ts"), "utf-8");
+assert(
+  storeContent.includes('sincronizarMutation("enfermarias"') &&
+    storeContent.includes('sincronizarMutation("categoriasModelos"') &&
+    realtimeContent.includes("UPDATE_ENFERMARIAS") &&
+    realtimeContent.includes("UPDATE_CATEGORIAS_MODELOS") &&
+    serverContent.includes("UPDATE_ENFERMARIAS") &&
+    serverContent.includes("UPDATE_CATEGORIAS_MODELOS"),
+  "enfermarias e categoriasModelos são sincronizados via useAppStore, RealtimeProvider e server.ts"
+);
+
+// 50.7 Identificação leve do plantonista
+const gatekeeperContentUsabilidade = fs.readFileSync(
+  path.join(process.cwd(), "src", "components", "auth", "GatekeeperModal.tsx"),
+  "utf-8"
+);
+assert(
+  gatekeeperContentUsabilidade.includes("setPlantonista") && storeContent.includes("checklist_plantonista"),
+  "GatekeeperModal e useAppStore suportam identificação leve opcional do plantonista em sessionStorage"
+);
+
+// 51. DESIGN CLÍNICO EXTRAPROFISSIONAL & REMOÇÃO DA "CARA DE IA"
+console.log("\n--- 51. Design Clínico Extraprofissional & Limpeza de Estética de IA ---");
+
+const tailwindConfigContent = fs.readFileSync(path.join(process.cwd(), "tailwind.config.ts"), "utf-8");
+assert(
+  tailwindConfigContent.includes("Inter") && tailwindConfigContent.includes("JetBrains Mono") && !tailwindConfigContent.includes("glow"),
+  "tailwind.config.ts define tipografia editorial (Inter + JetBrains Mono) e remove animação glow neon"
+);
+
+const globalsCssClean = fs.readFileSync(path.join(process.cwd(), "src", "app", "globals.css"), "utf-8");
+assert(
+  !globalsCssClean.includes(".dark .bg-white {") && globalsCssClean.includes(".scrollbar-none") && globalsCssClean.includes(".tabular-nums-clinical"),
+  "globals.css remove overrides !important em massa e define utilitários .scrollbar-none e .tabular-nums-clinical"
+);
+
+const allComponentFiles: string[] = [];
+function collectTsx(dir: string) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) collectTsx(full);
+    else if (entry.isFile() && entry.name.endsWith(".tsx")) allComponentFiles.push(full);
+  }
+}
+collectTsx(path.join(process.cwd(), "src", "components"));
+
+const invalidTwRegex = /\b(shadow-xs|shadow-2xs|backdrop-blur-xs|bg-slate-850|animate-in|fade-in|zoom-in-95|slide-in-from-bottom-2)\b/;
+const aiArtifactRegex = /\b(animate-pulse|animate-ping|Sparkles|BASE44)\b/;
+const invalidTwHits = allComponentFiles.filter((f) => invalidTwRegex.test(fs.readFileSync(f, "utf8")));
+const aiArtifactHits = allComponentFiles.filter((f) => aiArtifactRegex.test(fs.readFileSync(f, "utf8")));
+
+assert(invalidTwHits.length === 0, `Nenhum componente usa classes Tailwind v3 inexistentes (encontrados: ${invalidTwHits.length})`);
+assert(aiArtifactHits.length === 0, `Nenhum componente contém animate-pulse/animate-ping/Sparkles/BASE44 (encontrados: ${aiArtifactHits.length})`);
+
+const sidebarDesignCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "layout", "Sidebar.tsx"), "utf-8");
+assert(
+  sidebarDesignCheck.includes('{ id: "modelos", label: "Modelos", icon: FileText }') && !sidebarDesignCheck.includes("FileCode"),
+  "Sidebar usa ícone FileText (clínico) em vez de FileCode para Modelos"
+);
+
+const admDesignCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "admissions", "AdmissoesView.tsx"), "utf-8");
+const permDesignCheck = fs.readFileSync(path.join(process.cwd(), "src", "components", "permanence", "PermanenciaView.tsx"), "utf-8");
+assert(
+  !gatekeeperContentUsabilidade.includes("🔒") &&
+    !admDesignCheck.includes("🏥") &&
+    !admDesignCheck.includes("🛏️") &&
+    !permDesignCheck.includes("📋") &&
+    !permDesignCheck.includes("🔥"),
+  "Interface web substitui emojis decorativos por ícones lucide-react padronizados"
+);
 
 console.log(`\n==============================================`);
 console.log(`RESULTADO FINAL: ${passed} testes PASSARAM, ${failed} FALHARAM.`);

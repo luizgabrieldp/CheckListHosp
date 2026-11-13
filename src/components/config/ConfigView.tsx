@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAppStore, ThemeMode } from "@/store/useAppStore";
+import { confirmAction, toast } from "@/store/useUiStore";
 import {
   Hospital,
   FileText,
@@ -50,10 +51,19 @@ export function ConfigView() {
     exibirToast(`Enfermaria "${nome}" adicionada com sucesso!`);
   }
 
-  function handleRemoveEnfermaria(nome: string) {
-    if (confirm(`Deseja remover a enfermaria "${nome}"?`)) {
+  async function handleRemoveEnfermaria(nome: string) {
+    const ok = await confirmAction({
+      title: "Remover enfermaria",
+      message: `Deseja remover a enfermaria "${nome}"?`,
+      confirmLabel: "Remover",
+      variant: "danger",
+    });
+    if (ok) {
       removerEnfermaria(nome);
-      exibirToast(`Enfermaria "${nome}" removida.`);
+      toast.info(`Enfermaria "${nome}" removida.`, {
+        label: "Desfazer",
+        onClick: () => adicionarEnfermaria(nome),
+      });
     }
   }
 
@@ -70,10 +80,19 @@ export function ConfigView() {
     exibirToast(`Categoria "${nome}" adicionada com sucesso!`);
   }
 
-  function handleRemoveCategoria(nome: string) {
-    if (confirm(`Deseja remover a categoria "${nome}"?`)) {
+  async function handleRemoveCategoria(nome: string) {
+    const ok = await confirmAction({
+      title: "Remover categoria",
+      message: `Deseja remover a categoria "${nome}"?`,
+      confirmLabel: "Remover",
+      variant: "danger",
+    });
+    if (ok) {
       removerCategoriaModelo(nome);
-      exibirToast(`Categoria "${nome}" removida.`);
+      toast.info(`Categoria "${nome}" removida.`, {
+        label: "Desfazer",
+        onClick: () => adicionarCategoriaModelo(nome),
+      });
     }
   }
 
@@ -105,7 +124,7 @@ export function ConfigView() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold shadow-xl border border-slate-700 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2"
+          className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold shadow-xl border border-slate-700 flex items-center gap-2"
         >
           <CheckCircle2 className="w-4 h-4 text-emerald-400" aria-hidden="true" />
           <span>{toastMsg}</span>
@@ -113,13 +132,11 @@ export function ConfigView() {
       )}
 
       {/* CARD 0: APARÊNCIA E TEMA VISUAL */}
-      <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 border border-cyan-100 dark:border-cyan-800/50">
-            <Palette className="w-5 h-5" aria-hidden="true" />
-          </div>
+      <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <Palette className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0" aria-hidden="true" />
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Aparência e Tema do Sistema</h2>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Aparência e Tema do Sistema</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Escolha entre o modo automático pelo sistema (padrão) ou force o modo claro ou escuro
             </p>
@@ -147,14 +164,14 @@ export function ConfigView() {
                 }}
                 className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 min-h-[44px] ${
                   isAtivo
-                    ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 shadow-xs ring-2 ring-emerald-500/20"
-                    : "bg-slate-50/60 dark:bg-slate-850 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
+                    ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 shadow-sm ring-2 ring-emerald-500/20"
+                    : "bg-slate-50/60 dark:bg-slate-800/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className={`p-2 rounded-lg ${
                     isAtivo
-                      ? "bg-emerald-600 text-white shadow-xs"
+                      ? "bg-emerald-600 text-white shadow-sm"
                       : "bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white"
                   }`}>
                     <Icon className="w-4 h-4" aria-hidden="true" />
@@ -179,13 +196,11 @@ export function ConfigView() {
       </div>
 
       {/* CARD 1: ENFERMARIAS */}
-      <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/50">
-            <Hospital className="w-5 h-5" aria-hidden="true" />
-          </div>
+      <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <Hospital className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0" aria-hidden="true" />
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Enfermarias</h2>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Enfermarias</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Gerencie os nomes que aparecem no menu suspenso ao cadastrar altas e admissões
             </p>
@@ -235,13 +250,11 @@ export function ConfigView() {
       </div>
 
       {/* CARD 2: CATEGORIAS DE MODELOS */}
-      <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/50">
-            <FileText className="w-5 h-5" aria-hidden="true" />
-          </div>
+      <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <FileText className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0" aria-hidden="true" />
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Categorias de Modelos</h2>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Categorias de Modelos</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Gerencie as categorias dos textos modelos (orientações, receituário, etc)
             </p>
@@ -291,19 +304,17 @@ export function ConfigView() {
       </div>
 
       {/* CARD 3: PRIVACIDADE (LGPD) */}
-      <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-400 border border-sky-100 dark:border-sky-800/50">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
+      <div className="clean-card rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0" aria-hidden="true" />
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Privacidade (LGPD)</h2>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Privacidade (LGPD)</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Política de retenção de dados</p>
           </div>
         </div>
 
         <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-100 dark:border-slate-700/60">
-          Dados clínicos apagados automaticamente: admissão/alta em 2 dias (calculados a partir da data agendada), pendências e equipe em 1 dia. Apenas totais diários são preservados para fins estatísticos e conformidade legal.
+          Dados clínicos apagados automaticamente em 2 dias (48h após a data agendada ou do evento), incluindo admissões, altas, pendências e equipe. Apenas totais diários são preservados para fins estatísticos e conformidade legal.
         </p>
       </div>
     </div>

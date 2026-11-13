@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAppStore, ThemeMode } from "@/store/useAppStore";
+import { useAppStore } from "@/store/useAppStore";
+import { useUiStore, toast } from "@/store/useUiStore";
 import {
   LayoutDashboard,
   ClipboardList,
   Activity,
   Users,
   Stethoscope,
-  FileCode,
+  FileText,
   Calendar,
   Settings,
   KeyRound,
@@ -20,6 +21,8 @@ import {
   Sun,
   Moon,
   Monitor,
+  Search,
+  UserCheck,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -28,10 +31,32 @@ export function Sidebar() {
   const logout = useAppStore((s) => s.logout);
   const isConnected = useAppStore((s) => s.isConnected);
   const latencyMs = useAppStore((s) => s.latencyMs);
+  const syncOrigin = useAppStore((s) => s.syncOrigin);
+  const saveStatus = useAppStore((s) => s.saveStatus);
+  const plantonista = useAppStore((s) => s.plantonista);
   const isSidebarCollapsed = useAppStore((s) => s.isSidebarCollapsed);
   const toggleSidebarCollapsed = useAppStore((s) => s.toggleSidebarCollapsed);
   const themeMode = useAppStore((s) => s.themeMode);
   const setThemeMode = useAppStore((s) => s.setThemeMode);
+  const openGlobalSearch = useUiStore((s) => s.openGlobalSearch);
+
+  const originLabel =
+    !isConnected || syncOrigin === "offline"
+      ? "Offline"
+      : syncOrigin === "firestore"
+        ? "Firestore"
+        : syncOrigin === "websocket"
+          ? "WS Local"
+          : "Local";
+
+  const saveLabel =
+    saveStatus === "saving"
+      ? "Salvando..."
+      : saveStatus === "saved"
+        ? "Salvo"
+        : saveStatus === "error"
+          ? "Erro"
+          : "";
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -75,7 +100,7 @@ export function Sidebar() {
     { id: "altas", label: "Altas", icon: Activity },
     { id: "permanencia", label: "Permanência", icon: Users },
     { id: "passagem", label: "Passagem", icon: Stethoscope },
-    { id: "modelos", label: "Modelos", icon: FileCode },
+    { id: "modelos", label: "Modelos", icon: FileText },
     { id: "ambulantes", label: "Agenda", icon: Calendar },
     { id: "config", label: "Config", icon: Settings },
   ] as const;
@@ -83,7 +108,7 @@ export function Sidebar() {
   return (
     <>
       {/* HEADER FIXO SUPERIOR PARA MOBILE (< 768px) - EFEITO VIDRO LÍQUIDO */}
-      <header className="md:hidden fixed top-0 left-0 right-0 w-full max-w-full box-border z-30 liquid-glass-header border-b border-slate-200/80 dark:border-slate-800 px-3.5 pt-[env(safe-area-inset-top,0px)] h-[calc(3.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between no-print shadow-xs transition-colors">
+      <header className="md:hidden fixed top-0 left-0 right-0 w-full max-w-full box-border z-30 liquid-glass-header border-b border-slate-200/80 dark:border-slate-800 px-3.5 pt-[env(safe-area-inset-top,0px)] h-[calc(3.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between no-print shadow-sm transition-colors">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -100,8 +125,18 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* Ações Direitas: Botão de Tema Rápido + Indicador de Conexão no Header Mobile */}
+        {/* Ações Direitas: Busca Global + Botão de Tema Rápido + Indicador de Conexão no Header Mobile */}
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={openGlobalSearch}
+            aria-label="Busca global (Ctrl+K)"
+            title="Busca global (Ctrl+K)"
+            className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          >
+            <Search className="w-4 h-4" aria-hidden="true" />
+          </button>
+
           <button
             onClick={alternarTema}
             aria-label={`Alternar tema: atualmente ${currentTheme.label}`}
@@ -118,7 +153,7 @@ export function Sidebar() {
           >
             <span
               className={`w-2 h-2 rounded-full ${
-                isConnected ? "bg-emerald-500 shadow-xs shadow-emerald-500/50" : "bg-rose-400 animate-pulse"
+                isConnected ? "bg-emerald-500" : "bg-rose-500"
               }`}
               aria-hidden="true"
             />
@@ -140,7 +175,7 @@ export function Sidebar() {
               setMobileOpen(false);
             }
           }}
-          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-xs cursor-pointer"
+          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm cursor-pointer"
         />
       )}
 
@@ -161,7 +196,7 @@ export function Sidebar() {
           {isSidebarCollapsed ? (
             // CABEÇALHO COMPACTO (SOMENTE ÍCONE E TOGGLE NO PC/TABLET)
             <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex flex-col items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-xs shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm shrink-0">
                 <Stethoscope className="w-5 h-5" aria-hidden="true" />
               </div>
               <button
@@ -177,7 +212,7 @@ export function Sidebar() {
             // CABEÇALHO EXPANDIDO (COMPLETO COM LOGO E TEXTO)
             <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-xs shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm shrink-0">
                   <Stethoscope className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <div className="min-w-0 truncate">
@@ -211,32 +246,71 @@ export function Sidebar() {
             </div>
           )}
 
-          {/* STATUS REALTIME */}
+          {/* STATUS REALTIME & SALVAMENTO */}
           {isSidebarCollapsed ? (
             <div
-              className="py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-center bg-slate-50/50 dark:bg-slate-950/30"
-              title={isConnected ? `Sincronizado (${latencyMs}ms)` : "Reconectando..."}
+              className="py-2 border-b border-slate-100 dark:border-slate-800 flex flex-col items-center gap-1.5 bg-slate-50/50 dark:bg-slate-950/30"
+              title={`${originLabel}${isConnected ? ` (${latencyMs}ms)` : ""}${saveLabel ? ` · ${saveLabel}` : ""}`}
             >
               <span
                 className={`w-2.5 h-2.5 rounded-full ${
-                  isConnected ? "bg-emerald-500 shadow-xs shadow-emerald-500/50" : "bg-rose-500 animate-pulse"
+                  isConnected ? "bg-emerald-500" : "bg-rose-500"
                 }`}
               />
+              <button
+                type="button"
+                onClick={openGlobalSearch}
+                title="Busca global (Ctrl+K)"
+                aria-label="Busca global"
+                className="min-h-[38px] min-w-[38px] flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <Search className="w-4 h-4" aria-hidden="true" />
+              </button>
             </div>
           ) : (
-            <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] bg-slate-50/50 dark:bg-slate-950/30">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    isConnected ? "bg-emerald-500 shadow-xs shadow-emerald-500/50" : "bg-rose-500 animate-pulse"
-                  }`}
-                />
-                <span className="font-semibold text-slate-600 dark:text-slate-300">
-                  {isConnected ? "Sincronizado" : "Reconectando"}
-                </span>
+            <div className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30">
+              <div className="px-4 py-2 flex items-center justify-between text-[11px]">
+                <div className="flex items-center gap-1.5" role="status" aria-label={`Conexão: ${originLabel}`}>
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isConnected ? "bg-emerald-500" : "bg-rose-500"
+                    }`}
+                  />
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">
+                    {originLabel}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {saveLabel && (
+                    <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                      {saveLabel}
+                    </span>
+                  )}
+                  {isConnected && (
+                    <span className="text-[10px] text-slate-400 font-mono">{latencyMs}ms</span>
+                  )}
+                </div>
               </div>
-              {isConnected && (
-                <span className="text-[10px] text-slate-400 font-mono">{latencyMs}ms</span>
+              <div className="px-3 pb-2">
+                <button
+                  type="button"
+                  onClick={openGlobalSearch}
+                  className="w-full min-h-[36px] flex items-center justify-between px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 text-xs text-slate-500 dark:text-slate-400 hover:border-emerald-400 dark:hover:border-emerald-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Search className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Buscar...</span>
+                  </span>
+                  <kbd className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                    ⌘K
+                  </kbd>
+                </button>
+              </div>
+              {plantonista && (
+                <div className="px-4 pb-2 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden="true" />
+                  <span className="truncate font-medium">Plantão: {plantonista}</span>
+                </div>
               )}
             </div>
           )}
@@ -263,7 +337,7 @@ export function Sidebar() {
                     aria-current={isActive ? "page" : undefined}
                     className={`min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl transition-all cursor-pointer group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                       isActive
-                        ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-600/50 shadow-xs"
+                        ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-600/50 shadow-sm"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
                     }`}
                   >
@@ -287,7 +361,7 @@ export function Sidebar() {
                   aria-current={isActive ? "page" : undefined}
                   className={`w-full min-h-[44px] flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                     isActive
-                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200/80 dark:border-emerald-700/50 shadow-xs"
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200/80 dark:border-emerald-700/50 shadow-sm"
                       : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60"
                   }`}
                 >
@@ -319,7 +393,7 @@ export function Sidebar() {
               </button>
 
               <button
-                onClick={() => alert("Para alterar a senha mestre da enfermaria, contate o administrador.")}
+                onClick={() => toast.info("Para alterar a senha mestre da enfermaria, contate o administrador.")}
                 title="Alterar senha"
                 aria-label="Alterar senha"
                 className="min-h-[44px] min-w-[44px] w-11 h-11 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
@@ -355,7 +429,7 @@ export function Sidebar() {
               </button>
 
               <button
-                onClick={() => alert("Para alterar a senha mestre da enfermaria, contate o administrador.")}
+                onClick={() => toast.info("Para alterar a senha mestre da enfermaria, contate o administrador.")}
                 className="w-full min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
                 <KeyRound className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />

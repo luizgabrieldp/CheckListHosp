@@ -11,6 +11,15 @@
  * 100% blindada para preservar quebras de linha clínicas (whitespace-pre-wrap) e títulos em bloco.
  */
 
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export function imprimirElementoIsolado(
   elementoOuHtml: HTMLElement | string,
   tituloDocumento: string = "Passagem de Plantão — Impressão A4"
@@ -87,7 +96,7 @@ export function imprimirElementoIsolado(
             }
           } catch {
             if (sheet.href) {
-              estilosHead += `<link rel="stylesheet" href="${sheet.href}">\n`;
+              estilosHead += `<link rel="stylesheet" href="${escapeHtml(sheet.href)}">\n`;
             }
           }
         }
@@ -259,8 +268,8 @@ export function imprimirElementoIsolado(
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="${window.location.href}" />
-    <title>${tituloDocumento}</title>
+    <base href="${escapeHtml(window.location.href)}" />
+    <title>${escapeHtml(tituloDocumento)}</title>
     ${estilosHead}
     <style>${cssImpressaoA4}</style>
   </head>

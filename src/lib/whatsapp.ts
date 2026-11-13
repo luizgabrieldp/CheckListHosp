@@ -205,7 +205,7 @@ export async function compartilharOuCopiar(
 
       const encoded = encodeURIComponent(texto);
       if (typeof window !== "undefined") {
-        window.open(`https://web.whatsapp.com/send?text=${encoded}`, "_blank");
+        window.open(`https://web.whatsapp.com/send?text=${encoded}`, "_blank", "noopener,noreferrer");
       }
 
       return {

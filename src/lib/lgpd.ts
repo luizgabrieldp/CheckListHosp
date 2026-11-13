@@ -96,11 +96,11 @@ export function agregarMetricasDiarias(
   admissoes: AdmissaoPaciente[],
   altas: AltaPaciente[]
 ): MetricasHistoricasDiarias {
-  const diaAdmissoes = admissoes.filter((a) => a.dataAdmissaoAgendada.startsWith(dataStr));
+  const diaAdmissoes = admissoes.filter((a) => a.dataAdmissaoAgendada?.startsWith(dataStr));
   const canceladas = diaAdmissoes.filter((a) => a.cancelada).length;
   const ativas = diaAdmissoes.filter((a) => !a.cancelada).length;
-  const diaAltas = altas.filter((al) => al.dataAlta.startsWith(dataStr)).length;
-  const cirurgias = altas.filter((al) => al.dataAlta.startsWith(dataStr) && al.tipoCirurgia).length;
+  const diaAltas = altas.filter((al) => al.dataAlta?.startsWith(dataStr)).length;
+  const cirurgias = altas.filter((al) => al.dataAlta?.startsWith(dataStr) && al.tipoCirurgia).length;
 
   return {
     data: dataStr,
@@ -180,10 +180,11 @@ export function executarExpurgoAutomaticoCliente(
     altasParaExpurgo.length > 0 ||
     expurgadasPermanencia;
 
-  let metricasAtualizadas = [...estado.metricas];
+  let metricasAtualizadas = estado.metricas;
 
   // Se houve admissões ou altas a expurgar, consolidar totais anônimos nas métricas diárias
   if (admissoesParaExpurgo.length > 0 || altasParaExpurgo.length > 0) {
+    metricasAtualizadas = [...estado.metricas];
     const datasAfetadas = Array.from(
       new Set([
         ...admissoesParaExpurgo.map((a) => a.dataAdmissaoAgendada.split("T")[0]),

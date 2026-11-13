@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { PacientePassagem } from "@/types/hospital";
 import { anonimizarNome } from "@/lib/lgpd";
 import {
@@ -40,17 +40,6 @@ interface Props {
 
 export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
   const modalRef = useModalA11y<HTMLDivElement>({ isOpen: true, onClose });
-
-  // Fechamento via teclado ESC
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
 
   // Referência para extração isolada da folha A4 e controle de clique duplo
   const folhaA4Ref = useRef<HTMLDivElement>(null);
@@ -210,7 +199,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-impressao-seletiva-title"
-        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in no-print print:hidden"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-4 no-print print:hidden"
       >
         <div
           ref={modalRef}
@@ -294,7 +283,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                     }
                     className={`min-h-[44px] p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${
                       ativo
-                        ? "bg-sky-50 dark:bg-sky-950/40 border-sky-300 dark:border-sky-700 text-sky-900 dark:text-sky-200 shadow-xs"
+                        ? "bg-sky-50 dark:bg-sky-950/40 border-sky-300 dark:border-sky-700 text-sky-900 dark:text-sky-200 shadow-sm"
                         : "bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/60"
                     }`}
                   >
@@ -349,7 +338,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
                 return (
                   <div
                     key={grupo.nome}
-                    className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800/80 shadow-xs"
+                    className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800/80 shadow-sm"
                   >
                     {/* CABEÇALHO DA ENFERMARIA */}
                     <div className="bg-slate-50 dark:bg-slate-800 px-3 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
@@ -444,7 +433,7 @@ export function ModalImpressaoSeletiva({ pacientes, onClose }: Props) {
             type="button"
             onClick={handleImprimir}
             disabled={totalSelecionados === 0 || isImprimindo}
-            className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+            className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white text-xs font-bold shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
           >
             {isImprimindo ? (
               <>

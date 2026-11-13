@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { confirmAction, toast } from "@/store/useUiStore";
 import { Pendencia, EquipePlantao, PrioridadePendencia, StatusPendencia } from "@/types/hospital";
 import { obterDataLocalHoje } from "@/lib/utils";
 import {
@@ -34,6 +35,7 @@ export function PermanenciaView() {
   const atualizarEquipe = useAppStore((s) => s.atualizarEquipe);
   const enfermarias = useAppStore((s) => s.enfermarias);
   const adicionarEnfermaria = useAppStore((s) => s.adicionarEnfermaria);
+  const plantonista = useAppStore((s) => s.plantonista);
 
   // Controle de data de visualização das pendências (padrão: hoje no fuso local)
   const [dataSelecionada, setDataSelecionada] = useState(() => {
@@ -185,6 +187,7 @@ export function PermanenciaView() {
       prioridade: novaPrioridade,
       notaInterna: novaNotaInterna.trim() || undefined,
       status: "Pendente",
+      atualizadoPor: plantonista || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -210,6 +213,7 @@ export function PermanenciaView() {
     salvarPendencia({
       ...pendencia,
       status: proximoStatus,
+      ...(plantonista ? { atualizadoPor: plantonista } : {}),
       updatedAt: new Date().toISOString(),
     });
   }
@@ -219,6 +223,7 @@ export function PermanenciaView() {
     salvarPendencia({
       ...pendencia,
       ...updates,
+      ...(plantonista ? { atualizadoPor: plantonista } : {}),
       updatedAt: new Date().toISOString(),
     });
   }
@@ -335,13 +340,13 @@ export function PermanenciaView() {
       {/* ─────────────────────────────────────────────────────────────
           SELETOR DE DATA NO TOPO (COMPACTO)
       ────────────────────────────────────────────────────────────── */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 sm:p-3.5 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between sm:justify-start gap-2 sm:gap-3 flex-wrap">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 sm:p-3.5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between sm:justify-start gap-2 sm:gap-3 flex-wrap">
         <button
           type="button"
           onClick={() => setDataSelecionada(hojeStr)}
           className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
             dataSelecionada === hojeStr
-              ? "bg-sky-600 text-white shadow-xs"
+              ? "bg-sky-600 text-white shadow-sm"
               : "border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
           }`}
         >
@@ -381,9 +386,9 @@ export function PermanenciaView() {
 
       {/* BANNER INTELIGENTE: PENDÊNCIAS EM ABERTO DO PLANTÃO ANTERIOR */}
       {dataSelecionada === hojeStr && pendenciasOntemEmAberto.length > 0 && (
-        <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 animate-in fade-in duration-200 shadow-2xs">
+        <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 duration-200 shadow-sm">
           <div className="flex items-center gap-2.5">
-            <span className="text-xl">📋</span>
+            <FileText className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0" aria-hidden="true" />
             <div>
               <p className="text-xs font-bold text-amber-900 dark:text-amber-200">
                 Você tem {pendenciasOntemEmAberto.length} pendência(s) não concluída(s) de ontem
@@ -396,7 +401,7 @@ export function PermanenciaView() {
           <button
             type="button"
             onClick={handleTransferirPendenciasOntemParaHoje}
-            className="self-end sm:self-auto min-h-[44px] px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="self-end sm:self-auto min-h-[44px] px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <ArrowRight className="w-3.5 h-3.5" />
             <span>Trazer para hoje</span>
@@ -444,7 +449,7 @@ export function PermanenciaView() {
 
               {/* CAMPO INLINE PARA ADICIONAR RESIDENTE */}
               {categoriaAdicionando === "residentes" && (
-                <div className="mb-3 p-2 rounded-lg bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 shadow-xs animate-in fade-in">
+                <div className="mb-3 p-2 rounded-lg bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <input
                       type="text"
@@ -488,7 +493,7 @@ export function PermanenciaView() {
                     return (
                       <div
                         key={idx}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-sky-400 dark:border-sky-500 shadow-xs"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-sky-400 dark:border-sky-500 shadow-sm"
                       >
                         <input
                           type="text"
@@ -524,7 +529,7 @@ export function PermanenciaView() {
                   return (
                     <div
                       key={idx}
-                      className="group inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700/80 text-sky-950 dark:text-sky-200 text-xs font-semibold shadow-xs hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/40 dark:hover:bg-sky-950/40 transition-all"
+                      className="group inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-700/80 text-sky-950 dark:text-sky-200 text-xs font-semibold shadow-sm hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/40 dark:hover:bg-sky-950/40 transition-all"
                     >
                       <button
                         type="button"
@@ -594,7 +599,7 @@ export function PermanenciaView() {
 
               {/* CAMPO INLINE PARA ADICIONAR INTERNO */}
               {categoriaAdicionando === "doutorandos" && (
-                <div className="mb-3 p-2 rounded-lg bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 shadow-xs animate-in fade-in">
+                <div className="mb-3 p-2 rounded-lg bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-700 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <input
                       type="text"
@@ -638,7 +643,7 @@ export function PermanenciaView() {
                     return (
                       <div
                         key={idx}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-teal-400 dark:border-teal-500 shadow-xs"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-teal-400 dark:border-teal-500 shadow-sm"
                       >
                         <input
                           type="text"
@@ -674,7 +679,7 @@ export function PermanenciaView() {
                   return (
                     <div
                       key={idx}
-                      className="group inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-700/80 text-teal-950 dark:text-teal-200 text-xs font-semibold shadow-xs hover:border-teal-300 dark:hover:border-teal-600 hover:bg-teal-50/40 dark:hover:bg-teal-950/40 transition-all"
+                      className="group inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-700/80 text-teal-950 dark:text-teal-200 text-xs font-semibold shadow-sm hover:border-teal-300 dark:hover:border-teal-600 hover:bg-teal-50/40 dark:hover:bg-teal-950/40 transition-all"
                     >
                       <button
                         type="button"
@@ -782,7 +787,7 @@ export function PermanenciaView() {
               <button
                 type="submit"
                 disabled={!novoTitulo.trim()}
-                className="min-h-[44px] px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4" aria-hidden="true" />
                 <span>Adicionar</span>
@@ -791,7 +796,7 @@ export function PermanenciaView() {
 
             {/* PAINEL RETRÁTIL DE DETALHES INICIAIS */}
             {expandirCriacao && (
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 animate-in fade-in">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                   {/* LEITO NUMÉRICO */}
                   <div className="sm:col-span-3">
@@ -928,7 +933,7 @@ export function PermanenciaView() {
                         onClick={() => setNovaPrioridade("Urgente")}
                         className={`h-11 min-h-[44px] box-border py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-0.5 cursor-pointer ${
                           novaPrioridade === "Urgente"
-                            ? "bg-rose-600 text-white border-rose-600 shadow-xs"
+                            ? "bg-rose-600 text-white border-rose-600 shadow-sm"
                             : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                         }`}
                       >
@@ -962,7 +967,7 @@ export function PermanenciaView() {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-label="Filtro de status das pendências">
           {[
             { id: "TODOS", label: "Todas" },
-            { id: "URGENTES", label: "🔥 Urgentes" },
+            { id: "URGENTES", label: "Urgentes" },
             { id: "Pendente", label: "Pendente" },
             { id: "Em Realização", label: "Em Realização" },
             { id: "Feito", label: "Feito" },
@@ -977,7 +982,7 @@ export function PermanenciaView() {
                 onClick={() => setFiltroStatus(f.id)}
                 className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center justify-center ${
                   isAtivo
-                    ? "bg-slate-900 dark:bg-sky-600 text-white font-bold shadow-xs"
+                    ? "bg-slate-900 dark:bg-sky-600 text-white font-bold shadow-sm"
                     : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                 }`}
               >
@@ -989,7 +994,7 @@ export function PermanenciaView() {
 
         {/* LISTA DE PENDÊNCIAS COM SANFONA DESLIZANTE */}
         {pendenciasFiltradas.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
+          <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
             <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Nenhuma pendência encontrada</h4>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -1009,7 +1014,7 @@ export function PermanenciaView() {
               return (
                 <div
                   key={p.id}
-                  className={`rounded-xl border transition-all duration-200 shadow-xs overflow-hidden ${
+                  className={`rounded-xl border transition-all duration-200 shadow-sm overflow-hidden ${
                     isFeito
                       ? "bg-slate-50/80 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 opacity-75"
                       : isUrgente
@@ -1047,7 +1052,7 @@ export function PermanenciaView() {
                             isFeito
                               ? "bg-emerald-600 border-emerald-600 text-white"
                               : p.status === "Em Realização"
-                              ? "bg-amber-100 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 animate-pulse"
+                              ? "bg-amber-100 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300"
                               : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-sky-500"
                           }`}
                         >
@@ -1063,7 +1068,7 @@ export function PermanenciaView() {
 
                           {/* TAG URGENTE */}
                           {isUrgente && (
-                            <span className="inline-flex items-center gap-1 font-bold text-[10px] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse">
+                            <span className="inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                               <Flame className="w-3 h-3 text-rose-600" aria-hidden="true" /> URGENTE
                             </span>
                           )}
@@ -1147,7 +1152,7 @@ export function PermanenciaView() {
                   {isAberta && (
                     <div
                       id={`pendencia-body-${p.id}`}
-                      className="border-t border-slate-100 dark:border-slate-800 p-4 bg-slate-50/70 dark:bg-slate-900/50 space-y-4 animate-in slide-in-from-top-2 duration-150"
+                      className="border-t border-slate-100 dark:border-slate-800 p-4 bg-slate-50/70 dark:bg-slate-900/50 space-y-4 slide-in-from-top-2 duration-150"
                     >
                       {/* 1. STATUS E URGÊNCIA (NO TOPO) */}
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200/70 dark:border-slate-800">
@@ -1161,10 +1166,10 @@ export function PermanenciaView() {
                               className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                                 p.status === st
                                   ? st === "Feito"
-                                    ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
                                     : st === "Em Realização"
-                                    ? "bg-amber-500 text-white border-amber-500 shadow-xs"
-                                    : "bg-slate-800 dark:bg-slate-700 text-white border-slate-800 dark:border-slate-700 shadow-xs"
+                                    ? "bg-amber-500 text-white border-amber-500 shadow-sm"
+                                    : "bg-slate-800 dark:bg-slate-700 text-white border-slate-800 dark:border-slate-700 shadow-sm"
                                   : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                               }`}
                             >
@@ -1192,7 +1197,7 @@ export function PermanenciaView() {
                             onClick={() => handleAtualizarCampo(p, { prioridade: "Urgente" })}
                             className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center justify-center gap-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
                               p.prioridade === "Urgente"
-                                ? "bg-rose-600 text-white border-rose-600 shadow-xs"
+                                ? "bg-rose-600 text-white border-rose-600 shadow-sm"
                                 : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                             }`}
                           >
@@ -1248,7 +1253,7 @@ export function PermanenciaView() {
                           </div>
 
                           {mostrandoNovaEnfId === p.id ? (
-                            <div className="flex items-center gap-1 animate-in fade-in">
+                            <div className="flex items-center gap-1">
                               <input
                                 type="text"
                                 value={enfParaCriar}
@@ -1341,7 +1346,7 @@ export function PermanenciaView() {
                               responsaveisDaTarefa.map((resp, idx) => (
                                 <span
                                   key={idx}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-medium shadow-2xs"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-medium shadow-sm"
                                 >
                                   <span>{resp}</span>
                                   <button
@@ -1384,12 +1389,31 @@ export function PermanenciaView() {
                         />
                       </div>
 
-                      {/* RODAPÉ DA SANFONA: EXCLUSÃO */}
-                      <div className="flex justify-end pt-1">
+                      {/* RODAPÉ DA SANFONA: METADADOS DO PLANTONISTA + EXCLUSÃO */}
+                      <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                        {p.atualizadoPor ? (
+                          <span className="text-[11px] text-slate-400 dark:text-slate-400">
+                            Atualizado por <strong className="font-semibold text-slate-600 dark:text-slate-300">{p.atualizadoPor}</strong>
+                            {p.updatedAt ? ` às ${new Date(p.updatedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}` : ""}
+                          </span>
+                        ) : (
+                          <span />
+                        )}
                         <button
-                          onClick={() => {
-                            if (confirm(`Excluir a pendência "${p.titulo}"?`)) {
+                          onClick={async () => {
+                            const ok = await confirmAction({
+                              title: "Excluir pendência",
+                              message: `Excluir a pendência "${p.titulo}"?`,
+                              confirmLabel: "Excluir",
+                              variant: "danger",
+                            });
+                            if (ok) {
+                              const backup = { ...p };
                               removerPendencia(p.id);
+                              toast.info(`Pendência "${p.titulo}" excluída.`, {
+                                label: "Desfazer",
+                                onClick: () => salvarPendencia(backup),
+                              });
                             }
                           }}
                           className="min-h-[44px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition-colors cursor-pointer"

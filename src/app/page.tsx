@@ -1,18 +1,52 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { useAppStore } from "@/store/useAppStore";
+import { useUiStore } from "@/store/useUiStore";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { GatekeeperModal } from "@/components/auth/GatekeeperModal";
 import { LgpdConsentModal } from "@/components/auth/LgpdConsentModal";
-import { AdmissoesView } from "@/components/admissions/AdmissoesView";
-import { AltasView } from "@/components/discharges/AltasView";
-import { PermanenciaView } from "@/components/permanence/PermanenciaView";
-import { PassagemPlantaoView } from "@/components/handover/PassagemPlantaoView";
-import { AmbulatorioView } from "@/components/outpatient/AmbulatorioView";
-import { ModelosTextoView } from "@/components/templates/ModelosTextoView";
-import { MetricasLgpdView } from "@/components/metrics/MetricasLgpdView";
-import { ConfigView } from "@/components/config/ConfigView";
+import { GlobalSearchModal } from "@/components/search/GlobalSearchModal";
+
+const ViewLoadingFallback = () => (
+  <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+    Carregando módulo...
+  </div>
+);
+
+const AdmissoesView = dynamic(
+  () => import("@/components/admissions/AdmissoesView").then((m) => m.AdmissoesView),
+  { ssr: false, loading: ViewLoadingFallback }
+);
+const AltasView = dynamic(
+  () => import("@/components/discharges/AltasView").then((m) => m.AltasView),
+  { ssr: false, loading: ViewLoadingFallback }
+);
+const PermanenciaView = dynamic(
+  () => import("@/components/permanence/PermanenciaView").then((m) => m.PermanenciaView),
+  { ssr: false, loading: ViewLoadingFallback }
+);
+const PassagemPlantaoView = dynamic(
+  () => import("@/components/handover/PassagemPlantaoView").then((m) => m.PassagemPlantaoView),
+  { ssr: false, loading: ViewLoadingFallback }
+);
+const AmbulatorioView = dynamic(
+  () => import("@/components/outpatient/AmbulatorioView").then((m) => m.AmbulatorioView),
+  { ssr: false, loading: ViewLoadingFallback }
+);
+const ModelosTextoView = dynamic(
+  () => import("@/components/templates/ModelosTextoView").then((m) => m.ModelosTextoView),
+  { ssr: false, loading: ViewLoadingFallback }
+);
+const MetricasLgpdView = dynamic(
+  () => import("@/components/metrics/MetricasLgpdView").then((m) => m.MetricasLgpdView),
+  { ssr: false, loading: ViewLoadingFallback }
+);
+const ConfigView = dynamic(
+  () => import("@/components/config/ConfigView").then((m) => m.ConfigView),
+  { ssr: false, loading: ViewLoadingFallback }
+);
 
 const TEMPO_INATIVIDADE_MS = 5 * 60 * 1000; // 5 minutos
 
@@ -29,6 +63,7 @@ export default function HomePage() {
     const THROTTLE_ATIVIDADE_MS = 4000; // Throttle de 4s: evita acordar CPU 120x/s durante rolagem/toques
 
     function resetarTimerInatividade(force = false) {
+      if (!useAppStore.getState().isAuthenticated) return;
       const agora = Date.now();
       if (force || agora - lastActivityLoggedRef.current >= THROTTLE_ATIVIDADE_MS) {
         lastActivityLoggedRef.current = agora;
@@ -42,6 +77,8 @@ export default function HomePage() {
         }, TEMPO_INATIVIDADE_MS);
       }
     }
+
+    const handleAtividadeUsuario = () => resetarTimerInatividade(false);
 
     function verificarExpiracaoSegundoPlano() {
       if (typeof window !== "undefined") {
@@ -72,7 +109,7 @@ export default function HomePage() {
     const eventos = ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"];
 
     eventos.forEach((evento) => {
-      window.addEventListener(evento, () => resetarTimerInatividade(false), { passive: true });
+      window.addEventListener(evento, handleAtividadeUsuario, { passive: true });
     });
 
     window.addEventListener("visibilitychange", handleMudancaVisibilidade);
@@ -89,7 +126,7 @@ export default function HomePage() {
         document.body.classList.remove("app-background");
       }
       eventos.forEach((evento) => {
-        window.removeEventListener(evento, () => resetarTimerInatividade(false));
+        window.removeEventListener(evento, handleAtividadeUsuario);
       });
       window.removeEventListener("visibilitychange", handleMudancaVisibilidade);
       window.removeEventListener("focus", verificarExpiracaoSegundoPlano);
@@ -114,6 +151,28 @@ export default function HomePage() {
     } catch {}
   }, [setSidebarCollapsed]);
 
+  // Atalho global Cmd/Ctrl + K para Busca Unificada
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    function handleGlobalShortcut(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        useUiStore.getState().toggleGlobalSearch();
+      }
+    }
+    window.addEventListener("keydown", handleGlobalShortcut);
+    return () => window.removeEventListener("keydown", handleGlobalShortcut);
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex print:m-0 print:p-0">
+        {/* MODAL GATEKEEPER (SENHA MESTRE "cgimip") */}
+        <GatekeeperModal />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex print:m-0 print:p-0">
       {/* SKIP LINK ACESSÍVEL PARA NAVEGAÇÃO RÁPIDA POR TECLADO E LEITORES DE TELA (WCAG 2.4.1) */}
@@ -132,14 +191,14 @@ export default function HomePage() {
         Pular para o conteúdo principal
       </a>
 
-      {/* MODAL GATEKEEPER (SENHA MESTRE "cgimip") */}
-      <GatekeeperModal />
-
       {/* MODAL LGPD DIÁRIO */}
       <LgpdConsentModal />
 
-      {/* SIDEBAR LATERAL À ESQUERDA (ESTILO BASE44 COM MODO ENCOLHIDO) */}
-      <div className={!isAuthenticated ? "filter blur-sm select-none pointer-events-none transition-all duration-300" : "transition-all duration-300"}>
+      {/* BUSCA GLOBAL UNIFICADA (CMD/CTRL + K) */}
+      <GlobalSearchModal />
+
+      {/* SIDEBAR LATERAL À ESQUERDA */}
+      <div className="transition-all duration-300">
         <Sidebar />
       </div>
 
@@ -147,7 +206,7 @@ export default function HomePage() {
       <div
         className={`flex-1 flex flex-col min-w-0 w-full max-w-full overflow-x-hidden transition-all duration-200 print:m-0 print:p-0 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-0 ${
           isSidebarCollapsed ? "md:ml-[68px]" : "md:ml-60"
-        } ${!isAuthenticated ? "filter blur-sm select-none pointer-events-none" : ""}`}
+        }`}
       >
         {/* CONTAINER DO MÓDULO ATIVO COM FOCO ACESSÍVEL */}
         <main

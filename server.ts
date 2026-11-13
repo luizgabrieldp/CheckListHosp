@@ -1,4 +1,4 @@
-import { createServer } from "http";
+import { createServer, IncomingMessage } from "http";
 import { parse } from "url";
 import next from "next";
 import { WebSocketServer, WebSocket } from "ws";
@@ -13,6 +13,49 @@ const hasBuild = fs.existsSync(path.join(process.cwd(), ".next", "BUILD_ID"));
 const dev = isExplicitDev || !hasBuild;
 const hostname = "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
+
+function isLocalHostname(host: string): boolean {
+  const clean = host.toLowerCase();
+  return (
+    clean === "localhost" ||
+    clean === "127.0.0.1" ||
+    clean === "::1" ||
+    clean === "[::1]" ||
+    clean.endsWith(".local") ||
+    /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(clean)
+  );
+}
+
+function isAllowedOrigin(req: IncomingMessage): boolean {
+  const origin = req.headers.origin;
+  if (!origin) return true; // Requisições não-browser (ex: curl local) ou same-origin sem header
+  try {
+    const originUrl = new URL(origin);
+    const reqHostHeader = (req.headers.host || "").trim().toLowerCase();
+    if (reqHostHeader) {
+      return originUrl.host.toLowerCase() === reqHostHeader;
+    }
+    return isLocalHostname(originUrl.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function isAllowedLocalApiRequest(req: IncomingMessage): boolean {
+  if (!isAllowedOrigin(req)) return false;
+  const fetchSite = req.headers["sec-fetch-site"];
+  if (typeof fetchSite === "string" && fetchSite !== "same-origin" && fetchSite !== "none") {
+    return false;
+  }
+  const remoteAddr = req.socket?.remoteAddress || "";
+  const isLoopbackOrLan =
+    !remoteAddr ||
+    remoteAddr === "127.0.0.1" ||
+    remoteAddr === "::1" ||
+    remoteAddr === "::ffff:127.0.0.1" ||
+    /^(::ffff:)?(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(remoteAddr);
+  return isLoopbackOrLan;
+}
 
 console.log(`[Server] Inicializando... (dev: ${dev}, hasBuild: ${hasBuild}, NODE_ENV: ${process.env.NODE_ENV || "undefined"})`);
 const app = next({ dev, hostname, port });
@@ -32,6 +75,11 @@ app.prepare().then(() => {
       }
 
       if (pathname === "/api/expurgo-lgpd" && req.method === "POST") {
+        if (!isAllowedLocalApiRequest(req)) {
+          res.writeHead(403, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ ok: false, error: "Acesso negado" }));
+          return;
+        }
         const resultado = db.executarExpurgoLGPD();
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ ok: true, resultado }));
@@ -49,11 +97,11 @@ app.prepare().then(() => {
   // Servidor WebSocket integrado de ultrabaixa latência
   const wss = new WebSocketServer({ noServer: true });
 
-  // Broadcast para todos os clientes conectados
+  // Broadcast para todos os outros clientes conectados (sem ecoar para o remetente)
   function broadcast(mensagem: WebSocketMessage, remetente?: WebSocket) {
     const raw = JSON.stringify(mensagem);
     wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
+      if (client !== remetente && client.readyState === WebSocket.OPEN) {
         client.send(raw);
       }
     });
@@ -114,6 +162,24 @@ app.prepare().then(() => {
             modelos: msg.payload,
           }));
           broadcast(msg, ws);
+        } else if (msg.type === "UPDATE_METRICAS") {
+          db.updateState((prev) => ({
+            ...prev,
+            metricas: msg.payload,
+          }));
+          broadcast(msg, ws);
+        } else if (msg.type === "UPDATE_ENFERMARIAS") {
+          db.updateState((prev) => ({
+            ...prev,
+            enfermarias: msg.payload,
+          }));
+          broadcast(msg, ws);
+        } else if (msg.type === "UPDATE_CATEGORIAS_MODELOS") {
+          db.updateState((prev) => ({
+            ...prev,
+            categoriasModelos: msg.payload,
+          }));
+          broadcast(msg, ws);
         }
       } catch (err) {
         console.error("[WebSocket] Erro ao processar mensagem recebida:", err);
@@ -125,15 +191,18 @@ app.prepare().then(() => {
     });
   });
 
-  // Gerenciar Upgrade HTTP -> WebSocket
+  // Gerenciar Upgrade HTTP -> WebSocket com validação de Origin
   server.on("upgrade", (req, socket, head) => {
     const { pathname } = parse(req.url || "");
-    if (pathname === "/ws" || pathname === "/_next/webpack-hmr") {
-      if (pathname === "/ws") {
-        wss.handleUpgrade(req, socket, head, (ws) => {
-          wss.emit("connection", ws, req);
-        });
+    if (pathname === "/ws") {
+      if (!isAllowedOrigin(req)) {
+        socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+        socket.destroy();
+        return;
       }
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        wss.emit("connection", ws, req);
+      });
     }
   });
 

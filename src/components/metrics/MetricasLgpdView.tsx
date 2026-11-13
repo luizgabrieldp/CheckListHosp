@@ -49,19 +49,22 @@ export function MetricasLgpdView() {
     if (!el) return;
 
     const rolarParaHoje = () => {
-      if (el) {
-        el.scrollLeft = el.scrollWidth;
+      if (scrollGraficoRef.current) {
+        scrollGraficoRef.current.scrollLeft = scrollGraficoRef.current.scrollWidth;
       }
     };
 
+    let timerId: ReturnType<typeof setTimeout> | null = null;
     rolarParaHoje();
     const frameId = requestAnimationFrame(() => {
       rolarParaHoje();
-      const timer = setTimeout(rolarParaHoje, 80);
-      return () => clearTimeout(timer);
+      timerId = setTimeout(rolarParaHoje, 80);
     });
 
-    return () => cancelAnimationFrame(frameId);
+    return () => {
+      cancelAnimationFrame(frameId);
+      if (timerId !== null) clearTimeout(timerId);
+    };
   }, [periodo, dataFiltro]);
 
   // Formatar data para exibição no picker (DD/MM/AAAA)
@@ -73,7 +76,10 @@ export function MetricasLgpdView() {
 
   // 1. DADOS SUPERIORES: CARD 1 - ADMISSÕES DO DIA
   const admissoesDoDia = admissoes.filter(
-    (a) => !a.cancelada && (a.dataAdmissaoAgendada === dataFiltro || !a.dataAdmissaoAgendada)
+    (a) =>
+      !a.cancelada &&
+      Boolean(a.dataAdmissaoAgendada) &&
+      a.dataAdmissaoAgendada.split("T")[0] === dataFiltro
   );
   const totalAdmissoes = admissoesDoDia.length;
   const enfermariasAdmissoes = admissoesDoDia.reduce<Record<string, number>>((acc, a) => {
@@ -84,7 +90,7 @@ export function MetricasLgpdView() {
 
   // 2. DADOS SUPERIORES: CARD 2 - ALTAS DO DIA
   const altasDoDia = altas.filter((a) =>
-    a.dataAlta ? a.dataAlta.startsWith(dataFiltro) : true
+    Boolean(a.dataAlta) && a.dataAlta.startsWith(dataFiltro)
   );
   const totalAltas = altasDoDia.length;
   const enfermariasAltas = altasDoDia.reduce<Record<string, number>>((acc, a) => {
@@ -320,12 +326,12 @@ export function MetricasLgpdView() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* 1. SELETOR DE DATA NO TOPO (PADRÃO BASE44) */}
+      {/* 1. SELETOR DE DATA NO TOPO */}
       <div className="flex items-center justify-between">
         <div className="relative inline-flex items-center">
           <label
             htmlFor="metricas-data-filtro-input"
-            className="flex items-center gap-2 px-3.5 py-1.5 min-h-[44px] rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus-within:ring-2 focus-within:ring-teal-500"
+            className="flex items-center gap-2 px-3.5 py-1.5 min-h-[44px] rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus-within:ring-2 focus-within:ring-teal-500"
           >
             <Calendar className="w-4 h-4 text-slate-400" aria-hidden="true" />
             <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{dataFormatadaBR}</span>
@@ -344,7 +350,7 @@ export function MetricasLgpdView() {
       {/* 2. OS 4 CARDS SUPERIORES (2x2 NO MOBILE, 4x1 NO DESKTOP) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* CARD 1: ADMISSÕES */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
           <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs font-semibold">
             <ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span>Admissões</span>
@@ -373,7 +379,7 @@ export function MetricasLgpdView() {
         </div>
 
         {/* CARD 2: ALTAS */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
           <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs font-semibold">
             <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span>Altas</span>
@@ -402,21 +408,21 @@ export function MetricasLgpdView() {
         </div>
 
         {/* CARD 3: PERMANÊNCIA */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
           <div className="flex items-center justify-between gap-1 flex-wrap">
             <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs font-semibold">
               <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
               <span>Permanência</span>
             </div>
             {pendenciasUrgentesPendentes > 0 && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-950/70 text-red-700 dark:text-red-300 text-[9px] sm:text-[10px] font-bold animate-pulse border border-red-200 dark:border-red-800">
-                <span>🚨 {pendenciasUrgentesPendentes}</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 text-[11px] font-semibold border border-rose-200 dark:border-rose-800 tabular-nums-clinical">
+                <span>{pendenciasUrgentesPendentes} urg.</span>
               </span>
             )}
           </div>
 
           <div className="my-1.5 sm:my-2">
-            <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-none">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-none tabular-nums-clinical">
               {concluidasPendencias}/{totalPendencias}
             </div>
           </div>
@@ -427,7 +433,7 @@ export function MetricasLgpdView() {
         </div>
 
         {/* CARD 4: INTERNADOS */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between min-h-[115px] sm:min-h-[120px]">
           <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs font-semibold">
             <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span>Internados</span>
@@ -458,7 +464,7 @@ export function MetricasLgpdView() {
       </div>
 
       {/* 3. CARD: EQUIPE DO DIA (PERMANÊNCIA) */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-3">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
         <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
           <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>Equipe do Dia (Permanência)</span>
@@ -475,7 +481,7 @@ export function MetricasLgpdView() {
                 {equipe.doutorandos.map((nome, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50/70 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-700/80 text-purple-700 dark:text-purple-300 text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50/70 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-700/80 text-purple-700 dark:text-purple-300 text-xs font-semibold shadow-sm"
                   >
                     <span className="w-2 h-2 rounded-full bg-purple-600 dark:bg-purple-400" />
                     <span>{nome}</span>
@@ -495,7 +501,7 @@ export function MetricasLgpdView() {
                 {equipe.residentes.map((nome, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-700/80 text-blue-700 dark:text-blue-300 text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-700/80 text-blue-700 dark:text-blue-300 text-xs font-semibold shadow-sm"
                   >
                     <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" />
                     <span>{nome}</span>
@@ -515,7 +521,7 @@ export function MetricasLgpdView() {
                 {equipe.preceptores.map((nome, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50/70 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-700/80 text-emerald-700 dark:text-emerald-300 text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50/70 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-700/80 text-emerald-700 dark:text-emerald-300 text-xs font-semibold shadow-sm"
                   >
                     <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400" />
                     <span>{nome}</span>
@@ -537,7 +543,7 @@ export function MetricasLgpdView() {
       </div>
 
       {/* 4. CARD: FLUXO E ETAPAS DA ADMISSÃO + PROGRESSÃO POR ENFERMARIA */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-5">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -575,7 +581,7 @@ export function MetricasLgpdView() {
               {fasesAtivas.map((fase) => (
                 <div
                   key={fase.id}
-                  className="h-full bg-slate-100 dark:bg-slate-700/60 rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-slate-700 shadow-2xs"
+                  className="h-full bg-slate-100 dark:bg-slate-700/60 rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-slate-700 shadow-sm"
                   title={`${fase.label}: ${fase.count}/${totalAdmissoes} (${fase.pct}%)`}
                 >
                   <div
@@ -600,7 +606,7 @@ export function MetricasLgpdView() {
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span
-                      className="w-6 h-6 rounded-lg flex items-center justify-center text-white shrink-0 shadow-2xs"
+                      className="w-6 h-6 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
                       style={{ backgroundColor: fase.hex }}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -655,7 +661,7 @@ export function MetricasLgpdView() {
             onClick={() => setPeriodo(p)}
             className={`px-4 py-2 min-h-[44px] inline-flex items-center justify-center rounded-full text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
               periodo === p
-                ? "bg-teal-700 text-white shadow-xs"
+                ? "bg-teal-700 text-white shadow-sm"
                 : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100"
             }`}
           >
@@ -665,7 +671,7 @@ export function MetricasLgpdView() {
       </div>
 
       {/* 6. CARD: TENDÊNCIA HISTÓRICA (GRÁFICO SVG COM CURVAS SUAVES) */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Tendência histórica</h3>
@@ -863,7 +869,7 @@ export function MetricasLgpdView() {
                         cx={p.x}
                         cy={p.y}
                         r="8"
-                        className="fill-[#f43f5e]/20 animate-pulse"
+                        className="fill-[#f43f5e]/20"
                       />
                     )}
                     <circle
@@ -937,7 +943,7 @@ export function MetricasLgpdView() {
         <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5 flex-wrap">
           <ShieldCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <span>
-            Dados clínicos apagados automaticamente: admissão/alta em 2 dias, pendências e equipe em 1 dia. Apenas totais diários são preservados.
+            Dados clínicos apagados automaticamente em 2 dias (48h após a data agendada ou do evento), incluindo admissões, altas, pendências e equipe. Apenas totais diários são preservados.
           </span>
         </p>
       </div>

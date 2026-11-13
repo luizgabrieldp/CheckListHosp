@@ -1,5 +1,5 @@
 // CheckList Hospitalar - PWA Service Worker
-const CACHE_NAME = "checklist-hosp-v1";
+const CACHE_NAME = "checklist-hosp-v2";
 
 // Recursos fundamentais pré-cacheados na instalação
 const PRECACHE_URLS = [
@@ -43,6 +43,11 @@ self.addEventListener("fetch", (event) => {
 
   // Ignora requisições que não sejam GET ou que sejam de APIs em tempo real (Firebase / WebSockets / Chrome extensions)
   if (req.method !== "GET" || !url.protocol.startsWith("http")) {
+    return;
+  }
+
+  // Nunca intercepta nem faz cache de rotas locais da API (/api/*)
+  if (url.pathname.startsWith("/api/") || url.pathname.includes("/api/")) {
     return;
   }
 
