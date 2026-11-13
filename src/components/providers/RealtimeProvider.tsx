@@ -92,8 +92,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         medicosAmbulatorio: SEED_AMBULATORIO_PADRAO as unknown as Array<Record<string, unknown> & { id: string }>,
         modelos: SEED_MODELOS_PADRAO as unknown as Array<Record<string, unknown> & { id: string }>,
       })
-        .then(() => {
-          if (!isMounted) return;
+        .then(({ migrated }) => {
+          if (!migrated || !isMounted) return;
           const atual = useAppStore.getState();
           if (atual.enfermarias.length > 0) {
             salvarConfigGranularFirestore("enfermarias", { items: atual.enfermarias }).catch(() => {});
