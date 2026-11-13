@@ -34,6 +34,10 @@ import {
   mesclarAmbulatorioComSeguranca,
   mesclarModelosComSeguranca,
 } from "@/lib/seeds";
+import {
+  CAMPOS_TEXTO_COLABORATIVOS,
+  mergeTextoColaborativo,
+} from "@/lib/collab-merge";
 
 let socketInstance: WebSocket | null = null;
 
@@ -62,28 +66,86 @@ export interface RecentRemoteUpdate {
   updatedAtMs: number;
 }
 
+const collabTextBases = new Map<string, string>();
+const CAMPOS_TEXTO_SET = new Set<string>(CAMPOS_TEXTO_COLABORATIVOS);
+
+interface PendingGranularWrite {
+  timer: ReturnType<typeof setTimeout>;
+  colecaoKey: ColecaoGranularKey;
+  initialPrevItem?: Record<string, unknown>;
+  latestItem: Record<string, unknown> & { id: string };
+}
+
+const pendingGranularWrites = new Map<string, PendingGranularWrite>();
+
+function registrarBaseTextoColaborativo(item: Record<string, unknown> & { id: string }) {
+  for (const field of CAMPOS_TEXTO_COLABORATIVOS) {
+    const val = item[field];
+    if (typeof val === "string") {
+      collabTextBases.set(`${item.id}:${field}`, val);
+    }
+  }
+}
+
 /**
- * Mescla itens recebidos do Firestore preservando o campo exato que o usuário
- * local está editando no momento (evita salto de cursor / perda de digitação).
+ * Mescla itens recebidos do Firestore usando 3-way merge para campos de texto longo
+ * (permitindo que dois usuários editem pontos diferentes do mesmo texto em tempo real)
+ * e preservando campos curtos quando o foco está ativo localmente.
  */
 export function mesclarColecaoComCampoAtivo<T extends { id: string }>(
   localItems: T[],
   remoteItems: T[],
-  activeField: ActiveEditingField | null
+  activeField: ActiveEditingField | null,
+  basesMap: Map<string, string> = collabTextBases
 ): T[] {
-  if (!activeField) return remoteItems;
-  const localItem = localItems.find((i) => i.id === activeField.entityId);
-  if (!localItem) return remoteItems;
-
-  const hasLocalField = Object.prototype.hasOwnProperty.call(localItem, activeField.field);
-  if (!hasLocalField) return remoteItems;
+  const localById = new Map<string, T>();
+  for (const item of localItems) {
+    localById.set(item.id, item);
+  }
 
   return remoteItems.map((remoteItem) => {
-    if (remoteItem.id !== activeField.entityId) return remoteItem;
-    return {
-      ...remoteItem,
-      [activeField.field]: (localItem as Record<string, unknown>)[activeField.field],
-    };
+    const localItem = localById.get(remoteItem.id);
+    const remoteRec = remoteItem as unknown as Record<string, unknown>;
+
+    if (!localItem) {
+      for (const field of CAMPOS_TEXTO_COLABORATIVOS) {
+        if (typeof remoteRec[field] === "string") {
+          basesMap.set(`${remoteItem.id}:${field}`, remoteRec[field] as string);
+        }
+      }
+      return remoteItem;
+    }
+
+    const localRec = localItem as unknown as Record<string, unknown>;
+    let merged: Record<string, unknown> | null = null;
+
+    for (const field of CAMPOS_TEXTO_COLABORATIVOS) {
+      const localVal = localRec[field];
+      const remoteVal = remoteRec[field];
+      if (typeof localVal === "string" && typeof remoteVal === "string") {
+        const baseKey = `${remoteItem.id}:${field}`;
+        const baseVal = basesMap.get(baseKey) ?? localVal;
+
+        if (localVal !== remoteVal && localVal !== baseVal) {
+          const mergedText = mergeTextoColaborativo(baseVal, localVal, remoteVal);
+          if (!merged) merged = { ...remoteRec };
+          merged[field] = mergedText;
+        }
+        basesMap.set(baseKey, remoteVal);
+      }
+    }
+
+    if (
+      activeField &&
+      activeField.entityId === remoteItem.id &&
+      !CAMPOS_TEXTO_SET.has(activeField.field) &&
+      Object.prototype.hasOwnProperty.call(localRec, activeField.field)
+    ) {
+      if (!merged) merged = { ...remoteRec };
+      merged[activeField.field] = localRec[activeField.field];
+    }
+
+    return (merged ? (merged as unknown as T) : remoteItem);
   });
 }
 
@@ -110,6 +172,20 @@ function finalizarSyncStatus(ok: boolean) {
   });
 }
 
+function enviarEscritaGranular(
+  colecaoKey: ColecaoGranularKey,
+  item: Record<string, unknown> & { id: string },
+  prevItem: Record<string, unknown> | undefined
+) {
+  const author = useAppStore.getState().plantonista || "Equipe";
+  salvarItemGranularFirestore(colecaoKey, item.id, item, prevItem, author)
+    .then((ok) => {
+      if (ok) registrarBaseTextoColaborativo(item);
+      finalizarSyncStatus(ok);
+    })
+    .catch(() => finalizarSyncStatus(false));
+}
+
 function sincronizarItemGranular(
   colecaoKey: ColecaoGranularKey,
   item: Record<string, unknown> & { id: string },
@@ -119,10 +195,42 @@ function sincronizarItemGranular(
   wsType: string
 ) {
   sincronizarCacheLocalEWs(wsKey, wsPayload, wsType);
-  const author = useAppStore.getState().plantonista || "Equipe";
-  salvarItemGranularFirestore(colecaoKey, item.id, item, prevItem, author)
-    .then((ok) => finalizarSyncStatus(ok))
-    .catch(() => finalizarSyncStatus(false));
+
+  const activeField = useAppStore.getState().activeEditingField;
+  const isTypingTextField =
+    activeField &&
+    activeField.entityId === item.id &&
+    CAMPOS_TEXTO_SET.has(activeField.field);
+
+  const writeKey = `${colecaoKey}:${item.id}`;
+  const existing = pendingGranularWrites.get(writeKey);
+
+  if (isTypingTextField) {
+    if (existing) {
+      clearTimeout(existing.timer);
+    }
+    const initialPrev = existing ? existing.initialPrevItem : prevItem;
+    const timer = setTimeout(() => {
+      pendingGranularWrites.delete(writeKey);
+      enviarEscritaGranular(colecaoKey, item, initialPrev);
+    }, 260);
+    pendingGranularWrites.set(writeKey, {
+      timer,
+      colecaoKey,
+      initialPrevItem: initialPrev,
+      latestItem: item,
+    });
+    return;
+  }
+
+  if (existing) {
+    clearTimeout(existing.timer);
+    pendingGranularWrites.delete(writeKey);
+    enviarEscritaGranular(colecaoKey, item, existing.initialPrevItem);
+    return;
+  }
+
+  enviarEscritaGranular(colecaoKey, item, prevItem);
 }
 
 function removerItemGranular(
@@ -540,6 +648,9 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
       passagem: [],
       metricas: [],
     });
+    collabTextBases.clear();
+    pendingGranularWrites.forEach((p) => clearTimeout(p.timer));
+    pendingGranularWrites.clear();
     removerPresencaFirestore().catch(() => {});
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("checklist_auth");

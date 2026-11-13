@@ -12,6 +12,7 @@ import {
 import { obterDataLocalHoje, obterNivelProgressoAdmissao } from "@/lib/utils";
 import { imprimirElementoIsolado } from "@/lib/printUtils";
 import { useModalA11y } from "@/lib/useFocusTrap";
+import { CollabTextarea } from "@/components/ui/CollabTextarea";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -927,15 +928,17 @@ export function AdmissoesView() {
                             <label htmlFor={`anotacoes-historia-${paciente.id}`} className="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
                               Anotações (História do Paciente)
                             </label>
-                            <textarea
+                            <CollabTextarea
                               id={`anotacoes-historia-${paciente.id}`}
+                              entityId={paciente.id}
+                              field="anotacoesHistoria"
                               rows={14}
                               disabled={isTravada}
                               value={paciente.anotacoesHistoria ?? TEMPLATE_HISTORIA_PADRAO}
-                              onChange={(e) => {
+                              onValueChange={(nextVal) => {
                                 salvarAdmissao({
                                   ...paciente,
-                                  anotacoesHistoria: e.target.value,
+                                  anotacoesHistoria: nextVal,
                                   updatedAt: new Date().toISOString(),
                                 });
                               }}

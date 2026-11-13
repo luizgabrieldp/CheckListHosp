@@ -35,6 +35,7 @@ import {
 } from "../src/lib/patient-flow";
 import { computeDiffFields } from "../src/lib/firebase";
 import { mesclarColecaoComCampoAtivo } from "../src/store/useAppStore";
+import { mergeTextoColaborativo } from "../src/lib/collab-merge";
 
 let passed = 0;
 let failed = 0;
@@ -4096,24 +4097,62 @@ assert(
 const diffVazio = computeDiffFields(prevPaciente, { ...prevPaciente }, "__DEL__");
 assert(Object.keys(diffVazio).length === 0, "computeDiffFields retorna objeto vazio quando não há alterações");
 
-// 52.2 Proteção do campo em edição ativa durante sincronização remota
+// 52.2 Proteção de campo curto focado + Merge colaborativo 3-way em texto longo
+const testBases = new Map<string, string>();
+testBases.set("p1:evolucao", "Evolução inicial");
 const localList = [
-  { id: "p1", evolucao: "Digitando agora...", conduta: "Antiga" },
-  { id: "p2", evolucao: "Local p2", conduta: "Conduta p2" },
+  { id: "p1", leito: "12", evolucao: "Evolução inicial", conduta: "Antiga" },
+  { id: "p2", leito: "04", evolucao: "Local p2", conduta: "Conduta p2" },
 ];
 const remoteList = [
-  { id: "p1", evolucao: "Versão remota antiga", conduta: "Nova conduta do colega" },
-  { id: "p2", evolucao: "Atualizado pelo colega", conduta: "Conduta p2" },
+  { id: "p1", leito: "99", evolucao: "Colega digitando em tempo real...", conduta: "Nova conduta do colega" },
+  { id: "p2", leito: "04", evolucao: "Atualizado pelo colega", conduta: "Conduta p2" },
 ];
-const mergedList = mesclarColecaoComCampoAtivo(localList, remoteList, {
-  entityId: "p1",
-  field: "evolucao",
-});
+const mergedList = mesclarColecaoComCampoAtivo(
+  localList,
+  remoteList,
+  { entityId: "p1", field: "leito" },
+  testBases
+);
 assert(
-  mergedList[0].evolucao === "Digitando agora..." &&
+  mergedList[0].leito === "12" &&
+    mergedList[0].evolucao === "Colega digitando em tempo real..." &&
     mergedList[0].conduta === "Nova conduta do colega" &&
     mergedList[1].evolucao === "Atualizado pelo colega",
-  "mesclarColecaoComCampoAtivo preserva campo focado localmente enquanto aplica edições remotas em outros campos/itens"
+  "mesclarColecaoComCampoAtivo preserva campo curto focado e entrega texto remoto em tempo real para outro aparelho"
+);
+
+// 52.2b Merge 3-way quando dois usuários editam pontos diferentes do mesmo texto de Admissão
+const baseAdmissaoTexto = [
+  "ID: J.S., 45 anos",
+  "HDA: ",
+  "AP: Nega comorbidades",
+  "MUC: Nenhuma",
+  "CONDUTA: ",
+].join("\n");
+const localAdmissaoTexto = [
+  "ID: J.S., 45 anos",
+  "HDA: Dor em hipocôndrio direito há 2 dias",
+  "AP: Nega comorbidades",
+  "MUC: Nenhuma",
+  "CONDUTA: ",
+].join("\n");
+const remoteAdmissaoTexto = [
+  "ID: J.S., 45 anos",
+  "HDA: ",
+  "AP: Nega comorbidades",
+  "MUC: Nenhuma",
+  "CONDUTA: Jejum + analgesia + USG abdome",
+].join("\n");
+const mergedAdmissaoTexto = mergeTextoColaborativo(
+  baseAdmissaoTexto,
+  localAdmissaoTexto,
+  remoteAdmissaoTexto
+);
+assert(
+  mergedAdmissaoTexto.includes("HDA: Dor em hipocôndrio direito há 2 dias") &&
+    mergedAdmissaoTexto.includes("CONDUTA: Jejum + analgesia + USG abdome"),
+  "mergeTextoColaborativo preserva edições simultâneas em pontos diferentes do mesmo texto de Admissão"
 );
 
 // 52.3 Fluxo contínuo desabilitado
